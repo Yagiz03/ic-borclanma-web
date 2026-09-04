@@ -34,6 +34,7 @@ const anaSayfalar: NavItem[] = [
   { href: "/dashboard", label: "Özet", icon: LayoutDashboard },
   { href: "/dashboard/dibs-detay", label: "DİBS Detay", icon: FileSearch },
   { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge },
+  { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare },
   { href: "/dashboard/izleme-listesi", label: "İzleme Listesi", icon: Star },
 ];
 
@@ -42,7 +43,6 @@ const yakindaSayfalar: NavItem[] = [
   { href: "/dashboard/getiri-egrisi", label: "Getiri Eğrisi", icon: LineChart, yakinda: true },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays, yakinda: true },
   { href: "/dashboard/pnl", label: "P&L", icon: Landmark, yakinda: true },
-  { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare, yakinda: true },
   { href: "/dashboard/ozel-sektor", label: "Özel Sektör", icon: Building2, yakinda: true },
   { href: "/dashboard/strateji", label: "Strateji", icon: FileText, yakinda: true },
   { href: "/dashboard/deneysel", label: "Deneysel", icon: FlaskConical, yakinda: true },
