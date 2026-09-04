@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -35,7 +37,12 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold">İç Borçlanma Dashboard</h1>
           <p className="text-muted-foreground text-sm">{user.email}</p>
         </div>
-        <SignOutButton />
+        <div className="flex gap-2">
+          <Button variant="outline" render={<Link href="/dashboard/analitik" />}>
+            Ziyaret takibi
+          </Button>
+          <SignOutButton />
+        </div>
       </div>
 
       <Card>
