@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,11 +18,6 @@ function sureFormatla(saniye: number | null): string {
 export default async function AnalitikPage() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/giris");
-
   const { data: ziyaretler, error } = await supabase
     .from("page_views")
     .select("id, ad_soyad, email, yol, giris_zamani, cikis_zamani, sure_saniye")
@@ -31,7 +25,7 @@ export default async function AnalitikPage() {
     .limit(200);
 
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Ziyaret takibi</h1>
         <p className="text-muted-foreground text-sm">
@@ -78,6 +72,6 @@ export default async function AnalitikPage() {
           )}
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
