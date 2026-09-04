@@ -9,8 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { trTarihSirala, isoTarihGoster } from "@/lib/tarih";
+import { SenetBadge } from "@/components/senet-badge";
 import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
+import { IzlemeButonu } from "./izleme-butonu";
 
 function yuzde(v: number | string | null | undefined, ondalik = 2): string {
   if (v == null) return "–";
@@ -59,6 +61,12 @@ export default async function DibsDetayPage({
       .order("tarih", { ascending: true }),
   ]);
 
+  const { data: izlemeSatiri } = await supabase
+    .from("watchlist")
+    .select("id")
+    .eq("isin", secilen.isin)
+    .maybeSingle();
+
   const siraliIhale = ihaleler ? trTarihSirala(ihaleler, (r) => r.ihale_tarihi) : [];
   const sonBist = bistFiyatlar && bistFiyatlar.length > 0 ? bistFiyatlar[bistFiyatlar.length - 1] : null;
 
@@ -103,10 +111,12 @@ export default async function DibsDetayPage({
         />
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold">
-          {secilen.isin} <span className="font-normal text-muted-foreground">— {secilen.senet_tanimi}</span>
-        </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">{secilen.isin}</h2>
+          <SenetBadge tanim={secilen.senet_tanimi} />
+        </div>
+        <IzlemeButonu isin={secilen.isin} baslangicIzlemede={!!izlemeSatiri} />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

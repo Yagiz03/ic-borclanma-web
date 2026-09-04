@@ -17,6 +17,7 @@ import {
   FileText,
   FlaskConical,
   Menu,
+  ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
@@ -32,12 +33,15 @@ type NavItem = {
 const anaSayfalar: NavItem[] = [
   { href: "/dashboard", label: "Özet", icon: LayoutDashboard },
   { href: "/dashboard/dibs-detay", label: "DİBS Detay", icon: FileSearch },
-  { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge, yakinda: true },
+  { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge },
+  { href: "/dashboard/izleme-listesi", label: "İzleme Listesi", icon: Star },
+];
+
+const yakindaSayfalar: NavItem[] = [
   { href: "/dashboard/pricing", label: "Pricing", icon: Wallet, yakinda: true },
   { href: "/dashboard/getiri-egrisi", label: "Getiri Eğrisi", icon: LineChart, yakinda: true },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays, yakinda: true },
   { href: "/dashboard/pnl", label: "P&L", icon: Landmark, yakinda: true },
-  { href: "/dashboard/izleme-listesi", label: "İzleme Listesi", icon: Star, yakinda: true },
   { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare, yakinda: true },
   { href: "/dashboard/ozel-sektor", label: "Özel Sektör", icon: Building2, yakinda: true },
   { href: "/dashboard/strateji", label: "Strateji", icon: FileText, yakinda: true },
@@ -82,6 +86,8 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
 }
 
 function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  const [yakindaAcik, setYakindaAcik] = useState(false);
+
   return (
     <div className="flex h-full flex-col gap-6 p-4">
       <div className="flex items-center gap-2 px-2 pt-1">
@@ -98,10 +104,24 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
         {anaSayfalar.map((item) => (
           <NavLink key={item.href} item={item} pathname={pathname} onClick={onNavigate} />
         ))}
+
         <div className="my-3 h-px bg-sidebar-border" />
         {yonetimSayfalari.map((item) => (
           <NavLink key={item.href} item={item} pathname={pathname} onClick={onNavigate} />
         ))}
+
+        <div className="my-3 h-px bg-sidebar-border" />
+        <button
+          onClick={() => setYakindaAcik((v) => !v)}
+          className="flex items-center justify-between rounded-md px-3 py-2 text-xs font-medium tracking-wide text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/80"
+        >
+          Yakında ({yakindaSayfalar.length})
+          <ChevronDown className={`size-3.5 transition-transform ${yakindaAcik ? "rotate-180" : ""}`} />
+        </button>
+        {yakindaAcik &&
+          yakindaSayfalar.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} onClick={onNavigate} />
+          ))}
       </nav>
     </div>
   );
