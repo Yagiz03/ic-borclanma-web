@@ -34,3 +34,21 @@ export function isoTarihGoster(deger: string | null | undefined): string {
   const d = trTarihAyristir(deger);
   return d ? d.toLocaleDateString("tr-TR") : "–";
 }
+
+/** isin_ozet'in text tarih kolonlarını (DD.MM.YYYY ya da ISO YYYY-MM-DD...)
+ * bond-math motorunun beklediği UTC gece yarısı Date'e çevirir -- yerel
+ * saat dilimi kaymasının gün sayımını bozmaması için, string'ten DOĞRUDAN
+ * yıl/ay/gün okuyarak (ara adımda yerel saatli bir Date'e hiç uğramadan;
+ * bkz. tahvil-fiyatlama.ts). */
+export function utcTarihe(deger: string | null | undefined): Date | null {
+  if (!deger) return null;
+  const parca = deger.slice(0, 10);
+  if (parca.includes(".")) {
+    const [gun, ay, yil] = parca.split(".").map(Number);
+    if (!gun || !ay || !yil) return null;
+    return new Date(Date.UTC(yil, ay - 1, gun));
+  }
+  const [yil, ay, gun] = parca.split("-").map(Number);
+  if (!yil || !ay || !gun) return null;
+  return new Date(Date.UTC(yil, ay - 1, gun));
+}

@@ -35,11 +35,11 @@ const anaSayfalar: NavItem[] = [
   { href: "/dashboard/dibs-detay", label: "DİBS Detay", icon: FileSearch },
   { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge },
   { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare },
+  { href: "/dashboard/pricing", label: "Pricing", icon: Wallet },
   { href: "/dashboard/izleme-listesi", label: "İzleme Listesi", icon: Star },
 ];
 
 const yakindaSayfalar: NavItem[] = [
-  { href: "/dashboard/pricing", label: "Pricing", icon: Wallet, yakinda: true },
   { href: "/dashboard/getiri-egrisi", label: "Getiri Eğrisi", icon: LineChart, yakinda: true },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays, yakinda: true },
   { href: "/dashboard/pnl", label: "P&L", icon: Landmark, yakinda: true },
