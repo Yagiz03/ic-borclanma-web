@@ -135,7 +135,7 @@ export default async function PnlPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-xs text-muted-foreground">Toplam K/Z</p>
-                <p className={`font-figures text-xl font-semibold ${toplamKz >= 0 ? "text-emerald-400" : "text-destructive"}`}>
+                <p className={`font-figures text-xl font-semibold ${toplamKz >= 0 ? "text-emerald-600" : "text-destructive"}`}>
                   {paraFmt(toplamKz)} TL
                 </p>
                 {toplamPct != null && (
@@ -201,7 +201,7 @@ export default async function PnlPage() {
                         <b className="text-foreground">Fark:</b> {s.fark! >= 0 ? "+" : ""}
                         {s.fark!.toFixed(3)}
                       </span>
-                      <span className={s.kz! >= 0 ? "text-emerald-400" : "text-destructive"}>
+                      <span className={s.kz! >= 0 ? "text-emerald-600" : "text-destructive"}>
                         <b>K/Z:</b> {paraFmt(s.kz!)} TL (%{s.pct!.toFixed(2)})
                       </span>
                       {s.modifiedDur != null && (
@@ -216,7 +216,7 @@ export default async function PnlPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="mt-1 text-sm text-amber-400">Bu ISIN için güncel BIST fiyatı bulunamadı.</p>
+                    <p className="mt-1 text-sm text-amber-600">Bu ISIN için güncel BIST fiyatı bulunamadı.</p>
                   )}
                   {!s.kirliKullanildi && s.guncelFiyat != null && (
                     <p className="mt-1 text-xs text-muted-foreground">
