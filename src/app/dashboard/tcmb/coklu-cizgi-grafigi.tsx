@@ -1,0 +1,81 @@
+"use client";
+
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart } from "recharts";
+
+const RENKLER = [
+  "oklch(0.55 0.21 264)",
+  "oklch(0.6 0.19 35)",
+  "oklch(0.6 0.18 155)",
+  "oklch(0.58 0.2 300)",
+  "oklch(0.72 0.18 85)",
+  "oklch(0.55 0.18 200)",
+];
+
+type Seri = { anahtar: string; etiket: string };
+
+function tarihFmt(v: string) {
+  return new Date(v).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+export function CokluCizgiGrafigi({
+  veri,
+  seriler,
+  birim = "",
+  ondalik = 2,
+}: {
+  veri: Record<string, string | number>[];
+  seriler: Seri[];
+  birim?: string;
+  ondalik?: number;
+}) {
+  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <LineChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
+        <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={56} domain={["auto", "auto"]} />
+        <Tooltip
+          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+          labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
+          formatter={(v, isim) => [`${Number(v).toFixed(ondalik)}${birim}`, isim]}
+        />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        {seriler.map((s, i) => (
+          <Line key={s.anahtar} type="monotone" dataKey={s.anahtar} name={s.etiket} stroke={RENKLER[i % RENKLER.length]} strokeWidth={2} dot={false} connectNulls />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function YiginliAlanGrafigi({ veri, seriler }: { veri: Record<string, string | number>[]; seriler: Seri[] }) {
+  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  return (
+    <ResponsiveContainer width="100%" height={340}>
+      <AreaChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
+        <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} />
+        <Tooltip
+          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+          labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
+          formatter={(v, isim) => [`${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} Mn TL`, isim]}
+        />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        {seriler.map((s, i) => (
+          <Area
+            key={s.anahtar}
+            type="monotone"
+            dataKey={s.anahtar}
+            name={s.etiket}
+            stackId="1"
+            stroke={RENKLER[i % RENKLER.length]}
+            fill={RENKLER[i % RENKLER.length]}
+            fillOpacity={0.65}
+          />
+        ))}
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
