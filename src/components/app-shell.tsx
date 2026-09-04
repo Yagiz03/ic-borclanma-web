@@ -17,7 +17,9 @@ import {
   FileText,
   FlaskConical,
   Menu,
+  X,
   ChevronDown,
+  Clock,
 } from "lucide-react";
 import { useState } from "react";
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
@@ -48,35 +50,18 @@ const yakindaSayfalar: NavItem[] = [
   { href: "/dashboard/deneysel", label: "Deneysel", icon: FlaskConical, yakinda: true },
 ];
 
-const yonetimSayfalari: NavItem[] = [
-  { href: "/dashboard/analitik", label: "Ziyaret Takibi", icon: Activity },
-];
-
 function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string; onClick?: () => void }) {
   const aktif = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);
   const Icon = item.icon;
-
-  if (item.yakinda) {
-    return (
-      <div className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-foreground/40">
-        <Icon className="size-4 shrink-0" />
-        <span className="flex-1">{item.label}</span>
-        <span className="rounded-full bg-sidebar-accent px-2 py-0.5 text-[10px] font-medium tracking-wide text-sidebar-foreground/50">
-          YAKINDA
-        </span>
-      </div>
-    );
-  }
-
   return (
     <Link
       href={item.href}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
         aktif
-          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+          ? "gradient-marka text-white shadow-sm"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -85,44 +70,51 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
   );
 }
 
-function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
-  const [yakindaAcik, setYakindaAcik] = useState(false);
-
+function Logo() {
   return (
-    <div className="flex h-full flex-col gap-6 p-4">
-      <div className="flex items-center gap-2 px-2 pt-1">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary font-figures text-sm font-bold text-primary-foreground">
-          İB
-        </div>
-        <div>
-          <div className="text-sm font-semibold leading-tight">İç Borçlanma</div>
-          <div className="text-xs leading-tight text-muted-foreground">Dashboard</div>
-        </div>
+    <Link href="/dashboard" className="flex shrink-0 items-center gap-2">
+      <div className="gradient-marka flex size-9 items-center justify-center rounded-xl font-figures text-sm font-bold text-white shadow-sm">
+        İB
       </div>
+      <div className="hidden sm:block">
+        <div className="text-sm leading-tight font-semibold">İç Borçlanma</div>
+        <div className="gradient-metin text-xs leading-tight font-medium">Dashboard</div>
+      </div>
+    </Link>
+  );
+}
 
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
-        {anaSayfalar.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} onClick={onNavigate} />
-        ))}
-
-        <div className="my-3 h-px bg-sidebar-border" />
-        {yonetimSayfalari.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} onClick={onNavigate} />
-        ))}
-
-        <div className="my-3 h-px bg-sidebar-border" />
-        <button
-          onClick={() => setYakindaAcik((v) => !v)}
-          className="flex items-center justify-between rounded-md px-3 py-2 text-xs font-medium tracking-wide text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/80"
-        >
-          Yakında ({yakindaSayfalar.length})
-          <ChevronDown className={`size-3.5 transition-transform ${yakindaAcik ? "rotate-180" : ""}`} />
-        </button>
-        {yakindaAcik &&
-          yakindaSayfalar.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} onClick={onNavigate} />
-          ))}
-      </nav>
+function YakindaMenu() {
+  const [acik, setAcik] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setAcik((v) => !v)}
+        className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      >
+        <Clock className="size-4" />
+        Yakında
+        <ChevronDown className={cn("size-3.5 transition-transform", acik && "rotate-180")} />
+      </button>
+      {acik && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setAcik(false)} />
+          <div className="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-border bg-popover p-1.5 shadow-lg">
+            {yakindaSayfalar.map((item) => (
+              <div
+                key={item.href}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground"
+              >
+                <item.icon className="size-4 shrink-0" />
+                <span className="flex-1">{item.label}</span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tracking-wide">
+                  YAKINDA
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -140,40 +132,77 @@ export function AppShell({
   const [mobilAcik, setMobilAcik] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:block">
-        <SidebarContent pathname={pathname} />
-      </aside>
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 lg:px-6">
+          <Logo />
 
-      {mobilAcik && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setMobilAcik(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-            <SidebarContent pathname={pathname} onNavigate={() => setMobilAcik(false)} />
-          </aside>
-        </div>
-      )}
+          <nav className="hidden flex-1 items-center gap-1 overflow-x-auto lg:flex">
+            {anaSayfalar.map((item) => (
+              <NavLink key={item.href} item={item} pathname={pathname} />
+            ))}
+          </nav>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4 lg:px-6">
-          <button
-            className="rounded-md p-2 hover:bg-accent lg:hidden"
-            onClick={() => setMobilAcik(true)}
-            aria-label="Menüyü aç"
-          >
-            <Menu className="size-5" />
-          </button>
-          <div className="hidden text-sm text-muted-foreground lg:block" />
-          <div className="flex items-center gap-3">
-            <div className="text-right leading-tight">
+          <div className="hidden items-center gap-1 lg:flex">
+            <Link
+              href="/dashboard/analitik"
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+                pathname.startsWith("/dashboard/analitik")
+                  ? "gradient-marka text-white shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              <Activity className="size-4 shrink-0" />
+              Ziyaret Takibi
+            </Link>
+            <YakindaMenu />
+          </div>
+
+          <div className="ml-auto flex items-center gap-3 lg:ml-0">
+            <div className="hidden text-right leading-tight sm:block">
               <div className="text-sm font-medium">{adSoyad}</div>
               <div className="text-xs text-muted-foreground">{email}</div>
             </div>
             <SignOutButton />
+            <button
+              className="rounded-md p-2 hover:bg-accent lg:hidden"
+              onClick={() => setMobilAcik((v) => !v)}
+              aria-label="Menüyü aç"
+            >
+              {mobilAcik ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
           </div>
-        </header>
-        <main className="min-w-0 flex-1 p-4 lg:p-6">{children}</main>
-      </div>
+        </div>
+
+        {mobilAcik && (
+          <nav className="flex flex-col gap-1 border-t border-border p-3 lg:hidden">
+            {anaSayfalar.map((item) => (
+              <NavLink key={item.href} item={item} pathname={pathname} onClick={() => setMobilAcik(false)} />
+            ))}
+            <NavLink
+              item={{ href: "/dashboard/analitik", label: "Ziyaret Takibi", icon: Activity }}
+              pathname={pathname}
+              onClick={() => setMobilAcik(false)}
+            />
+            <div className="my-1 h-px bg-border" />
+            {yakindaSayfalar.map((item) => (
+              <div
+                key={item.href}
+                className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground/60"
+              >
+                <item.icon className="size-4 shrink-0" />
+                <span className="flex-1">{item.label}</span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tracking-wide">
+                  YAKINDA
+                </span>
+              </div>
+            ))}
+          </nav>
+        )}
+      </header>
+
+      <main className="mx-auto w-full max-w-7xl flex-1 p-4 lg:p-6">{children}</main>
     </div>
   );
 }

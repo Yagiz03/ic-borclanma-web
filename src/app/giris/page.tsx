@@ -56,16 +56,16 @@ export default function GirisPage() {
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-10 lg:flex">
+      <div className="gradient-marka relative hidden flex-col justify-between overflow-hidden p-10 text-white lg:flex">
         <div
-          className="pointer-events-none absolute inset-0 opacity-40"
+          className="pointer-events-none absolute inset-0 opacity-70 mix-blend-overlay"
           style={{
             background:
-              "radial-gradient(circle at 20% 20%, oklch(0.7 0.16 250 / 0.25), transparent 55%), radial-gradient(circle at 80% 70%, oklch(0.68 0.15 300 / 0.2), transparent 50%)",
+              "radial-gradient(circle at 15% 15%, white, transparent 40%), radial-gradient(circle at 85% 85%, white, transparent 45%)",
           }}
         />
         <div className="relative flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary font-figures text-sm font-bold text-primary-foreground">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-white/20 font-figures text-sm font-bold backdrop-blur-sm">
             İB
           </div>
           <span className="font-semibold">İç Borçlanma Dashboard</span>
@@ -77,8 +77,8 @@ export default function GirisPage() {
           </h1>
           <ul className="space-y-4">
             {OZELLIKLER.map((o) => (
-              <li key={o.metin} className="flex items-center gap-3 text-sm text-sidebar-foreground/80">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
+              <li key={o.metin} className="flex items-center gap-3 text-sm text-white/90">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm">
                   <o.icon className="size-4" />
                 </span>
                 {o.metin}
@@ -87,13 +87,13 @@ export default function GirisPage() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-sidebar-foreground/40">HMB · BIST BAP · TCMB verilerine dayanır.</p>
+        <p className="relative text-xs text-white/60">HMB · BIST BAP · TCMB verilerine dayanır.</p>
       </div>
 
       <div className="flex items-center justify-center p-4">
-        <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-sm">
+        <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-md">
           <CardHeader>
-            <div className="mb-2 flex size-9 items-center justify-center rounded-lg bg-primary font-figures text-sm font-bold text-primary-foreground lg:hidden">
+            <div className="gradient-marka mb-2 flex size-9 items-center justify-center rounded-lg font-figures text-sm font-bold text-white lg:hidden">
               İB
             </div>
             <CardTitle className="text-xl">Giriş yap</CardTitle>

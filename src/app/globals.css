@@ -49,46 +49,45 @@
 }
 
 :root {
-  /* Koyu lacivert/antrasit fintech paleti (bkz. göç planı: shadcn'in
-     varsayılan nötr/zinc paleti DEĞİL) -- açık mod, koyu modun ters
-     çevrilmiş bir fallback'i. */
-  --card: oklch(0.99 0.003 250);
-  --card-foreground: oklch(0.2 0.02 255);
-  --popover: oklch(0.99 0.003 250);
-  --popover-foreground: oklch(0.2 0.02 255);
-  --primary: oklch(0.55 0.19 255);
-  --primary-foreground: oklch(0.98 0.005 250);
-  --secondary: oklch(0.94 0.01 255);
-  --secondary-foreground: oklch(0.2 0.02 255);
-  --muted: oklch(0.95 0.008 255);
-  --muted-foreground: oklch(0.48 0.02 255);
-  --accent: oklch(0.93 0.02 255);
-  --accent-foreground: oklch(0.2 0.02 255);
-  --destructive: oklch(0.6 0.22 25);
-  --border: oklch(0.9 0.01 255);
-  --input: oklch(0.9 0.01 255);
-  --ring: oklch(0.55 0.19 255);
-  --chart-1: oklch(0.55 0.19 255);
-  --chart-2: oklch(0.65 0.16 30);
-  --chart-3: oklch(0.6 0.15 300);
-  --chart-4: oklch(0.65 0.16 150);
-  --chart-5: oklch(0.7 0.17 90);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.97 0.006 255);
-  --sidebar-foreground: oklch(0.2 0.02 255);
-  --sidebar-primary: oklch(0.55 0.19 255);
-  --sidebar-primary-foreground: oklch(0.98 0.005 250);
-  --sidebar-accent: oklch(0.93 0.02 255);
-  --sidebar-accent-foreground: oklch(0.2 0.02 255);
-  --sidebar-border: oklch(0.9 0.01 255);
-  --sidebar-ring: oklch(0.55 0.19 255);
-  --background: oklch(0.995 0.002 250);
-  --foreground: oklch(0.16 0.02 255);
+  /* Açık, renkli, "profesyonel fintech" paleti -- kullanıcı isteğiyle
+     (04.09.2026) koyu temadan buraya geçildi: canlı indigo primary +
+     beyaza yakın, hafif mavi tonlu bir zemin, kağıt türü rozetlerinin
+     (senet-tipi.ts) renklerinin beyaz üstünde parlaması hedeflendi. */
+  --background: oklch(0.99 0.004 250);
+  --foreground: oklch(0.22 0.03 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.03 260);
+  --primary: oklch(0.52 0.21 264);
+  --primary-foreground: oklch(0.99 0.005 250);
+  --secondary: oklch(0.96 0.012 260);
+  --secondary-foreground: oklch(0.3 0.04 260);
+  --muted: oklch(0.965 0.008 260);
+  --muted-foreground: oklch(0.5 0.03 260);
+  --accent: oklch(0.94 0.03 280);
+  --accent-foreground: oklch(0.3 0.05 264);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.91 0.012 260);
+  --input: oklch(0.91 0.012 260);
+  --ring: oklch(0.52 0.21 264);
+  --chart-1: oklch(0.52 0.21 264);
+  --chart-2: oklch(0.66 0.19 35);
+  --chart-3: oklch(0.6 0.18 155);
+  --chart-4: oklch(0.58 0.2 300);
+  --chart-5: oklch(0.72 0.18 85);
+  --radius: 0.75rem;
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.22 0.03 260);
+  --sidebar-primary: oklch(0.52 0.21 264);
+  --sidebar-primary-foreground: oklch(0.99 0.005 250);
+  --sidebar-accent: oklch(0.94 0.03 280);
+  --sidebar-accent-foreground: oklch(0.3 0.05 264);
+  --sidebar-border: oklch(0.91 0.012 260);
+  --sidebar-ring: oklch(0.52 0.21 264);
 }
 
 .dark {
-  /* Ana tasarım hedefi bu -- uygulama varsayılan olarak koyu modda
-     açılıyor (bkz. layout.tsx), fintech ürünlerinde beklenen görünüm. */
   --background: oklch(0.16 0.02 260);
   --foreground: oklch(0.96 0.006 255);
   --card: oklch(0.205 0.02 260);
@@ -128,6 +127,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 8% 0%, oklch(0.9 0.06 264 / 0.5), transparent 32%),
+      radial-gradient(circle at 100% 12%, oklch(0.9 0.06 340 / 0.4), transparent 30%),
+      radial-gradient(circle at 50% 100%, oklch(0.92 0.06 155 / 0.3), transparent 35%);
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
@@ -141,5 +145,17 @@
   .font-figures {
     font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Üst bar ve kart başlıklarında kullanılan indigo->mor->pembe gradient --
+     "renkli süslü" isteğiyle (04.09.2026) marka rengine hareket katmak için. */
+  .gradient-marka {
+    background-image: linear-gradient(135deg, oklch(0.55 0.22 264), oklch(0.58 0.22 300), oklch(0.65 0.2 340));
+  }
+  .gradient-metin {
+    background-image: linear-gradient(135deg, oklch(0.5 0.22 264), oklch(0.55 0.22 300));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
   }
 }
