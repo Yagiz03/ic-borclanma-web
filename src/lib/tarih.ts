@@ -30,6 +30,17 @@ export function trTarihSirala<T>(satirlar: T[], tarihAl: (satir: T) => string | 
   });
 }
 
+/** "4.10.2028" / "04.10.2028" -> "04.10.2028" -- ihrac_takvimi gibi bazı
+ * kaynaklarda gün/ay sıfır doldurmasız gelebiliyor, ihale_sonuclari'nın
+ * DD.MM.YYYY biçimiyle eşleştirmek için normalize eder. */
+export function trTarihPadle(deger: string | null | undefined): string | null {
+  if (!deger) return null;
+  const parca = deger.trim().split(".");
+  if (parca.length !== 3) return null;
+  const [g, a, y] = parca;
+  return `${g.padStart(2, "0")}.${a.padStart(2, "0")}.${y}`;
+}
+
 export function isoTarihGoster(deger: string | null | undefined): string {
   const d = trTarihAyristir(deger);
   return d ? d.toLocaleDateString("tr-TR") : "–";

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { trTarihAyristir } from "@/lib/tarih";
+import { trTarihAyristir, trTarihPadle } from "@/lib/tarih";
 
 const AY_ADLARI = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -22,15 +22,6 @@ type IhaleSatir = {
 function ayYilEsit(tarihMetin: string | null | undefined, yil: number, ay: number): boolean {
   const d = trTarihAyristir(tarihMetin);
   return !!d && d.getFullYear() === yil && d.getMonth() + 1 === ay;
-}
-
-/** "4.10.2028" / "04.10.2028" -> "04.10.2028" (ihale_sonuclari.vade_tarihi ile aynı biçim) */
-function tarihPadle(s: string | null | undefined): string | null {
-  if (!s) return null;
-  const parca = s.trim().split(".");
-  if (parca.length !== 3) return null;
-  const [g, a, y] = parca;
-  return `${g.padStart(2, "0")}.${a.padStart(2, "0")}.${y}`;
 }
 
 function sayiToplam(satirlar: IhaleSatir[], kolon: keyof IhaleSatir): number {
@@ -254,7 +245,7 @@ export async function finansmanIlerlemeVerisiGetir(
   const isinLookup = new Map<string, string>();
   for (const r of tumIhaleler) {
     if (!r.senet_tanimi || !r.vade_tarihi) continue;
-    const anahtar = `${r.senet_tanimi}|${tarihPadle(r.vade_tarihi)}`;
+    const anahtar = `${r.senet_tanimi}|${trTarihPadle(r.vade_tarihi)}`;
     if (!isinLookup.has(anahtar)) isinLookup.set(anahtar, r.isin);
   }
   const gerceklesmisSet = new Set(
@@ -275,7 +266,7 @@ export async function finansmanIlerlemeVerisiGetir(
         return true;
       })
       .map((r) => {
-        const anahtar = `${r.senet_turu}|${tarihPadle(r.itfa_tarihi)}`;
+        const anahtar = `${r.senet_turu}|${trTarihPadle(r.itfa_tarihi)}`;
         return {
           ihale_tarihi: new Date(r.tarih).toLocaleDateString("tr-TR"),
           isin: isinLookup.get(anahtar) ?? "–",

@@ -1,0 +1,308 @@
+"use client";
+
+import { Fragment, useMemo, useState } from "react";
+import {
+  aylikDagilimTahminiOlustur,
+  ayKalanPlanHesapla,
+  benzerIhaleleriBul,
+  ihaleVerisiHazirla,
+  medyan,
+  ortalama,
+  ozetPenceresiSec,
+  type DagilimSatiri,
+  type IhaleHam,
+  type IhalePrep,
+  type TakvimSatiri,
+} from "@/lib/ihale-gunu";
+
+const AY_ADLARI = [
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+];
+
+function milyonFmt(v: number | null): string {
+  return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
+}
+
+function KagitGecmisi({ isin, ihale }: { isin: string; ihale: IhalePrep[] }) {
+  const gecmis = useMemo(
+    () =>
+      ihale
+        .filter((r) => r.isin === isin)
+        .sort((a, b) => b.ihaleTarihiD.getTime() - a.ihaleTarihiD.getTime())
+        .slice(0, 8),
+    [ihale, isin],
+  );
+  if (gecmis.length === 0) return <p className="p-3 text-xs text-muted-foreground">Bu ISIN için geçmiş ihale sonucu yok.</p>;
+  return (
+    <div className="overflow-x-auto p-3">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-left text-muted-foreground">
+            <th className="px-2 py-1 font-medium">Tarih</th>
+            <th className="px-2 py-1 font-medium">En Düşük</th>
+            <th className="px-2 py-1 font-medium">Ortalama</th>
+            <th className="px-2 py-1 font-medium">En Yüksek</th>
+            <th className="px-2 py-1 font-medium">Tail (bps)</th>
+            <th className="px-2 py-1 font-medium">Piyasadan İhale (Mn TL)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {gecmis.map((r, i) => (
+            <tr key={i} className="border-t border-border/60">
+              <td className="font-figures px-2 py-1">{r.ihaleTarihiD.toLocaleDateString("tr-TR")}</td>
+              <td className="font-figures px-2 py-1">{r.en_dusuk_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
+              <td className="font-figures px-2 py-1">{r.ort_yillik_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
+              <td className="font-figures px-2 py-1">{r.en_yuksek_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
+              <td className="font-figures px-2 py-1">{r.tail_bps ?? "–"}</td>
+              <td className="font-figures px-2 py-1">{milyonFmt(r.piyasadanIhaleMn)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function DagilimTablosu({ dagilim, ihale }: { dagilim: DagilimSatiri[]; ihale: IhalePrep[] }) {
+  const [acikIsin, setAcikIsin] = useState<string | null>(null);
+  return (
+    <div className="max-h-[480px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 bg-card">
+          <tr className="border-b border-border text-left text-muted-foreground">
+            <th className="px-3 py-2 font-medium">İhale tarihi</th>
+            <th className="px-3 py-2 font-medium">ISIN</th>
+            <th className="px-3 py-2 font-medium">Senet</th>
+            <th className="px-3 py-2 text-right font-medium">Miktar (Mn TL)</th>
+            <th className="px-3 py-2 text-right font-medium">Yüzdelik</th>
+            <th className="px-3 py-2 text-right font-medium">Tail (bps)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dagilim.map((r, i) => {
+            const tiklanabilir = r.isin !== "–";
+            const acik = acikIsin === r.isin;
+            return (
+              <Fragment key={i}>
+                <tr
+                  onClick={() => tiklanabilir && setAcikIsin(acik ? null : r.isin)}
+                  className={`border-b border-border/60 ${tiklanabilir ? "cursor-pointer hover:bg-accent/40" : ""}`}
+                >
+                  <td className="font-figures px-3 py-2 whitespace-nowrap">{r.ihaleTarihi}</td>
+                  <td className="font-figures px-3 py-2">
+                    {r.isin} {tiklanabilir && <span className="opacity-50">▾</span>}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">{r.senet}</td>
+                  <td className="px-3 py-2 text-right">
+                    {r.gerceklesti ? (
+                      <>
+                        <span className="text-destructive/70 line-through opacity-65">{milyonFmt(r.tahminMiktar)}</span>{" "}
+                        <strong className="font-figures">{milyonFmt(r.miktar)}</strong>
+                      </>
+                    ) : (
+                      <span className="font-figures">{milyonFmt(r.miktar)}</span>
+                    )}
+                  </td>
+                  <td className="font-figures px-3 py-2 text-right">{r.yuzde != null ? `%${r.yuzde.toFixed(1)}` : "–"}</td>
+                  <td className="px-3 py-2 text-right">
+                    {r.gerceklesti ? (
+                      <>
+                        <span className="text-destructive/70 line-through opacity-65">
+                          {r.tahminTail != null ? r.tahminTail.toFixed(0) : "–"}
+                        </span>{" "}
+                        <strong className="font-figures">{r.tailBps != null ? r.tailBps.toFixed(0) : "–"}</strong>
+                      </>
+                    ) : (
+                      <span className="font-figures">{r.tailBps != null ? r.tailBps.toFixed(0) : "–"}</span>
+                    )}
+                  </td>
+                </tr>
+                {tiklanabilir && acik && (
+                  <tr>
+                    <td colSpan={6} className="bg-accent/20 p-0">
+                      <KagitGecmisi isin={r.isin} ihale={ihale} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function TahminTab({
+  ihaleHam, takvim, planlar,
+}: {
+  ihaleHam: IhaleHam[];
+  takvim: TakvimSatiri[];
+  planlar: { yil: number; ay: number; piyasadan_ihale: number | null }[];
+}) {
+  const ihale = useMemo(() => ihaleVerisiHazirla(ihaleHam), [ihaleHam]);
+  const bugun = useMemo(() => new Date(), []);
+  const yil = bugun.getFullYear();
+  const ayNo = bugun.getMonth() + 1;
+
+  const planBu = planlar.find((p) => p.yil === yil && p.ay === ayNo);
+  const kalanBu = ayKalanPlanHesapla(ihale, planBu?.piyasadan_ihale ?? null, yil, ayNo);
+  const dagilimBu = useMemo(
+    () => aylikDagilimTahminiOlustur(ihale, takvim, planBu?.piyasadan_ihale ?? null, kalanBu, bugun),
+    [ihale, takvim, planBu, kalanBu, bugun],
+  );
+
+  const gelecekAyNo = ayNo < 12 ? ayNo + 1 : 1;
+  const gelecekYil = ayNo < 12 ? yil : yil + 1;
+  const planGelecek = planlar.find((p) => p.yil === gelecekYil && p.ay === gelecekAyNo);
+  const gelecekAyIlkGunu = new Date(gelecekYil, gelecekAyNo - 1, 1);
+  const kalanGelecek = ayKalanPlanHesapla(ihale, planGelecek?.piyasadan_ihale ?? null, gelecekYil, gelecekAyNo);
+  const dagilimGelecek = useMemo(
+    () => aylikDagilimTahminiOlustur(ihale, takvim, planGelecek?.piyasadan_ihale ?? null, kalanGelecek, gelecekAyIlkGunu),
+    [ihale, takvim, planGelecek, kalanGelecek, gelecekAyIlkGunu],
+  );
+  const [gelecekAcik, setGelecekAcik] = useState(false);
+
+  const senetTipleri = useMemo(
+    () => Array.from(new Set(ihale.map((r) => r.senet_tanimi).filter((s): s is string => !!s))).sort(),
+    [ihale],
+  );
+  const [senetTipi, setSenetTipi] = useState(
+    senetTipleri.includes("Sabit Kuponlu Devlet Tahvili") ? "Sabit Kuponlu Devlet Tahvili" : (senetTipleri[0] ?? ""),
+  );
+  const [hedefVadeYil, setHedefVadeYil] = useState(5.0);
+
+  const benzer = useMemo(
+    () => (senetTipi ? benzerIhaleleriBul(ihale, senetTipi, hedefVadeYil) : []),
+    [ihale, senetTipi, hedefVadeYil],
+  );
+  const yeterli = benzer.length >= 3;
+  const sonBenzer = useMemo(() => (yeterli ? ozetPenceresiSec(benzer) : []), [benzer, yeterli]);
+
+  if (ihale.length === 0) {
+    return <p className="text-sm text-muted-foreground">ihale_sonuclari tablosu boş.</p>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {dagilimBu.length > 0 && (
+        <div>
+          <h3 className="text-base font-semibold">Bu ayın ihale dağılımı tahmini</h3>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Bir satıra tıklayınca o kağıdın geçmiş piyasadan ihale sonuçları/tail&apos;leri hemen altında açılır.
+          </p>
+          <DagilimTablosu dagilim={dagilimBu} ihale={ihale} />
+        </div>
+      )}
+
+      <div className="rounded-lg border border-border">
+        <button
+          onClick={() => setGelecekAcik((v) => !v)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
+        >
+          Gelecek ay ({gelecekYil} {AY_ADLARI[gelecekAyNo - 1]}) ihale dağılım tahmini
+          <span className="text-muted-foreground">{gelecekAcik ? "▲" : "▼"}</span>
+        </button>
+        {gelecekAcik && (
+          <div className="border-t border-border p-4">
+            {dagilimGelecek.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Gelecek ay için henüz arşivlenmiş bir strateji planı/ihraç takvimi yok.</p>
+            ) : (
+              <DagilimTablosu dagilim={dagilimGelecek} ihale={ihale} />
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-border p-4">
+        <h3 className="mb-3 text-sm font-semibold">Manuel senet tipi / vade seçimi</h3>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm text-muted-foreground" htmlFor="senet-tipi">Senet tipi</label>
+            <select
+              id="senet-tipi" value={senetTipi} onChange={(e) => setSenetTipi(e.target.value)}
+              className="block rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            >
+              {senetTipleri.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm text-muted-foreground" htmlFor="hedef-vade">Hedef vade (yıl)</label>
+            <input
+              id="hedef-vade" type="number" min={0.1} max={15} step={0.5} value={hedefVadeYil}
+              onChange={(e) => setHedefVadeYil(Number(e.target.value))}
+              className="block w-28 rounded-md border border-input bg-background px-2 py-1.5 text-sm font-figures"
+            />
+          </div>
+        </div>
+      </div>
+
+      {!yeterli ? (
+        <p className="text-sm text-muted-foreground">
+          &apos;{senetTipi}&apos; için {hedefVadeYil.toFixed(1)} yıl vadeye yakın (±1,5 yıl) yeterli sayıda geçmiş
+          ihale bulunamadı (bulunan: {benzer.length}, gereken: en az 3). Vadeyi veya senet tipini değiştirmeyi dene.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold">Detaylı analiz -- {sonBenzer.length} benzer ihale (toplam {benzer.length} bulundu)</h3>
+          <p className="text-sm text-muted-foreground">
+            Aşağıdaki özet, yılbaşından bugüne gerçekleşen {sonBenzer.length} ihaleye dayanıyor (bu yıl içinde yeterli
+            örnek yoksa son 6 ihaleye düşülür) -- faiz seviyesi yıllar içinde çok değiştiğinden, tüm tarihçenin
+            ortalaması güncel koşulları yansıtmaz.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Medyan tail</p>
+              <p className="font-figures font-semibold">{medyan(sonBenzer.map((r) => r.tail_bps ?? NaN))?.toFixed(0) ?? "–"} bps</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Ort. talep karşılanma</p>
+              <p className="font-figures font-semibold">
+                %{ortalama(sonBenzer.map((r) => r.toplam_oran_pct))?.toFixed(1) ?? "–"}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Kabul edilen aralık (ort.)</p>
+              <p className="font-figures font-semibold">
+                %{ortalama(sonBenzer.map((r) => r.en_dusuk_bilesik_gerceklesme))?.toFixed(2) ?? "–"} --{" "}
+                %{ortalama(sonBenzer.map((r) => r.en_yuksek_bilesik_gerceklesme))?.toFixed(2) ?? "–"}
+              </p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-muted-foreground">
+                  <th className="px-3 py-2 font-medium">Tarih</th>
+                  <th className="px-3 py-2 font-medium">ISIN</th>
+                  <th className="px-3 py-2 text-right font-medium">Vade (yıl)</th>
+                  <th className="px-3 py-2 text-right font-medium">En Düşük Kabul</th>
+                  <th className="px-3 py-2 text-right font-medium">Ortalama Kabul</th>
+                  <th className="px-3 py-2 text-right font-medium">En Yüksek Kabul</th>
+                  <th className="px-3 py-2 text-right font-medium">Tail (bps)</th>
+                  <th className="px-3 py-2 text-right font-medium">Piyasadan İhale (Mn TL)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...sonBenzer].sort((a, b) => a.ihaleTarihiD.getTime() - b.ihaleTarihiD.getTime()).map((r, i) => (
+                  <tr key={i} className="border-b border-border/60 last:border-0">
+                    <td className="font-figures px-3 py-2 whitespace-nowrap">{r.ihaleTarihiD.toLocaleDateString("tr-TR")}</td>
+                    <td className="font-figures px-3 py-2">{r.isin}</td>
+                    <td className="font-figures px-3 py-2 text-right">{r.vadeYil.toFixed(2)}</td>
+                    <td className="font-figures px-3 py-2 text-right">{r.en_dusuk_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
+                    <td className="font-figures px-3 py-2 text-right">{r.ort_yillik_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
+                    <td className="font-figures px-3 py-2 text-right">{r.en_yuksek_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
+                    <td className="font-figures px-3 py-2 text-right">{r.tail_bps ?? "–"}</td>
+                    <td className="font-figures px-3 py-2 text-right">{milyonFmt(r.piyasadanIhaleMn)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
