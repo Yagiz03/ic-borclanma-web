@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Landmark, LineChart, Star, Activity } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
+const OZELLIKLER = [
+  { icon: Landmark, metin: "Tüm DİBS kağıtlarının ihale ve stok geçmişi" },
+  { icon: LineChart, metin: "BIST ikincil piyasa fiyat ve getiri grafikleri" },
+  { icon: Star, metin: "Kendi izleme listeni oluştur, kağıt takip et" },
+];
 
 export default function GirisPage() {
   const router = useRouter();
@@ -48,45 +55,83 @@ export default function GirisPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Giriş yap</CardTitle>
-          <CardDescription>
-            Ad soyad ve e-posta yazıp doğrudan gir -- şifre ya da e-posta
-            doğrulaması gerekmiyor.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={girisYap} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="ad_soyad">Ad soyad</Label>
-              <Input
-                id="ad_soyad"
-                required
-                value={adSoyad}
-                onChange={(e) => setAdSoyad(e.target.value)}
-                placeholder="Ad Soyad"
-              />
+    <main className="grid min-h-screen lg:grid-cols-2">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-10 lg:flex">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            background:
+              "radial-gradient(circle at 20% 20%, oklch(0.7 0.16 250 / 0.25), transparent 55%), radial-gradient(circle at 80% 70%, oklch(0.68 0.15 300 / 0.2), transparent 50%)",
+          }}
+        />
+        <div className="relative flex items-center gap-2">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary font-figures text-sm font-bold text-primary-foreground">
+            İB
+          </div>
+          <span className="font-semibold">İç Borçlanma Dashboard</span>
+        </div>
+
+        <div className="relative space-y-8">
+          <h1 className="text-4xl font-semibold tracking-tight text-balance">
+            Türkiye Hazine iç borçlanma senetlerini tek panelde takip et.
+          </h1>
+          <ul className="space-y-4">
+            {OZELLIKLER.map((o) => (
+              <li key={o.metin} className="flex items-center gap-3 text-sm text-sidebar-foreground/80">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
+                  <o.icon className="size-4" />
+                </span>
+                {o.metin}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative text-xs text-sidebar-foreground/40">HMB · BIST BAP · TCMB verilerine dayanır.</p>
+      </div>
+
+      <div className="flex items-center justify-center p-4">
+        <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-sm">
+          <CardHeader>
+            <div className="mb-2 flex size-9 items-center justify-center rounded-lg bg-primary font-figures text-sm font-bold text-primary-foreground lg:hidden">
+              İB
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">E-posta</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ornek@eposta.com"
-              />
-            </div>
-            {hata && <p className="text-sm text-destructive">{hata}</p>}
-            <Button type="submit" className="w-full" disabled={yukleniyor}>
-              {yukleniyor ? "Giriş yapılıyor..." : "Giriş yap"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            <CardTitle className="text-xl">Giriş yap</CardTitle>
+            <CardDescription>
+              Ad soyad ve e-posta yazıp doğrudan gir -- şifre ya da e-posta doğrulaması gerekmiyor.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={girisYap} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="ad_soyad">Ad soyad</Label>
+                <Input
+                  id="ad_soyad"
+                  required
+                  value={adSoyad}
+                  onChange={(e) => setAdSoyad(e.target.value)}
+                  placeholder="Ad Soyad"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">E-posta</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ornek@eposta.com"
+                />
+              </div>
+              {hata && <p className="text-sm text-destructive">{hata}</p>}
+              <Button type="submit" className="w-full" disabled={yukleniyor}>
+                {yukleniyor ? "Giriş yapılıyor..." : "Giriş yap"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }
