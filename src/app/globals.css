@@ -159,3 +159,18 @@
     color: transparent;
   }
 }
+
+/* Strateji fark raporu (react-markdown) icin minimal tablo/baslik stili --
+   ayri bir "prose" eklentisi kurmak yerine, ihtiyac kadar. */
+.markdown-icerik h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem; }
+.markdown-icerik h2 { font-size: 1.25rem; font-weight: 600; margin: 1.75rem 0 0.75rem; }
+.markdown-icerik h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.markdown-icerik p { margin: 0.5rem 0; line-height: 1.6; }
+.markdown-icerik strong { font-weight: 600; }
+.markdown-icerik hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+.markdown-icerik table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+.markdown-icerik th, .markdown-icerik td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+.markdown-icerik th { background: var(--muted); font-weight: 600; }
+.markdown-icerik ul { margin: 0.5rem 0; padding-left: 1.25rem; list-style: disc; }
+.markdown-icerik li { margin: 0.25rem 0; }
+.markdown-icerik > *:first-child { margin-top: 0; }
