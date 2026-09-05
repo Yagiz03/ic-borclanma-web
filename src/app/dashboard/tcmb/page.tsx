@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi, RenkliBarGrafik } from "./coklu-cizgi-grafigi";
 import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
+import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -152,9 +153,12 @@ export default async function TcmbPage() {
               <TabsTrigger value="enflasyonraporu" className="shrink-0">Enflasyon Raporu</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="dibs">
+            <TabsContent value="dibs" className="space-y-8">
+              <KagitTipiDagilimiBolumu />
+
+              <div>
               <p className="mb-3 text-sm text-muted-foreground">
-                DİBS'lerin kağıt tipine göre outstanding stok dağılımı (Milyon TL, haftalık).
+                DİBS'lerin sahiplik kesimine (sektöre) göre piyasa değeri dağılımı (Milyon TL, haftalık).
               </p>
               <YiginliAlanGrafigi
                 veri={dibsVeri}
@@ -166,6 +170,7 @@ export default async function TcmbPage() {
                   { anahtar: "dibs_piy_deg_dunya_geri_kalani", etiket: "Dünyanın Geri Kalanı" },
                 ]}
               />
+              </div>
             </TabsContent>
 
             <TabsContent value="apiportfoyu">

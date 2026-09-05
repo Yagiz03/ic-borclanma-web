@@ -9,12 +9,58 @@ const RENKLER = [
   "oklch(0.58 0.2 300)",
   "oklch(0.72 0.18 85)",
   "oklch(0.55 0.18 200)",
+  "oklch(0.62 0.2 15)",
+  "oklch(0.5 0.05 260)",
 ];
 
 type Seri = { anahtar: string; etiket: string };
 
 function tarihFmt(v: string) {
   return new Date(v).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function ayFmt(v: string) {
+  const [yil, ay] = v.split("-").map(Number);
+  return new Date(Date.UTC(yil, ay - 1, 1)).toLocaleDateString("tr-TR", { month: "short", year: "2-digit" });
+}
+
+/** %100 yığılmış alan grafiği -- her ay toplamı %100 olan kompozisyon
+ * serileri için (ör. kağıt tipine göre outstanding stok dağılımı). */
+export function YuzdeAlanGrafigi({
+  veri,
+  seriler,
+}: {
+  veri: Record<string, string | number>[];
+  seriler: Seri[];
+}) {
+  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  return (
+    <ResponsiveContainer width="100%" height={460}>
+      <AreaChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="ay" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={ayFmt} minTickGap={32} />
+        <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={[0, 100]} tickFormatter={(v) => `%${Math.round(v)}`} />
+        <Tooltip
+          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+          labelFormatter={(v) => (typeof v === "string" ? ayFmt(v) : "")}
+          formatter={(v, isim) => [`%${Number(v).toFixed(1)}`, isim]}
+        />
+        <Legend wrapperStyle={{ fontSize: 11 }} />
+        {seriler.map((s, i) => (
+          <Area
+            key={s.anahtar}
+            type="monotone"
+            dataKey={s.anahtar}
+            name={s.etiket}
+            stackId="1"
+            stroke={RENKLER[i % RENKLER.length]}
+            fill={RENKLER[i % RENKLER.length]}
+            fillOpacity={0.75}
+          />
+        ))}
+      </AreaChart>
+    </ResponsiveContainer>
+  );
 }
 
 export function CokluCizgiGrafigi({
