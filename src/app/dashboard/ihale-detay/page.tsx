@@ -12,8 +12,14 @@ import {
 } from "@/components/ui/table";
 import { SenetBadge } from "@/components/senet-badge";
 import { IlerlemeRozeti } from "@/components/ilerleme-rozeti";
-import { trTarihSirala } from "@/lib/tarih";
+import { trTarihSirala, isoTarihGoster, utcTarihe } from "@/lib/tarih";
 import { finansmanIlerlemeVerisiGetir } from "@/lib/finansman-ilerleme";
+import { RenkliBarGrafik } from "@/app/dashboard/tcmb/coklu-cizgi-grafigi";
+
+const AY_ADLARI = [
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+];
 
 function yuzde(v: number | string | null | undefined): string {
   if (v == null) return "–";
@@ -23,6 +29,10 @@ function yuzde(v: number | string | null | undefined): string {
 
 function milyarTl(v: number | null | undefined): string {
   return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 1 });
+}
+
+function bps1(v: number | null | undefined): string {
+  return v == null ? "–" : v.toFixed(1);
 }
 
 function ay1(v: number | null | undefined): string {
@@ -203,7 +213,7 @@ async function IhaleDetayTabIcerigi() {
     supabase
       .from("ihale_sonuclari")
       .select(
-        "isin, ihale_tarihi, ihrac_tipi, ort_yillik_bilesik_gerceklesme, toplam_gerceklesme_mn, toplam_oran_pct, bid_to_cover",
+        "isin, ihale_tarihi, ihrac_tipi, ort_yillik_bilesik_gerceklesme, toplam_gerceklesme_mn, toplam_oran_pct, bid_to_cover, kamu_kurumlari_gerceklesme_mn, tail_bps, kaynak_url",
       ),
     supabase.from("isin_ozet").select("isin, senet_tanimi"),
   ]);
@@ -213,9 +223,68 @@ async function IhaleDetayTabIcerigi() {
     ? trTarihSirala(ihaleler, (r) => r.ihale_tarihi).reverse()
     : [];
 
+  const sonIhaleler = siraliIhaleler.slice(0, 25).map((h) => ({
+    ...h,
+    senet_tanimi: tipHaritasi.get(h.isin),
+    piyasadan_ihale_mn:
+      h.toplam_gerceklesme_mn != null
+        ? Number(h.toplam_gerceklesme_mn) / 1000 - Number(h.kamu_kurumlari_gerceklesme_mn ?? 0) / 1000
+        : null,
+    kamu_kurumlari_mn: h.kamu_kurumlari_gerceklesme_mn != null ? Number(h.kamu_kurumlari_gerceklesme_mn) / 1000 : 0,
+  }));
+
   return (
     <div className="space-y-6">
       <FinansmanIlerlemeBolumu />
+
+      <details className="group rounded-xl bg-card ring-1 ring-foreground/10">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold marker:content-none">
+          <span className="mr-2 inline-block transition-transform group-open:rotate-90">▶</span>
+          Son ihaleler
+        </summary>
+        <div className="border-t border-border px-4 pb-4 pt-3">
+          {sonIhaleler.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Henüz ihale kaydı yok.</p>
+          ) : (
+            <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tarih</TableHead>
+                    <TableHead>ISIN</TableHead>
+                    <TableHead>Senet</TableHead>
+                    <TableHead className="text-right">Faiz</TableHead>
+                    <TableHead className="text-right">Piyasadan İhale (Mlr TL)</TableHead>
+                    <TableHead className="text-right">Kamuya Satışlar (Mlr TL)</TableHead>
+                    <TableHead className="text-right">Tail (bps)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sonIhaleler.map((h, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-figures whitespace-nowrap">{h.ihale_tarihi}</TableCell>
+                      <TableCell className="font-figures">
+                        {h.kaynak_url ? (
+                          <a href={h.kaynak_url} target="_blank" rel="noreferrer" className="hover:underline">
+                            {h.isin}
+                          </a>
+                        ) : (
+                          h.isin
+                        )}
+                      </TableCell>
+                      <TableCell><SenetBadge tanim={h.senet_tanimi} /></TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.ort_yillik_bilesik_gerceklesme)}</TableCell>
+                      <TableCell className="font-figures text-right">{milyarTl(h.piyasadan_ihale_mn)}</TableCell>
+                      <TableCell className="font-figures text-right">{milyarTl(h.kamu_kurumlari_mn)}</TableCell>
+                      <TableCell className="font-figures text-right">{bps1(h.tail_bps)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      </details>
 
       <Card>
         <CardContent className="pt-6">
@@ -270,7 +339,110 @@ async function IhaleDetayTabIcerigi() {
           )}
         </CardContent>
       </Card>
+
+      <TcmbDogrudanAlimBolumu />
     </div>
+  );
+}
+
+async function TcmbDogrudanAlimBolumu() {
+  const supabase = await createClient();
+  const [{ data: tcmb, error }, { data: ozet }] = await Promise.all([
+    supabase
+      .from("tcmb_dogrudan_alim")
+      .select("ihale_tarihi, isin, kazanan_tutar_nominal_bin_tl")
+      .order("ihale_tarihi"),
+    supabase.from("isin_ozet").select("isin, senet_tanimi"),
+  ]);
+
+  if (error || !tcmb || tcmb.length === 0) return null;
+
+  const senetHaritasi = new Map((ozet ?? []).map((o) => [o.isin, o.senet_tanimi]));
+
+  const aylikMap = new Map<string, number>();
+  for (const r of tcmb) {
+    if (r.kazanan_tutar_nominal_bin_tl == null) continue;
+    const d = utcTarihe(r.ihale_tarihi);
+    if (!d) continue;
+    const anahtar = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    aylikMap.set(anahtar, (aylikMap.get(anahtar) ?? 0) + Number(r.kazanan_tutar_nominal_bin_tl));
+  }
+  const aylik = [...aylikMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([anahtar, tutar]) => {
+      const [yil, ay] = anahtar.split("-").map(Number);
+      return { etiket: `${yil} ${AY_ADLARI[ay - 1]}`, tutar };
+    });
+
+  const gunlukMap = new Map<string, number>();
+  for (const r of tcmb) {
+    if (r.kazanan_tutar_nominal_bin_tl == null) continue;
+    gunlukMap.set(r.ihale_tarihi, (gunlukMap.get(r.ihale_tarihi) ?? 0) + Number(r.kazanan_tutar_nominal_bin_tl));
+  }
+  const guncelYil = new Date().getUTCFullYear();
+  const yilBasi = `${guncelYil}-01-01`;
+  const gunlukTum = [...gunlukMap.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const gunlukYtd = gunlukTum.filter(([tarih]) => tarih >= yilBasi);
+  const gunlukGosterilecek = (gunlukYtd.length > 0 ? gunlukYtd : gunlukTum).map(([tarih, tutar]) => ({
+    etiket: isoTarihGoster(tarih),
+    tutar,
+  }));
+
+  const ytdDetay = tcmb
+    .filter((r) => r.ihale_tarihi >= yilBasi && r.kazanan_tutar_nominal_bin_tl != null)
+    .map((r) => ({
+      ihale_tarihi: r.ihale_tarihi,
+      isin: r.isin,
+      senet_tanimi: senetHaritasi.get(r.isin),
+      tutar_mn: Number(r.kazanan_tutar_nominal_bin_tl) / 1000,
+    }))
+    .sort((a, b) => b.ihale_tarihi.localeCompare(a.ihale_tarihi));
+
+  return (
+    <Card>
+      <CardContent className="space-y-6 pt-6">
+        <div>
+          <h3 className="mb-2 text-base font-semibold">TCMB Doğrudan Alım İhalesi Aylık</h3>
+          <RenkliBarGrafik veri={aylik} dataKey="tutar" etiket="Alım Tutarı" birim=" Bin TL" />
+        </div>
+
+        <div>
+          <h3 className="mb-2 text-base font-semibold">TCMB Doğrudan Alım İhalesi Günlük</h3>
+          <RenkliBarGrafik veri={gunlukGosterilecek} dataKey="tutar" etiket="Alım Tutarı" birim=" Bin TL" />
+          <p className="mt-2 text-xs text-muted-foreground">{guncelYil} başından (YTD) itibaren gösteriliyor.</p>
+        </div>
+
+        {ytdDetay.length > 0 && (
+          <div>
+            <h3 className="mb-2 text-base font-semibold">Yukarıdaki grafikte hangi kağıttan ne kadar alındı</h3>
+            <div className="max-h-[400px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tarih</TableHead>
+                    <TableHead>ISIN</TableHead>
+                    <TableHead>Senet</TableHead>
+                    <TableHead className="text-right">Alım Tutarı (Milyon TL)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ytdDetay.map((r, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(r.ihale_tarihi)}</TableCell>
+                      <TableCell className="font-figures">{r.isin}</TableCell>
+                      <TableCell><SenetBadge tanim={r.senet_tanimi} /></TableCell>
+                      <TableCell className="font-figures text-right">
+                        {r.tutar_mn.toLocaleString("tr-TR", { maximumFractionDigits: 1 })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
