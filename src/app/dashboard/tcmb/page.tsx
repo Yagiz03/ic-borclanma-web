@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi, RenkliBarGrafik } from "./coklu-cizgi-grafigi";
+import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -139,6 +140,7 @@ export default async function TcmbPage() {
           <Tabs defaultValue="dibs">
             <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
               <TabsTrigger value="dibs" className="shrink-0">DİBS Piyasa Değeri</TabsTrigger>
+              <TabsTrigger value="apiportfoyu" className="shrink-0">TCMB APİ Portföyü</TabsTrigger>
               <TabsTrigger value="koridor" className="shrink-0">Repo Faiz Koridoru</TabsTrigger>
               <TabsTrigger value="tlref" className="shrink-0">TLREF</TabsTrigger>
               <TabsTrigger value="kur" className="shrink-0">Döviz Kuru</TabsTrigger>
@@ -164,6 +166,10 @@ export default async function TcmbPage() {
                   { anahtar: "dibs_piy_deg_dunya_geri_kalani", etiket: "Dünyanın Geri Kalanı" },
                 ]}
               />
+            </TabsContent>
+
+            <TabsContent value="apiportfoyu">
+              <TcmbApiPortfoyuBolumu />
             </TabsContent>
 
             <TabsContent value="koridor">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine, Pie, PieChart } from "recharts";
 
 const RENKLER = [
   "oklch(0.55 0.21 264)",
@@ -80,6 +80,44 @@ export function RenkliBarGrafik({
           ))}
         </Bar>
       </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Halka (donut) pasta grafiği -- kağıt tipine göre dağılım gibi tek
+ * seferlik kompozisyon gösterimleri için. */
+export function PastaGrafigi({
+  veri,
+}: {
+  veri: { etiket: string; deger: number }[];
+}) {
+  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  const toplam = veri.reduce((s, v) => s + v.deger, 0);
+  return (
+    <ResponsiveContainer width="100%" height={380}>
+      <PieChart>
+        <Tooltip
+          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+          formatter={(v, isim) => [
+            `${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} (%${((Number(v) / toplam) * 100).toFixed(1)})`,
+            isim,
+          ]}
+        />
+        <Pie
+          data={veri}
+          dataKey="deger"
+          nameKey="etiket"
+          innerRadius="45%"
+          outerRadius="80%"
+          label={(p: { etiket?: string; percent?: number }) =>
+            `${p.etiket} %${((p.percent ?? 0) * 100).toFixed(0)}`
+          }
+        >
+          {veri.map((v, i) => (
+            <Cell key={v.etiket} fill={RENKLER[i % RENKLER.length]} />
+          ))}
+        </Pie>
+      </PieChart>
     </ResponsiveContainer>
   );
 }
