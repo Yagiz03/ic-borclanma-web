@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine } from "recharts";
 
 const RENKLER = [
   "oklch(0.55 0.21 264)",
@@ -45,6 +45,41 @@ export function CokluCizgiGrafigi({
           <Line key={s.anahtar} type="monotone" dataKey={s.anahtar} name={s.etiket} stroke={RENKLER[i % RENKLER.length]} strokeWidth={2} dot={false} connectNulls />
         ))}
       </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** İşareti pozitif/negatife göre renklenen bar grafiği -- nakit dengesi,
+ * çevirme oranı (%100 referans çizgisiyle) gibi seriler için. */
+export function RenkliBarGrafik({
+  veri, dataKey, etiket, esikDeger, birim = "",
+}: {
+  veri: Record<string, string | number>[];
+  dataKey: string;
+  etiket: string;
+  esikDeger?: number;
+  birim?: string;
+}) {
+  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <BarChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 40 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="etiket" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} angle={-45} textAnchor="end" interval="preserveStartEnd" />
+        <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={56} />
+        <Tooltip
+          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+          formatter={(v) => [`${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}${birim}`, etiket]}
+        />
+        {esikDeger != null && (
+          <ReferenceLine y={esikDeger} stroke="oklch(0.6 0.19 35)" strokeDasharray="4 4" />
+        )}
+        <Bar dataKey={dataKey} name={etiket}>
+          {veri.map((v, i) => (
+            <Cell key={i} fill={Number(v[dataKey]) < (esikDeger ?? 0) ? "oklch(0.6 0.19 35)" : "oklch(0.55 0.21 264)"} />
+          ))}
+        </Bar>
+      </BarChart>
     </ResponsiveContainer>
   );
 }
