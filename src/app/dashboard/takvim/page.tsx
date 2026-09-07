@@ -153,7 +153,7 @@ export default async function TakvimPage({
 
           <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
             {lejant.map((etiket) => (
-              <span key={etiket} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span key={etiket} className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <span className={`size-2 rounded-full ${RENK[etiket]}`} />
                 {etiket}
               </span>
@@ -175,32 +175,32 @@ export default async function TakvimPage({
             </Link>
           </div>
 
-          <div className="grid grid-cols-5 gap-1 overflow-x-auto">
+          <div className="grid grid-cols-5 gap-1.5 overflow-x-auto">
             {GUN_BASLIKLARI.map((g) => (
-              <div key={g} className="pb-1 text-center text-xs font-medium text-muted-foreground">
+              <div key={g} className="pb-1 text-center text-sm font-medium text-muted-foreground">
                 {g}
               </div>
             ))}
             {hucreler.map((gun, i) => (
               <div
                 key={i}
-                className="min-h-24 rounded-lg border border-border bg-card p-1.5"
+                className="min-h-28 rounded-lg border border-border bg-card p-2"
               >
                 {gun && (
                   <>
                     <span
-                      className={`flex size-6 items-center justify-center rounded-full text-xs font-semibold ${
+                      className={`flex size-7 items-center justify-center rounded-full text-sm font-semibold ${
                         bugunMu(gun) ? "gradient-marka text-white" : "text-foreground"
                       }`}
                     >
                       {gun}
                     </span>
-                    <div className="mt-1 space-y-1">
+                    <div className="mt-1.5 space-y-1">
                       {(gunler[gun] ?? []).map((o, j) => (
                         <div
                           key={j}
                           title={o.detay}
-                          className={`rounded px-1 py-0.5 text-[10px] leading-tight text-white ${o.renk}`}
+                          className={`rounded px-1.5 py-1 text-xs leading-snug font-medium text-white ${o.renk}`}
                         >
                           {o.etiket}
                         </div>
