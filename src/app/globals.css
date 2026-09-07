@@ -49,76 +49,78 @@
 }
 
 :root {
-  /* Açık, renkli, "profesyonel fintech" paleti -- kullanıcı isteğiyle
-     (04.09.2026) koyu temadan buraya geçildi: canlı indigo primary +
-     beyaza yakın, hafif mavi tonlu bir zemin, kağıt türü rozetlerinin
-     (senet-tipi.ts) renklerinin beyaz üstünde parlaması hedeflendi. */
-  --background: oklch(0.99 0.004 250);
-  --foreground: oklch(0.22 0.03 260);
+  /* Apple tarzı palet (07.09.2026, kullanıcı isteği): önceki "renkli
+     fintech" paletinin çok renkli arka plan gradyanı ve indigo->mor->pembe
+     marka gradyanı kaldırıldı -- yerine düz, neredeyse beyaz bir zemin
+     (Apple'ın #f5f5f7 tonuna yakın) ve tek, temiz bir mavi vurgu rengi
+     (Apple'ın #0071e3'üne yakın oklch hue) geldi. Amaç: bol boşluk, yüksek
+     kontrastlı tipografi, minimal renk -- "startup gradyanı" değil. */
+  --background: oklch(0.985 0.002 260);
+  --foreground: oklch(0.16 0.01 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 260);
+  --card-foreground: oklch(0.16 0.01 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 260);
-  --primary: oklch(0.52 0.21 264);
-  --primary-foreground: oklch(0.99 0.005 250);
-  --secondary: oklch(0.96 0.012 260);
-  --secondary-foreground: oklch(0.3 0.04 260);
-  --muted: oklch(0.965 0.008 260);
-  --muted-foreground: oklch(0.5 0.03 260);
-  --accent: oklch(0.94 0.03 280);
-  --accent-foreground: oklch(0.3 0.05 264);
+  --popover-foreground: oklch(0.16 0.01 260);
+  --primary: oklch(0.55 0.18 250);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.965 0.003 260);
+  --secondary-foreground: oklch(0.25 0.01 260);
+  --muted: oklch(0.97 0.003 260);
+  --muted-foreground: oklch(0.48 0.012 260);
+  --accent: oklch(0.95 0.015 250);
+  --accent-foreground: oklch(0.3 0.04 250);
   --destructive: oklch(0.58 0.22 25);
-  --border: oklch(0.91 0.012 260);
-  --input: oklch(0.91 0.012 260);
-  --ring: oklch(0.52 0.21 264);
-  --chart-1: oklch(0.52 0.21 264);
+  --border: oklch(0.92 0.004 260);
+  --input: oklch(0.92 0.004 260);
+  --ring: oklch(0.55 0.18 250);
+  --chart-1: oklch(0.55 0.18 250);
   --chart-2: oklch(0.66 0.19 35);
   --chart-3: oklch(0.6 0.18 155);
   --chart-4: oklch(0.58 0.2 300);
   --chart-5: oklch(0.72 0.18 85);
-  --radius: 0.75rem;
+  --radius: 0.875rem;
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.22 0.03 260);
-  --sidebar-primary: oklch(0.52 0.21 264);
-  --sidebar-primary-foreground: oklch(0.99 0.005 250);
-  --sidebar-accent: oklch(0.94 0.03 280);
-  --sidebar-accent-foreground: oklch(0.3 0.05 264);
-  --sidebar-border: oklch(0.91 0.012 260);
-  --sidebar-ring: oklch(0.52 0.21 264);
+  --sidebar-foreground: oklch(0.16 0.01 260);
+  --sidebar-primary: oklch(0.55 0.18 250);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.015 250);
+  --sidebar-accent-foreground: oklch(0.3 0.04 250);
+  --sidebar-border: oklch(0.92 0.004 260);
+  --sidebar-ring: oklch(0.55 0.18 250);
 }
 
 .dark {
-  --background: oklch(0.16 0.02 260);
-  --foreground: oklch(0.96 0.006 255);
-  --card: oklch(0.205 0.02 260);
-  --card-foreground: oklch(0.96 0.006 255);
-  --popover: oklch(0.19 0.02 260);
-  --popover-foreground: oklch(0.96 0.006 255);
-  --primary: oklch(0.7 0.16 250);
-  --primary-foreground: oklch(0.15 0.03 260);
-  --secondary: oklch(0.26 0.02 260);
-  --secondary-foreground: oklch(0.96 0.006 255);
-  --muted: oklch(0.24 0.02 260);
-  --muted-foreground: oklch(0.66 0.02 255);
-  --accent: oklch(0.28 0.03 258);
-  --accent-foreground: oklch(0.96 0.006 255);
+  --background: oklch(0.14 0.004 260);
+  --foreground: oklch(0.96 0.003 260);
+  --card: oklch(0.19 0.006 260);
+  --card-foreground: oklch(0.96 0.003 260);
+  --popover: oklch(0.19 0.006 260);
+  --popover-foreground: oklch(0.96 0.003 260);
+  --primary: oklch(0.68 0.16 250);
+  --primary-foreground: oklch(0.14 0.02 260);
+  --secondary: oklch(0.25 0.006 260);
+  --secondary-foreground: oklch(0.96 0.003 260);
+  --muted: oklch(0.23 0.006 260);
+  --muted-foreground: oklch(0.66 0.012 260);
+  --accent: oklch(0.27 0.02 250);
+  --accent-foreground: oklch(0.96 0.003 260);
   --destructive: oklch(0.68 0.2 25);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.7 0.16 250);
+  --ring: oklch(0.68 0.16 250);
   --chart-1: oklch(0.7 0.16 250);
   --chart-2: oklch(0.72 0.15 40);
   --chart-3: oklch(0.68 0.15 300);
   --chart-4: oklch(0.72 0.15 155);
   --chart-5: oklch(0.75 0.16 95);
-  --sidebar: oklch(0.185 0.02 260);
-  --sidebar-foreground: oklch(0.96 0.006 255);
-  --sidebar-primary: oklch(0.7 0.16 250);
-  --sidebar-primary-foreground: oklch(0.15 0.03 260);
-  --sidebar-accent: oklch(0.26 0.02 260);
-  --sidebar-accent-foreground: oklch(0.96 0.006 255);
+  --sidebar: oklch(0.19 0.006 260);
+  --sidebar-foreground: oklch(0.96 0.003 260);
+  --sidebar-primary: oklch(0.68 0.16 250);
+  --sidebar-primary-foreground: oklch(0.14 0.02 260);
+  --sidebar-accent: oklch(0.25 0.006 260);
+  --sidebar-accent-foreground: oklch(0.96 0.003 260);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.7 0.16 250);
+  --sidebar-ring: oklch(0.68 0.16 250);
 }
 
 @layer base {
@@ -126,12 +128,9 @@
     @apply border-border outline-ring/50;
   }
   body {
+    /* Apple ürün sayfalarındaki düz, neredeyse beyaz zemin -- eskiden burada
+       3 renkli radial-gradient "blob" vardı, kullanıcı isteğiyle kaldırıldı. */
     @apply bg-background text-foreground;
-    background-image:
-      radial-gradient(circle at 8% 0%, oklch(0.9 0.06 264 / 0.5), transparent 32%),
-      radial-gradient(circle at 100% 12%, oklch(0.9 0.06 340 / 0.4), transparent 30%),
-      radial-gradient(circle at 50% 100%, oklch(0.92 0.06 155 / 0.3), transparent 35%);
-    background-attachment: fixed;
   }
   html {
     @apply font-sans;
@@ -147,13 +146,14 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Üst bar ve kart başlıklarında kullanılan indigo->mor->pembe gradient --
-     "renkli süslü" isteğiyle (04.09.2026) marka rengine hareket katmak için. */
+  /* Üst bar aktif sekmesi / marka rozeti için -- eskiden indigo->mor->pembe
+     gökkuşağı gradyandı, Apple tarzı düz/çok hafif tek-tonlu maviye
+     sadeleştirildi (07.09.2026, kullanıcı isteği). */
   .gradient-marka {
-    background-image: linear-gradient(135deg, oklch(0.55 0.22 264), oklch(0.58 0.22 300), oklch(0.65 0.2 340));
+    background-image: linear-gradient(135deg, oklch(0.58 0.19 248), oklch(0.52 0.18 254));
   }
   .gradient-metin {
-    background-image: linear-gradient(135deg, oklch(0.5 0.22 264), oklch(0.55 0.22 300));
+    background-image: linear-gradient(135deg, oklch(0.5 0.19 250), oklch(0.44 0.18 254));
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;

@@ -54,10 +54,10 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
       href={item.href}
       onClick={onClick}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+        "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all",
         aktif
-          ? "gradient-marka text-white shadow-sm"
-          : "text-foreground/80 hover:bg-accent hover:text-foreground",
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "text-foreground/70 hover:bg-foreground/[0.05] hover:text-foreground",
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -72,9 +72,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="flex h-16 w-full items-center gap-4 px-4 lg:px-6">
-          <nav className="hidden min-w-0 flex-1 items-center gap-0.5 lg:flex">
+      <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-background/70 backdrop-blur-xl backdrop-saturate-150">
+        <div className="flex h-16 w-full items-center gap-4 px-5 lg:px-8">
+          <nav className="hidden min-w-0 flex-1 items-center gap-1 lg:flex">
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} />
             ))}
@@ -83,7 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-3 lg:ml-0">
             <SignOutButton />
             <button
-              className="rounded-md p-2 hover:bg-accent lg:hidden"
+              className="rounded-full p-2 hover:bg-foreground/[0.05] lg:hidden"
               onClick={() => setMobilAcik((v) => !v)}
               aria-label="Menüyü aç"
             >
@@ -93,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {mobilAcik && (
-          <nav className="flex flex-col gap-1 border-t border-border p-3 lg:hidden">
+          <nav className="flex flex-col gap-1 border-t border-black/[0.06] p-3 lg:hidden">
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} onClick={() => setMobilAcik(false)} />
             ))}
