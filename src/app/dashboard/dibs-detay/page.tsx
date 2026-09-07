@@ -16,6 +16,7 @@ import { FiyatGrafigi } from "./fiyat-grafigi";
 import { IzlemeButonu } from "./izleme-butonu";
 import { HeroBant } from "@/components/hero-bant";
 import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolumu";
+import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 
 function yuzde(v: number | string | null | undefined, ondalik = 2): string {
   if (v == null) return "–";
@@ -110,9 +111,14 @@ export default async function DibsDetayPage({
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
       </div>
 
-      <Tabs defaultValue={tab === "karsilastir" ? "karsilastir" : "detay"}>
+      <Tabs
+        defaultValue={
+          tab === "karsilastir" ? "karsilastir" : tab === "duzenli" ? "duzenli" : "detay"
+        }
+      >
         <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
           <TabsTrigger value="detay" className="shrink-0">DİBS Detay</TabsTrigger>
+          <TabsTrigger value="duzenli" className="shrink-0">Düzenli İşlem Gören</TabsTrigger>
           <TabsTrigger value="karsilastir" className="shrink-0">Karşılaştır</TabsTrigger>
         </TabsList>
 
@@ -234,6 +240,10 @@ export default async function DibsDetayPage({
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="duzenli">
+          <DuzenliIslemGorenBolumu />
         </TabsContent>
 
         <TabsContent value="karsilastir">
