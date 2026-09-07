@@ -66,17 +66,6 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
   );
 }
 
-function Logo() {
-  return (
-    <Link href="/dashboard" className="flex shrink-0 items-center gap-2">
-      <div className="gradient-marka flex size-9 items-center justify-center rounded-xl font-figures text-sm font-bold text-white shadow-sm">
-        İB
-      </div>
-      <div className="hidden text-sm font-semibold sm:block">İç Borçlanma</div>
-    </Link>
-  );
-}
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobilAcik, setMobilAcik] = useState(false);
@@ -85,8 +74,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="flex h-16 w-full items-center gap-4 px-4 lg:px-6">
-          <Logo />
-
           <nav className="hidden min-w-0 flex-1 items-center gap-0.5 lg:flex">
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} />
