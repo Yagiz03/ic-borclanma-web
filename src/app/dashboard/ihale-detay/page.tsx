@@ -14,6 +14,8 @@ import { IlerlemeRozeti } from "@/components/ilerleme-rozeti";
 import { trTarihSirala, isoTarihGoster, utcTarihe } from "@/lib/tarih";
 import { finansmanIlerlemeVerisiGetir } from "@/lib/finansman-ilerleme";
 import { RenkliBarGrafik } from "@/app/dashboard/tcmb/coklu-cizgi-grafigi";
+import { HeroBant } from "@/components/hero-bant";
+import { GaugeGrafigi } from "@/components/gauge-grafigi";
 
 const AY_ADLARI = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -35,6 +37,75 @@ function bps1(v: number | null | undefined): string {
 }
 
 
+async function HeroVeKpiBolumu() {
+  const supabase = await createClient();
+  const [veri, { data: borcStokuData }, { data: cevirmeData }, { data: tufeData }, { data: politikaData }, { count: ihaleSayisi }] =
+    await Promise.all([
+      finansmanIlerlemeVerisiGetir(supabase),
+      supabase.from("borc_stoku").select("toplam_stok_milyon_tl").order("yil").order("ay").limit(1000),
+      supabase.from("ic_borc_cevirme_orani").select("yil, ay, cevirme_orani_pct").eq("donem_tipi", "aylik").order("yil").order("ay"),
+      supabase.from("evds_seriler").select("deger").eq("seri_adi", "tufe_fe25_yillik_yuzde").order("tarih", { ascending: false }).limit(1),
+      supabase.from("tcmb_politika_faizi").select("politika_faizi").order("tarih", { ascending: false }).limit(1),
+      supabase.from("ihale_sonuclari").select("isin", { count: "exact", head: true }),
+    ]);
+
+  if (!veri) return null;
+
+  const toplam = veri.kalemler[0];
+  const piyasadan = veri.kalemler[1];
+  const sonBorcStoku = borcStokuData && borcStokuData.length > 0 ? borcStokuData[borcStokuData.length - 1] : null;
+  const sonCevirme = cevirmeData && cevirmeData.length > 0 ? cevirmeData[cevirmeData.length - 1] : null;
+  const sonTufe = tufeData?.[0]?.deger ?? null;
+  const sonPolitika = politikaData?.[0]?.politika_faizi ?? null;
+
+  return (
+    <div className="space-y-4">
+      <HeroBant
+        ustBaslik={`İÇ BORÇLANMA -- ${veri.ayLabel.toUpperCase()} GERÇEKLEŞME`}
+        deger={`%${((toplam.oran ?? 0) * 100).toFixed(0)}`}
+        birim="gerçekleşme"
+        aciklama={`${veri.ayLabel} -- ${milyarTl(toplam.plan)} Mlr TL planlanan içinde ${milyarTl(toplam.gerceklesen)} Mlr TL gerçekleşti`}
+        ilerlemeYuzde={(toplam.oran ?? 0) * 100}
+        yanKartlar={[
+          { etiket: "Piyasadan İhale", deger: `${milyarTl(piyasadan.plan)} Mlr` },
+          { etiket: "Toplam Borç Stoku", deger: sonBorcStoku ? `${milyarTl(sonBorcStoku.toplam_stok_milyon_tl / 1000)} Mlr` : "–" },
+          { etiket: "Çevirme Oranı", deger: sonCevirme ? yuzde(sonCevirme.cevirme_orani_pct) : "–" },
+        ]}
+      />
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-[1fr_auto_1fr_1fr_1fr]">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs sm:col-span-1">
+          <div className="text-[11px] text-muted-foreground">Kayıtlı İhale Sonucu</div>
+          <div className="font-figures mt-1.5 text-xl font-semibold">{ihaleSayisi ?? "–"}</div>
+        </div>
+        <div className="flex items-center justify-center rounded-2xl border border-border bg-card p-3 shadow-xs">
+          {sonCevirme ? (
+            <GaugeGrafigi yuzde={sonCevirme.cevirme_orani_pct} merkezEtiket={`%${sonCevirme.cevirme_orani_pct.toFixed(0)}`} altYazi="çevirme oranı" />
+          ) : (
+            <span className="text-sm text-muted-foreground">Veri yok</span>
+          )}
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs">
+          <div className="text-[11px] text-muted-foreground">TÜFE Yıllık</div>
+          <div className="font-figures mt-1.5 text-xl font-semibold">{sonTufe != null ? yuzde(sonTufe) : "–"}</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs">
+          <div className="text-[11px] text-muted-foreground">Politika Faizi</div>
+          <div className="font-figures mt-1.5 text-xl font-semibold">{sonPolitika != null ? yuzde(sonPolitika) : "–"}</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs">
+          <div className="text-[11px] text-muted-foreground">Borç Stoku (aylık değişim)</div>
+          <div className="font-figures mt-1.5 text-xl font-semibold">
+            {sonBorcStoku && borcStokuData && borcStokuData.length > 1
+              ? `${(sonBorcStoku.toplam_stok_milyon_tl - borcStokuData[borcStokuData.length - 2].toplam_stok_milyon_tl >= 0 ? "+" : "")}${milyarTl((sonBorcStoku.toplam_stok_milyon_tl - borcStokuData[borcStokuData.length - 2].toplam_stok_milyon_tl) / 1000)}`
+              : "–"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 async function FinansmanIlerlemeBolumu() {
   const supabase = await createClient();
   const veri = await finansmanIlerlemeVerisiGetir(supabase);
@@ -44,7 +115,7 @@ async function FinansmanIlerlemeBolumu() {
     <Card>
       <CardContent className="space-y-6 pt-6">
         <h2 className="text-lg font-semibold">
-          {veri.ayLabel} — Piyasadan İhale Yoluyla İç Borçlanma İlerlemesi
+          {veri.ayLabel} — Piyasadan İhale Yoluyla İç Borçlanma İlerlemesi (detay)
         </h2>
 
         <div className="overflow-x-auto rounded-lg border border-border">
@@ -221,7 +292,17 @@ async function IhaleDetayTabIcerigi() {
 
   return (
     <div className="space-y-6">
-      <FinansmanIlerlemeBolumu />
+      <HeroVeKpiBolumu />
+
+      <details className="group rounded-xl bg-card ring-1 ring-foreground/10">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold marker:content-none">
+          <span className="mr-2 inline-block transition-transform group-open:rotate-90">▶</span>
+          Finansman ilerlemesi (detay)
+        </summary>
+        <div className="border-t border-border p-4">
+          <FinansmanIlerlemeBolumu />
+        </div>
+      </details>
 
       <details className="group rounded-xl bg-card ring-1 ring-foreground/10">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold marker:content-none">
