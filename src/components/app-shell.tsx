@@ -81,15 +81,7 @@ function Logo() {
   );
 }
 
-export function AppShell({
-  children,
-  adSoyad,
-  email,
-}: {
-  children: React.ReactNode;
-  adSoyad: string;
-  email: string;
-}) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobilAcik, setMobilAcik] = useState(false);
 
@@ -106,10 +98,6 @@ export function AppShell({
           </nav>
 
           <div className="ml-auto flex items-center gap-3 lg:ml-0">
-            <div className="hidden text-right leading-tight sm:block">
-              <div className="text-sm font-medium">{adSoyad}</div>
-              <div className="text-xs text-muted-foreground">{email}</div>
-            </div>
             <SignOutButton />
             <button
               className="rounded-md p-2 hover:bg-accent lg:hidden"

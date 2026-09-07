@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi, RenkliBarGrafik } from "./coklu-cizgi-grafigi";
 import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
 import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
+import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -38,14 +39,13 @@ export default async function TcmbPage() {
   // tek seferde tüm 17 seriyi (~1700 satır) çekmeyi keserdi -- her sekme
   // sadece kendi serilerini ayrı sorguyla çekiyor (~100-330 satır/sorgu).
   const [
-    dibsRes, tlrefRes, kurRes, rezervRes, m2Res, repoRes, enflasyonRes,
+    dibsRes, tlrefRes, kurRes, rezervRes, repoRes, enflasyonRes,
     koridorRes, politikaRes, enflasyonRaporuRes,
   ] = await Promise.all([
     supabase.from("evds_seriler").select("*").in("seri_adi", dibsSeriler).order("tarih"),
     supabase.from("evds_seriler").select("*").eq("seri_adi", "tlref_kapanis").order("tarih"),
     supabase.from("evds_seriler").select("*").in("seri_adi", kurSeriler).order("tarih"),
     supabase.from("evds_seriler").select("*").in("seri_adi", rezervSeriler).order("tarih"),
-    supabase.from("evds_seriler").select("*").eq("seri_adi", "m2_para_arzi").order("tarih"),
     supabase.from("evds_seriler").select("*").eq("seri_adi", "repo_gecelik_bist").order("tarih"),
     supabase.from("evds_seriler").select("*").in("seri_adi", enflasyonSeriler).order("tarih"),
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih"),
@@ -53,7 +53,7 @@ export default async function TcmbPage() {
     supabase.from("tcmb_enflasyon_raporu").select("*").limit(1).maybeSingle(),
   ]);
 
-  const ilkHata = [dibsRes, tlrefRes, kurRes, rezervRes, m2Res, repoRes, enflasyonRes].find((r) => r.error)?.error;
+  const ilkHata = [dibsRes, tlrefRes, kurRes, rezervRes, repoRes, enflasyonRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
       <div className="mx-auto max-w-5xl">
@@ -67,7 +67,6 @@ export default async function TcmbPage() {
   const tlrefVeri = pivotla(tlrefRes.data ?? []);
   const kurVeri = pivotla(kurRes.data ?? []);
   const rezervVeri = pivotla(rezervRes.data ?? []);
-  const m2Veri = pivotla(m2Res.data ?? []);
   const repoVeri = pivotla(repoRes.data ?? []);
   const enflasyonVeri = pivotla(enflasyonRes.data ?? []);
 
@@ -103,11 +102,11 @@ export default async function TcmbPage() {
             <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
               <TabsTrigger value="dibs" className="shrink-0">DİBS Piyasa Değeri</TabsTrigger>
               <TabsTrigger value="apiportfoyu" className="shrink-0">TCMB APİ Portföyü</TabsTrigger>
+              <TabsTrigger value="tufem2kfebono" className="shrink-0">TÜFE, M2, KFE ve Bono</TabsTrigger>
               <TabsTrigger value="koridor" className="shrink-0">Repo Faiz Koridoru</TabsTrigger>
               <TabsTrigger value="tlref" className="shrink-0">TLREF</TabsTrigger>
               <TabsTrigger value="kur" className="shrink-0">Döviz Kuru</TabsTrigger>
               <TabsTrigger value="rezerv" className="shrink-0">Net Rezerv</TabsTrigger>
-              <TabsTrigger value="m2repo" className="shrink-0">M2 &amp; Repo</TabsTrigger>
               <TabsTrigger value="enflasyon" className="shrink-0">Enflasyon &amp; Beklentiler</TabsTrigger>
               <TabsTrigger value="enflasyonraporu" className="shrink-0">Enflasyon Raporu</TabsTrigger>
             </TabsList>
@@ -134,6 +133,10 @@ export default async function TcmbPage() {
 
             <TabsContent value="apiportfoyu">
               <TcmbApiPortfoyuBolumu />
+            </TabsContent>
+
+            <TabsContent value="tufem2kfebono">
+              <TufeM2KfeBonoBolumu />
             </TabsContent>
 
             <TabsContent value="koridor">
@@ -202,19 +205,6 @@ export default async function TcmbPage() {
                 ]}
                 ondalik={0}
               />
-            </TabsContent>
-
-            <TabsContent value="m2repo">
-              <div className="space-y-8">
-                <div>
-                  <p className="mb-3 text-sm text-muted-foreground">M2 para arzı (Milyon TL, haftalık).</p>
-                  <CokluCizgiGrafigi veri={m2Veri} seriler={[{ anahtar: "m2_para_arzi", etiket: "M2" }]} ondalik={0} />
-                </div>
-                <div>
-                  <p className="mb-3 text-sm text-muted-foreground">BIST gecelik repo faizi (%, günlük).</p>
-                  <CokluCizgiGrafigi veri={repoVeri} seriler={[{ anahtar: "repo_gecelik_bist", etiket: "Gecelik Repo" }]} ondalik={2} />
-                </div>
-              </div>
             </TabsContent>
 
             <TabsContent value="enflasyon">
