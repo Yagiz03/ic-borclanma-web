@@ -7,6 +7,7 @@ import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
 import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
 import { DisDengeBolumu } from "./dis-denge";
 import { NetRezervBolumu } from "./net-rezerv";
+import { PiyasaBeklentileriBolumu } from "./piyasa-beklentileri";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -107,6 +108,7 @@ export default async function TcmbPage() {
               <TabsTrigger value="disdenge" className="shrink-0">Dış Denge</TabsTrigger>
               <TabsTrigger value="kur" className="shrink-0">Döviz Kuru</TabsTrigger>
               <TabsTrigger value="rezerv" className="shrink-0">Net Rezerv</TabsTrigger>
+              <TabsTrigger value="beklenti" className="shrink-0">Piyasa Beklentileri</TabsTrigger>
               <TabsTrigger value="enflasyon" className="shrink-0">Enflasyon &amp; Beklentiler</TabsTrigger>
               <TabsTrigger value="enflasyonraporu" className="shrink-0">Enflasyon Raporu</TabsTrigger>
             </TabsList>
@@ -200,6 +202,10 @@ export default async function TcmbPage() {
 
             <TabsContent value="rezerv">
               <NetRezervBolumu />
+            </TabsContent>
+
+            <TabsContent value="beklenti">
+              <PiyasaBeklentileriBolumu />
             </TabsContent>
 
             <TabsContent value="enflasyon">
