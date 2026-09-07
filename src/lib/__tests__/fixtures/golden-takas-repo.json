@@ -1,0 +1,59 @@
+[
+  {
+    "gun": 8,
+    "oran": 0.404,
+    "baslangic": "2026-09-07",
+    "takas": {
+      "getiri": 100.8820018520548,
+      "is_gunu": 6,
+      "on_eslenik": 0.40352573822176935,
+      "net_on_eslenik": 0.40103461322176936,
+      "mevduat_eslenigi": 0.40241334500000403
+    },
+    "mevduat": {
+      "getiri": 100.8854794520548,
+      "is_gunu": 6,
+      "on_eslenik": 0.4051015299742466,
+      "net_on_eslenik": 0.4026104049742466,
+      "takas_eslenigi": 0.40558665499999963
+    }
+  },
+  {
+    "gun": 30,
+    "oran": 0.35,
+    "baslangic": "2026-09-07",
+    "takas": {
+      "getiri": 102.86454072876711,
+      "is_gunu": 22,
+      "on_eslenik": 0.3464034743308058,
+      "net_on_eslenik": 0.34391234933080583,
+      "mevduat_eslenigi": 0.3485191219999993
+    },
+    "mevduat": {
+      "getiri": 102.87671232876711,
+      "is_gunu": 22,
+      "on_eslenik": 0.3478454788953636,
+      "net_on_eslenik": 0.34535435389536356,
+      "takas_eslenigi": 0.3514808779999993
+    }
+  },
+  {
+    "gun": 3,
+    "oran": 0.42,
+    "baslangic": "2026-12-20",
+    "takas": {
+      "getiri": 100.34172787945207,
+      "is_gunu": 2,
+      "on_eslenik": 0.41802432269874196,
+      "net_on_eslenik": 0.415533197698742,
+      "mevduat_eslenigi": 0.41576892000000437
+    },
+    "mevduat": {
+      "getiri": 100.34520547945205,
+      "is_gunu": 2,
+      "on_eslenik": 0.42225059179504104,
+      "net_on_eslenik": 0.41975946679504106,
+      "takas_eslenigi": 0.4242310799999926
+    }
+  }
+]
