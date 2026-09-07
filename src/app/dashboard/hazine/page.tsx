@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { YiginliAlanGrafigi, RenkliBarGrafik } from "@/app/dashboard/tcmb/coklu-cizgi-grafigi";
 import { OrtalamaVadeMaliyetBolumu } from "./ortalama-vade-maliyet";
+import { HeroBant } from "@/components/hero-bant";
 
 function milyar(v: number | null | undefined, kaynakBirim: "milyon" | "milyar" = "milyon"): string {
   if (v == null) return "–";
@@ -208,6 +209,40 @@ async function IcBorcCevirmeOraniBolumu() {
   );
 }
 
+async function HazineHeroBolumu() {
+  const supabase = await createClient();
+  const [{ data: borcStokuVeri }, { data: cevirmeVeri }] = await Promise.all([
+    supabase.from("borc_stoku").select("*").order("yil").order("ay"),
+    supabase.from("ic_borc_cevirme_orani").select("yil, ay, cevirme_orani_pct").eq("donem_tipi", "aylik").order("yil").order("ay"),
+  ]);
+
+  const son = borcStokuVeri && borcStokuVeri.length > 0 ? borcStokuVeri[borcStokuVeri.length - 1] : null;
+  const onceki = borcStokuVeri && borcStokuVeri.length > 1 ? borcStokuVeri[borcStokuVeri.length - 2] : null;
+  const sonCevirme = cevirmeVeri && cevirmeVeri.length > 0 ? cevirmeVeri[cevirmeVeri.length - 1] : null;
+  if (!son) return null;
+
+  const toplamMlr = son.toplam_stok_milyon_tl / 1000;
+  const oncekiMlr = onceki ? onceki.toplam_stok_milyon_tl / 1000 : null;
+
+  return (
+    <HeroBant
+      ustBaslik={`${son.ay_etiketi?.toUpperCase() ?? ""} -- MERKEZİ YÖNETİM BORÇ STOKU`}
+      deger={milyar(toplamMlr, "milyar")}
+      birim="Mlr TL"
+      aciklama={
+        oncekiMlr != null
+          ? `Önceki aya göre ${toplamMlr - oncekiMlr >= 0 ? "+" : ""}${milyar(toplamMlr - oncekiMlr, "milyar")} Mlr TL`
+          : "İç borç + dış borç toplamı"
+      }
+      yanKartlar={[
+        { etiket: "TL Stok", deger: `${milyar(son.tl_stok_toplam)} Mlr` },
+        { etiket: "Döviz Stok", deger: `${milyar(son.doviz_stok_toplam)} Mlr` },
+        { etiket: "Çevirme Oranı", deger: sonCevirme ? pct1(sonCevirme.cevirme_orani_pct) : "–" },
+      ]}
+    />
+  );
+}
+
 export default function HazinePage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -219,6 +254,8 @@ export default function HazinePage() {
           &quot;TCMB&quot; sayfasına bakın.
         </p>
       </div>
+
+      <HazineHeroBolumu />
 
       <Card>
         <CardContent className="pt-6">
