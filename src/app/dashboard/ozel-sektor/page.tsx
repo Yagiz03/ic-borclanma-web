@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HeroBant } from "@/components/hero-bant";
 import { OstGunlukIslemler } from "./ost-gunluk-islemler";
 import { OstIhracciProfili } from "./ost-ihracci-profili";
 
@@ -12,27 +11,48 @@ function turkceKisimAyikla(v: string | null): string | null {
 export default async function OzelSektorPage() {
   const supabase = await createClient();
 
-  const { data: mkbHam, error } = await supabase
-    .from("menkul_kiymet_bilgileri")
-    .select("*")
-    .eq("ozel_sektor_mu", true)
-    .order("ihracci_kurum", { ascending: true })
-    .order("isin");
+  const [{ data: mkbHam, error }, { data: araciKurumlar }] = await Promise.all([
+    supabase
+      .from("menkul_kiymet_bilgileri")
+      .select("*")
+      .eq("ozel_sektor_mu", true)
+      .order("ihracci_kurum", { ascending: true })
+      .order("isin"),
+    supabase.from("araci_kurumlar").select("kod, unvan"),
+  ]);
 
+  const araciHarita = new Map((araciKurumlar ?? []).map((a) => [a.kod, a.unvan]));
   const mkb = (mkbHam ?? []).map((k) => ({
     ...k,
     mk_turu: turkceKisimAyikla(k.mk_turu),
     getiri_turu: turkceKisimAyikla(k.getiri_turu),
+    araci_kurum_unvan: k.araci_kurum_kodu ? (araciHarita.get(k.araci_kurum_kodu) ?? null) : null,
   }));
 
   const isinListesi = mkb.map((k) => k.isin);
-  const { data: bist } = isinListesi.length
-    ? await supabase
-        .from("bist_bap_fiyatlar")
-        .select("tarih, isin, temiz_fiyat, ag_ort_takas_fiyati, kapanis_bilesik_getiri_pct, birikmis_faiz, islem_hacmi_tl, miktar")
-        .in("isin", isinListesi)
-        .order("tarih", { ascending: false })
-    : { data: [] };
+  const [{ data: bap }, { data: ost14 }] = await Promise.all([
+    isinListesi.length
+      ? supabase
+          .from("bist_bap_fiyatlar")
+          .select("tarih, isin, temiz_fiyat, ag_ort_takas_fiyati, kapanis_bilesik_getiri_pct, birikmis_faiz, islem_hacmi_tl, miktar")
+          .in("isin", isinListesi)
+          .order("tarih", { ascending: false })
+      : Promise.resolve({ data: [] }),
+    isinListesi.length
+      ? supabase
+          .from("bist_ost_fiyatlar")
+          .select("tarih, isin, temiz_fiyat, ag_ort_takas_fiyati, kapanis_bilesik_getiri_pct, birikmis_faiz, islem_hacmi_tl, miktar")
+          .in("isin", isinListesi)
+          .order("tarih", { ascending: false })
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  // Aynı (tarih, isin) için hem 14:00 ara bülten hem tam günlük bülten varsa
+  // tam günlük bülten (nihai/kesin) tercih edilir -- 14:00 ara bülten sadece
+  // henüz tam bülten yokken (örn. bugün) devreye girer.
+  const bapAnahtarlari = new Set((bap ?? []).map((r) => `${r.tarih}|${r.isin}`));
+  const sadeceOst = (ost14 ?? []).filter((r) => !bapAnahtarlari.has(`${r.tarih}|${r.isin}`));
+  const bist = [...(bap ?? []), ...sadeceOst];
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
@@ -45,27 +65,6 @@ export default async function OzelSektorPage() {
         </p>
       </div>
 
-      {mkb.length > 0 && (
-        <HeroBant
-          ustBaslik="ÖZEL SEKTÖR -- İŞLEM GÖREN BORÇLANMA ARAÇLARI"
-          deger={String(mkb.length)}
-          birim="kağıt"
-          aciklama={`${new Set(mkb.map((k) => k.ihracci_kurum)).size} farklı ihraççı`}
-          yanKartlar={[
-            {
-              etiket: "Toplam İhraç Tutarı",
-              deger: `${(mkb.reduce((s, k) => s + (Number(k.toplam_ihrac_tutari_bin) || 0), 0) / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} Mlr TL`,
-            },
-            {
-              etiket: "En Yaygın Tür",
-              deger:
-                [...mkb.reduce((m, k) => m.set(k.mk_turu ?? "–", (m.get(k.mk_turu ?? "–") ?? 0) + 1), new Map<string, number>())]
-                  .sort((a, b) => b[1] - a[1])[0]?.[0] ?? "–",
-            },
-          ]}
-        />
-      )}
-
       <Card>
         <CardContent className="pt-6">
           {error && <p className="text-sm text-destructive">{error.message}</p>}
@@ -75,7 +74,7 @@ export default async function OzelSektorPage() {
               <TabsTrigger value="ihracci" className="shrink-0">İhraççı profili</TabsTrigger>
             </TabsList>
             <TabsContent value="gunluk">
-              <OstGunlukIslemler bist={bist ?? []} mkb={mkb} />
+              <OstGunlukIslemler bist={bist} mkb={mkb} />
             </TabsContent>
             <TabsContent value="ihracci">
               <OstIhracciProfili kagitlar={mkb} />

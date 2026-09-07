@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 type MkbSatiri = {
   isin: string;
   ihracci_kurum: string | null;
+  araci_kurum_unvan: string | null;
   mk_turu: string | null;
   getiri_turu: string | null;
   ilk_ihrac_tarihi: string | null;
@@ -37,12 +38,23 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
     return [...m.entries()].sort(([a], [b]) => a.localeCompare(b, "tr"));
   }, [kagitlar]);
 
-  const [seciliIhracci, setSeciliIhracci] = useState(TUMU);
+  const araciOzet = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const k of kagitlar) {
+      if (!k.araci_kurum_unvan) continue;
+      m.set(k.araci_kurum_unvan, (m.get(k.araci_kurum_unvan) ?? 0) + 1);
+    }
+    return [...m.entries()].sort(([a], [b]) => a.localeCompare(b, "tr"));
+  }, [kagitlar]);
 
-  const buIhracci = useMemo(
-    () => (seciliIhracci === TUMU ? kagitlar : kagitlar.filter((k) => k.ihracci_kurum === seciliIhracci)),
-    [kagitlar, seciliIhracci],
-  );
+  const [seciliIhracci, setSeciliIhracci] = useState(TUMU);
+  const [seciliAraci, setSeciliAraci] = useState(TUMU);
+
+  const buIhracci = useMemo(() => {
+    let sonuc = seciliIhracci === TUMU ? kagitlar : kagitlar.filter((k) => k.ihracci_kurum === seciliIhracci);
+    if (seciliAraci !== TUMU) sonuc = sonuc.filter((k) => k.araci_kurum_unvan === seciliAraci);
+    return sonuc;
+  }, [kagitlar, seciliIhracci, seciliAraci]);
 
   const toplamTutar = buIhracci.reduce((s, k) => s + (k.toplam_ihrac_tutari_bin ?? 0), 0) / 1000;
   const ilkIhracTarihleri = buIhracci.map((k) => trTarihiParcala(k.ilk_ihrac_tarihi)).filter((d): d is Date => d != null);
@@ -62,19 +74,37 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-muted-foreground" htmlFor="ost-ihracci">İhraççı kurum (detay için seç)</label>
-        <select
-          id="ost-ihracci"
-          value={seciliIhracci}
-          onChange={(e) => setSeciliIhracci(e.target.value)}
-          className="max-w-72 rounded-md border border-input bg-background px-2 py-1 text-sm"
-        >
-          <option value={TUMU}>{TUMU} ({kagitlar.length} kağıt)</option>
-          {ihracciOzet.map(([isim, sayi]) => (
-            <option key={isim} value={isim}>{isim} ({sayi} kağıt)</option>
-          ))}
-        </select>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-muted-foreground" htmlFor="ost-ihracci">İhraççı kurum (detay için seç)</label>
+          <select
+            id="ost-ihracci"
+            value={seciliIhracci}
+            onChange={(e) => setSeciliIhracci(e.target.value)}
+            className="max-w-72 rounded-md border border-input bg-background px-2 py-1 text-sm"
+          >
+            <option value={TUMU}>{TUMU} ({kagitlar.length} kağıt)</option>
+            {ihracciOzet.map(([isim, sayi]) => (
+              <option key={isim} value={isim}>{isim} ({sayi} kağıt)</option>
+            ))}
+          </select>
+        </div>
+        {araciOzet.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground" htmlFor="ost-araci">Aracı kurum (detay için seç)</label>
+            <select
+              id="ost-araci"
+              value={seciliAraci}
+              onChange={(e) => setSeciliAraci(e.target.value)}
+              className="max-w-72 rounded-md border border-input bg-background px-2 py-1 text-sm"
+            >
+              <option value={TUMU}>{TUMU} ({kagitlar.length} kağıt)</option>
+              {araciOzet.map(([isim, sayi]) => (
+                <option key={isim} value={isim}>{isim} ({sayi} kağıt)</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -92,6 +122,7 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
             <TableRow>
               <TableHead>ISIN</TableHead>
               {seciliIhracci === TUMU && <TableHead>İhraççı</TableHead>}
+              {seciliAraci === TUMU && <TableHead>Aracı Kurum</TableHead>}
               <TableHead>Tip</TableHead>
               <TableHead>Getiri Türü</TableHead>
               <TableHead>İlk İhraç</TableHead>
@@ -108,6 +139,7 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
               <TableRow key={k.isin}>
                 <TableCell className="font-figures">{k.isin}</TableCell>
                 {seciliIhracci === TUMU && <TableCell className="max-w-40 truncate text-xs" title={k.ihracci_kurum ?? ""}>{k.ihracci_kurum ?? "–"}</TableCell>}
+                {seciliAraci === TUMU && <TableCell className="max-w-40 truncate text-xs" title={k.araci_kurum_unvan ?? ""}>{k.araci_kurum_unvan ?? "–"}</TableCell>}
                 <TableCell className="max-w-32 truncate text-xs text-muted-foreground">{k.mk_turu ?? "–"}</TableCell>
                 <TableCell className="max-w-32 truncate text-xs text-muted-foreground">{k.getiri_turu ?? "–"}</TableCell>
                 <TableCell className="font-figures text-xs">{k.ilk_ihrac_tarihi ?? "–"}</TableCell>
