@@ -19,7 +19,7 @@ function paraFmt(n: number): string {
   return n.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
 }
 
-export default async function PnlPage() {
+export async function PnlBolumu() {
   const supabase = await createClient();
 
   const [{ data: pozisyonlarHam, error }, { data: ozetHam }] = await Promise.all([
@@ -115,14 +115,11 @@ export default async function PnlPage() {
     : null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">P&L</h1>
-        <p className="text-sm text-muted-foreground">
-          Elle girdiğin pozisyonların güncel BIST fiyatına göre kâr/zararı -- mümkün olduğunda kirli fiyat
-          (temiz + birikmiş faiz) farkı üzerinden, işlemiş faiz dahil.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">
+        Elle girdiğin pozisyonların güncel BIST fiyatına göre kâr/zararı -- mümkün olduğunda kirli fiyat
+        (temiz + birikmiş faiz) farkı üzerinden, işlemiş faiz dahil.
+      </p>
 
       <PozisyonEkleFormu isinler={secilebilirIsinler} />
 

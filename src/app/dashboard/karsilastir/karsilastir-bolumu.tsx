@@ -1,16 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { trTarihSirala } from "@/lib/tarih";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { IsinCokSecici } from "./isin-cok-secici";
 import { KarsilastirmaGrafigi } from "./karsilastirma-grafigi";
-import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
-export default async function KarsilastirPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ isinler?: string }>;
-}) {
-  const { isinler: isinlerParam } = await searchParams;
+export async function KarsilastirBolumu({ isinlerParam }: { isinlerParam?: string }) {
   const supabase = await createClient();
 
   const { data: ozetHam, error } = await supabase
@@ -18,12 +13,7 @@ export default async function KarsilastirPage({
     .select("isin, senet_tanimi, vade_tarihi");
 
   if (error || !ozetHam) {
-    return (
-      <div className="mx-auto max-w-7xl">
-        <h1 className="text-2xl font-semibold">Karşılaştır</h1>
-        <p className="mt-4 text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>
-      </div>
-    );
+    return <p className="text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>;
   }
 
   const siraliOzet = trTarihSirala(ozetHam, (r) => r.vade_tarihi);
@@ -58,27 +48,21 @@ export default async function KarsilastirPage({
   });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Karşılaştır</h1>
+    <Card>
+      <CardContent className="space-y-4 pt-6">
         <p className="text-sm text-muted-foreground">
           Birden fazla kağıdın BIST bileşik getirisini aynı grafikte karşılaştır (2-5 kağıt önerilir).
         </p>
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          <IsinCokSecici
-            secililer={secililer}
-            secenekler={siraliOzet.map((r) => ({ isin: r.isin, etiket: r.senet_tanimi ?? "" }))}
-          />
-          {secililer.length === 0 ? (
-            <p className="text-sm text-muted-foreground">En az bir kağıt seç.</p>
-          ) : (
-            <KarsilastirmaGrafigi veri={grafikVerisi} isinler={secililer} />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        <IsinCokSecici
+          secililer={secililer}
+          secenekler={siraliOzet.map((r) => ({ isin: r.isin, etiket: r.senet_tanimi ?? "" }))}
+        />
+        {secililer.length === 0 ? (
+          <p className="text-sm text-muted-foreground">En az bir kağıt seç.</p>
+        ) : (
+          <KarsilastirmaGrafigi veri={grafikVerisi} isinler={secililer} />
+        )}
+      </CardContent>
+    </Card>
   );
 }

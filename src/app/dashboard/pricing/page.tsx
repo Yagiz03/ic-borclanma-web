@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { trTarihSirala, trTarihAyristir } from "@/lib/tarih";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PricingHesaplayici, type FiyatlanabilirKagit } from "./pricing-hesaplayici";
+import { PnlBolumu } from "@/app/dashboard/pnl/pnl-bolumu";
 
-export default async function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
   const supabase = await createClient();
 
   const { data: ozetHam, error } = await supabase
@@ -37,17 +44,30 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Pricing</h1>
+        <h1 className="text-2xl font-semibold">Bono ve Getiri Hesaplayıcı</h1>
         <p className="text-sm text-muted-foreground">
           Sabit kuponlu / kuponsuz DİBS için fiyat ↔ getiri, duration, DV01 ve konveksite hesaplayıcı.
         </p>
       </div>
 
-      {kagitlar.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Fiyatlanabilir (sabit kuponlu/kuponsuz) kağıt bulunamadı.</p>
-      ) : (
-        <PricingHesaplayici kagitlar={kagitlar} />
-      )}
+      <Tabs defaultValue={tab === "pnl" ? "pnl" : "hesaplayici"}>
+        <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+          <TabsTrigger value="hesaplayici" className="shrink-0">ISIN Hesaplayıcı</TabsTrigger>
+          <TabsTrigger value="pnl" className="shrink-0">P&L</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="hesaplayici">
+          {kagitlar.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Fiyatlanabilir (sabit kuponlu/kuponsuz) kağıt bulunamadı.</p>
+          ) : (
+            <PricingHesaplayici kagitlar={kagitlar} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="pnl">
+          <PnlBolumu />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

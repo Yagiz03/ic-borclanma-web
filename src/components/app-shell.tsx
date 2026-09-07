@@ -8,9 +8,6 @@ import {
   LineChart,
   CalendarDays,
   Wallet,
-  Landmark,
-  Star,
-  GitCompare,
   Building2,
   FileText,
   Banknote,
@@ -33,8 +30,8 @@ type NavItem = {
 // Sıra ve isimler Python tarafındaki dashboard.py::main()'deki st.Page
 // listesiyle BİREBİR eşleşiyor (kullanıcı isteği, 04.09.2026'da orada
 // sabitlenen sıra). Karşılaştır/P&L/İzleme Listesi orijinalde ayrı üst
-// bar sayfası değil, DİBS Detay/Pricing içinde gömülü alt-sekme -- şimdilik
-// burada ayrı sayfa olarak kaldılar, sona eklendi.
+// bar sayfası değil, DİBS Detay/Pricing içinde gömülü alt-sekme -- Karşılaştır
+// DİBS Detay'ın, P&L de Bono ve Getiri Hesaplayıcı'nın alt-sekmesi (ayrı nav öğesi yok).
 const anaSayfalar: NavItem[] = [
   { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge },
   { href: "/dashboard/ihale-gunu", label: "İhale günü", icon: CalendarClock },
@@ -47,9 +44,6 @@ const anaSayfalar: NavItem[] = [
   { href: "/dashboard/ozel-sektor", label: "Özel sektör tahvilleri", icon: Building2 },
   { href: "/dashboard/strateji", label: "Borçlanma stratejisi", icon: FileText },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays },
-  { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare },
-  { href: "/dashboard/pnl", label: "P&L", icon: Landmark },
-  { href: "/dashboard/izleme-listesi", label: "İzleme Listesi", icon: Star },
 ];
 
 function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string; onClick?: () => void }) {
@@ -63,7 +57,7 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
         "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
         aktif
           ? "gradient-marka text-white shadow-sm"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          : "text-foreground/80 hover:bg-accent hover:text-foreground",
       )}
     >
       <Icon className="size-4 shrink-0" />
@@ -78,10 +72,7 @@ function Logo() {
       <div className="gradient-marka flex size-9 items-center justify-center rounded-xl font-figures text-sm font-bold text-white shadow-sm">
         İB
       </div>
-      <div className="hidden sm:block">
-        <div className="text-sm leading-tight font-semibold">İç Borçlanma</div>
-        <div className="gradient-metin text-xs leading-tight font-medium">Dashboard</div>
-      </div>
+      <div className="hidden text-sm font-semibold sm:block">İç Borçlanma</div>
     </Link>
   );
 }

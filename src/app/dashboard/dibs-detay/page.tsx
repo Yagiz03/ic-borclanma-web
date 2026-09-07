@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
 import { IzlemeButonu } from "./izleme-butonu";
 import { HeroBant } from "@/components/hero-bant";
+import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolumu";
 
 function yuzde(v: number | string | null | undefined, ondalik = 2): string {
   if (v == null) return "–";
@@ -30,9 +32,9 @@ function milyon(v: number | string | null | undefined): string {
 export default async function DibsDetayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ isin?: string }>;
+  searchParams: Promise<{ isin?: string; isinler?: string; tab?: string }>;
 }) {
-  const { isin: secilenParam } = await searchParams;
+  const { isin: secilenParam, isinler: isinlerParam, tab } = await searchParams;
   const supabase = await createClient();
 
   const { data: ozetHam, error: ozetHata } = await supabase
@@ -104,13 +106,21 @@ export default async function DibsDetayPage({
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div className="space-y-3">
+      <div>
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
-        <IsinSecici
-          secili={secilen.isin}
-          secenekler={siraliOzet.map((r) => ({ isin: r.isin, etiket: `${r.isin} — ${r.senet_tanimi ?? ""}` }))}
-        />
       </div>
+
+      <Tabs defaultValue={tab === "karsilastir" ? "karsilastir" : "detay"}>
+        <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+          <TabsTrigger value="detay" className="shrink-0">DİBS Detay</TabsTrigger>
+          <TabsTrigger value="karsilastir" className="shrink-0">Karşılaştır</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="detay" className="space-y-6">
+      <IsinSecici
+        secili={secilen.isin}
+        secenekler={siraliOzet.map((r) => ({ isin: r.isin, etiket: `${r.isin} — ${r.senet_tanimi ?? ""}` }))}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -224,6 +234,12 @@ export default async function DibsDetayPage({
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="karsilastir">
+          <KarsilastirBolumu isinlerParam={isinlerParam} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

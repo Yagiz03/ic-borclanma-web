@@ -10,7 +10,7 @@ export function IsinCokSecici({ secenekler, secililer }: { secenekler: Secenek[]
   function degistir(isin: string, secili: boolean) {
     let yeni = secili ? [...secililer, isin] : secililer.filter((i) => i !== isin);
     if (yeni.length > 5) yeni = yeni.slice(-5);
-    router.push(`/dashboard/karsilastir?isinler=${yeni.join(",")}`);
+    router.push(`/dashboard/dibs-detay?isinler=${yeni.join(",")}&tab=karsilastir`);
   }
 
   return (
