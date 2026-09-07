@@ -55,6 +55,22 @@ function bp(v: number | null): string {
   return v == null || !Number.isFinite(v) ? "–" : `${v >= 0 ? "+" : ""}${v.toFixed(0)}`;
 }
 
+type NoktaTooltipPayload = { isin: string; senetTanimi?: string | null; kalanVadeYil: number; getiri: number; zSkoru?: number };
+
+function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { payload: NoktaTooltipPayload }[] }) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  return (
+    <div style={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, padding: "8px 10px" }}>
+      <div style={{ fontWeight: 600, fontFamily: "var(--font-figures, monospace)" }}>{p.isin}</div>
+      {p.senetTanimi && <div style={{ color: "var(--muted-foreground)" }}>{p.senetTanimi}</div>}
+      <div>Kalan vade: {p.kalanVadeYil.toFixed(2)} yıl</div>
+      <div>Getiri: %{p.getiri.toFixed(2)}</div>
+      {p.zSkoru != null && <div>Z-skoru: {p.zSkoru >= 0 ? "+" : ""}{p.zSkoru.toFixed(2)}</div>}
+    </div>
+  );
+}
+
 export function GetiriEgrisiClient({
   isinOzet, bist, tlrefSonPct,
 }: {
@@ -290,11 +306,7 @@ export function GetiriEgrisiClient({
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-                    formatter={(v, name) => [typeof v === "number" ? v.toFixed(2) : v, name]}
-                    labelFormatter={() => ""}
-                  />
+                  <Tooltip content={<NoktaTooltip />} />
                   <Scatter data={gunluk} fill="oklch(0.55 0.21 264)" line={{ stroke: "oklch(0.55 0.21 264)", strokeWidth: 2 }} lineType="joint" />
                 </ScatterChart>
               </ResponsiveContainer>
@@ -453,11 +465,7 @@ export function GetiriEgrisiClient({
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <ZAxis dataKey="zSkoru" range={[40, 200]} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-                    formatter={(v, name) => [typeof v === "number" ? v.toFixed(2) : v, name]}
-                    labelFormatter={() => ""}
-                  />
+                  <Tooltip content={<NoktaTooltip />} />
                   <Scatter name="Ucuz (z>0)" data={rvPoli.filter((r) => r.zSkoru >= 0)} fill="#34D399" />
                   <Scatter name="Pahalı (z<0)" data={rvPoli.filter((r) => r.zSkoru < 0)} fill="#F87171" />
                 </ScatterChart>
@@ -545,11 +553,7 @@ export function GetiriEgrisiClient({
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-                    formatter={(v, name) => [typeof v === "number" ? v.toFixed(2) : v, name]}
-                    labelFormatter={() => ""}
-                  />
+                  <Tooltip content={<NoktaTooltip />} />
                   <Scatter name="Ucuz (z>0)" data={rvNs.filter((r) => r.zSkoru >= 0)} fill="#34D399" />
                   <Scatter name="Pahalı (z<0)" data={rvNs.filter((r) => r.zSkoru < 0)} fill="#F87171" />
                 </ScatterChart>

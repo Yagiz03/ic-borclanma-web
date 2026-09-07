@@ -131,7 +131,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
               <AreaChart data={onSerisi} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} unit="%" />
+                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} unit="%" domain={["dataMin - 0.3", "dataMax + 0.3"]} />
                 <Tooltip
                   contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
                   labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
@@ -203,7 +203,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="vadeGunSayi" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} label={{ value: "Vade (gün, 0=O/N)", position: "insideBottom", offset: -5, fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} unit="%" />
+                    <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} unit="%" domain={["dataMin - 0.3", "dataMax + 0.3"]} />
                     <Tooltip
                       contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
                       formatter={(v, isim) => [`%${Number(v).toFixed(2)}`, isim]}
