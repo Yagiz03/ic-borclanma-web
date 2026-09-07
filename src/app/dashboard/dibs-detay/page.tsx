@@ -13,6 +13,7 @@ import { SenetBadge } from "@/components/senet-badge";
 import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
 import { IzlemeButonu } from "./izleme-butonu";
+import { HeroBant } from "@/components/hero-bant";
 
 function yuzde(v: number | string | null | undefined, ondalik = 2): string {
   if (v == null) return "–";
@@ -119,58 +120,65 @@ export default async function DibsDetayPage({
         <IzlemeButonu isin={secilen.isin} baslangicIzlemede={!!izlemeSatiri} />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {alanlar.map((a) => (
-          <Card key={a.etiket}>
-            <CardContent className="pt-6">
-              <p className="text-xs text-muted-foreground">{a.etiket}</p>
-              <p className="font-figures text-xl font-semibold">{a.deger}</p>
-              {a.yardim && <p className="mt-1 text-xs text-muted-foreground">{a.yardim}</p>}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {sonBist ? (
+        <HeroBant
+          ustBaslik={`${secilen.isin} -- SON BİLEŞİK GETİRİ (${isoTarihGoster(sonBist.tarih)})`}
+          deger={yuzde(sonBist.kapanis_bilesik_getiri_pct)}
+          aciklama={`Son temiz fiyat ${Number(sonBist.temiz_fiyat).toFixed(3)} -- BIST Kesin Alım Satım Pazarı`}
+          yanKartlar={[
+            { etiket: "İlk ihraç", deger: isoTarihGoster(secilen.ilk_ihrac_tarihi) },
+            { etiket: "Vade", deger: secilen.vade_tarihi ?? "–" },
+            {
+              etiket: "O günkü işlem hacmi",
+              deger:
+                sonBist.islem_hacmi_tl != null
+                  ? `${Number(sonBist.islem_hacmi_tl).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} TL`
+                  : "–",
+            },
+          ]}
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {alanlar.map((a) => (
+            <Card key={a.etiket}>
+              <CardContent className="pt-6">
+                <p className="text-xs text-muted-foreground">{a.etiket}</p>
+                <p className="font-figures text-xl font-semibold">{a.deger}</p>
+                {a.yardim && <p className="mt-1 text-xs text-muted-foreground">{a.yardim}</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {sonBist && (
-        <Card>
-          <CardHeader>
-            <CardTitle>BIST ikincil piyasa fiyatı (Kesin Alım Satım Pazarı)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-3 sm:grid-cols-4">
-              <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Son temiz fiyat</p>
-                <p className="font-figures text-lg font-semibold">{Number(sonBist.temiz_fiyat).toFixed(3)}</p>
-              </div>
-              <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Son bileşik getiri</p>
-                <p className="font-figures text-lg font-semibold">{yuzde(sonBist.kapanis_bilesik_getiri_pct)}</p>
-              </div>
-              <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">Tarih</p>
-                <p className="font-figures text-lg font-semibold">{isoTarihGoster(sonBist.tarih)}</p>
-              </div>
-              <div className="rounded-md border border-border p-3">
-                <p className="text-xs text-muted-foreground">O günkü işlem hacmi</p>
-                <p className="font-figures text-lg font-semibold">
-                  {sonBist.islem_hacmi_tl != null
-                    ? `${Number(sonBist.islem_hacmi_tl).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} TL`
-                    : "–"}
-                </p>
-              </div>
-            </div>
+        <>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {alanlar.map((a) => (
+              <Card key={a.etiket}>
+                <CardContent className="pt-6">
+                  <p className="text-xs text-muted-foreground">{a.etiket}</p>
+                  <p className="font-figures text-xl font-semibold">{a.deger}</p>
+                  {a.yardim && <p className="mt-1 text-xs text-muted-foreground">{a.yardim}</p>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-            <div>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">Temiz fiyatın zaman içindeki seyri</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Temiz fiyatın zaman içindeki seyri</CardTitle>
+            </CardHeader>
+            <CardContent>
               <FiyatGrafigi
                 birim=""
                 veri={(bistFiyatlar ?? [])
                   .filter((r) => r.temiz_fiyat != null)
                   .map((r) => ({ tarih: r.tarih, deger: Number(r.temiz_fiyat) }))}
               />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <Card>
