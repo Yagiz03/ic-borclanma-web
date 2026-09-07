@@ -40,7 +40,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
 
   const son = data[data.length - 1];
   const onceki = data.length > 1 ? data[data.length - 2] : null;
-  const son12Ay = [...data].slice(-12).reverse();
+  const son5Yil = [...data].slice(-60).reverse();
 
   return (
     <Card>
@@ -92,7 +92,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {son12Ay.map((r) => (
+              {son5Yil.map((r) => (
                 <TableRow key={`${r.yil}-${r.ay}`}>
                   <TableCell className="whitespace-nowrap">{r.ay_etiketi}</TableCell>
                   <TableCell className="font-figures text-right">{ay1(r.kuponsuz_kumulatif_vade_ay)}</TableCell>
@@ -107,7 +107,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
           </Table>
         </div>
         <p className="text-xs text-muted-foreground">
-          Tüm değerler yıl içi KÜMÜLATİF ortalamadır (her Ocak&apos;ta sıfırlanır) -- son 12 ay gösteriliyor.
+          Tüm değerler yıl içi KÜMÜLATİF ortalamadır (her Ocak&apos;ta sıfırlanır) -- son 5 yıl (60 ay) gösteriliyor.
         </p>
       </CardContent>
     </Card>
