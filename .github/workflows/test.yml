@@ -12,7 +12,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - run: npm run test
-      - run: npx tsc --noEmit
+      # tsc --noEmit tek başına Next.js'in kendi ürettiği .next/types
+      # (LayoutProps vb.) olmadan çalışamıyor -- next build zaten kendi
+      # type-check adımını içerdiğinden ayrı bir tsc adımına gerek yok.
+      - run: npm run build
