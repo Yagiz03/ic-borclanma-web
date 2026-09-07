@@ -25,25 +25,26 @@ export default async function GetiriEgrisiPage() {
   const isinOzet = ozetHam.filter((r) => !r.para_birimi || r.para_birimi === "TRY");
   const isinListesi = isinOzet.map((r) => r.isin);
 
-  const { data: bist } = isinListesi.length
-    ? await tumSatirlariGetir<{
-        tarih: string; isin: string; temiz_fiyat: number | null;
-        kapanis_bilesik_getiri_pct: number | null; islem_hacmi_tl: number | null;
-      }>((from, to) =>
-        supabase
-          .from("bist_bap_fiyatlar")
-          .select("tarih, isin, temiz_fiyat, kapanis_bilesik_getiri_pct, islem_hacmi_tl")
-          .in("isin", isinListesi)
-          .order("tarih")
-          .range(from, to),
-      )
-    : { data: [] as never[] };
+  const [{ data: bist }, { data: tlrefHam }] = await Promise.all([
+    isinListesi.length
+      ? tumSatirlariGetir<{
+          tarih: string; isin: string; temiz_fiyat: number | null;
+          kapanis_bilesik_getiri_pct: number | null; islem_hacmi_tl: number | null;
+        }>((from, to) =>
+          supabase
+            .from("bist_bap_fiyatlar")
+            .select("tarih, isin, temiz_fiyat, kapanis_bilesik_getiri_pct, islem_hacmi_tl")
+            .in("isin", isinListesi)
+            .order("tarih")
+            .range(from, to),
+        )
+      : Promise.resolve({ data: [] as never[] }),
+    // core.bist_tlref.tlref_orani_serisi_yukle() -- BIST'in kendi günlük TLREF O/N
+    // kotasyonu, carry hesabının fonlama kaynağı. En güncel gün yeterli.
+    supabase.from("bist_tlref_orani").select("oran_pct").order("tarih", { ascending: false }).limit(1),
+  ]);
 
-  // bist_tlref_orani (BIST'in kendi günlük TLREF O/N kotasyonu, Python'daki carry hesabının
-  // fonlama kaynağı) Supabase'e henüz senkronize edilmedi -- Supabase'deki evds_seriler
-  // tlref_* serileri gerçek yüzde oranı değil endeks seviyesi taşıyor, carry için kullanılamaz.
-  // Fonlama bilinmediğinde Python'daki davranışla tutarlı olarak carry_bp hesaplanmaz (–).
-  const tlrefSonPct: number | null = null;
+  const tlrefSonPct = tlrefHam?.[0]?.oran_pct != null ? Number(tlrefHam[0].oran_pct) : null;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
