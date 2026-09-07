@@ -55,6 +55,13 @@
      (Apple'ın #f5f5f7 tonuna yakın) ve tek, temiz bir mavi vurgu rengi
      (Apple'ın #0071e3'üne yakın oklch hue) geldi. Amaç: bol boşluk, yüksek
      kontrastlı tipografi, minimal renk -- "startup gradyanı" değil. */
+  /* Yazı tipi: Google'dan indirilen Geist yerine, cihazın kendi sistem
+     fontuna (Mac/iOS'ta gerçek San Francisco, Windows'ta Segoe UI, Android'de
+     Roboto) düşen -apple-system yığını -- Apple'ın kendi web sitelerinin de
+     kullandığı yöntem, lisanslı font dosyası gerektirmeden en "native Apple"
+     görünümü verir. Sayılar (font-figures) hâlâ Geist Mono kullanıyor. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: var(--font-sans);
   --background: oklch(0.985 0.002 260);
   --foreground: oklch(0.16 0.01 260);
   --card: oklch(1 0 0);
