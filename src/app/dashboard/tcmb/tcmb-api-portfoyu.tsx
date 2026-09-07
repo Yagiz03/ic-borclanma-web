@@ -10,6 +10,7 @@ import {
 import { SenetBadge } from "@/components/senet-badge";
 import { isoTarihGoster, utcTarihe } from "@/lib/tarih";
 import { isinTipSozlugunuGetir, isinTipTahminEt, TIP_KISA } from "@/lib/isin-tip";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { PastaGrafigi } from "./coklu-cizgi-grafigi";
 
 const TCMB_450MR_KAYNAK_URL =
@@ -35,9 +36,16 @@ export async function TcmbApiPortfoyuBolumu() {
   const supabase = await createClient();
 
   const [{ data: alim, error }, { data: isinOzet }, { data: dibsTcmb }] = await Promise.all([
-    supabase
-      .from("tcmb_dogrudan_alim")
-      .select("isin, ihale_tarihi, vade_tarihi, kazanan_tutar_nominal_bin_tl"),
+    // 1152 satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
+    tumSatirlariGetir<{ isin: string; ihale_tarihi: string; vade_tarihi: string; kazanan_tutar_nominal_bin_tl: number | null }>(
+      (from, to) =>
+        supabase
+          .from("tcmb_dogrudan_alim")
+          .select("isin, ihale_tarihi, vade_tarihi, kazanan_tutar_nominal_bin_tl")
+          .order("ihale_tarihi")
+          .order("isin")
+          .range(from, to),
+    ),
     supabase.from("isin_ozet").select("isin, senet_tanimi"),
     supabase
       .from("evds_seriler")
@@ -48,7 +56,7 @@ export async function TcmbApiPortfoyuBolumu() {
   ]);
 
   if (error) {
-    return <p className="text-sm text-destructive">{error.message}</p>;
+    return <p className="text-sm text-destructive">{error}</p>;
   }
   if (!alim || alim.length === 0) {
     return <p className="text-sm text-muted-foreground">tcmb_dogrudan_alim tablosu boş.</p>;

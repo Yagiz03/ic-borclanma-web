@@ -67,16 +67,20 @@ function reelGetiri(nominalPct: number | null, tufePct: number | null): number |
 
 export async function TufeM2KfeBonoBolumu() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("evds_seriler")
-    .select("seri_adi, tarih, deger")
-    .in("seri_adi", SERI_ADLARI)
-    .order("tarih");
+  // 7 seri birlikte ~1050 satır, Supabase'in 1000 satır sınırını hafifçe
+  // aşıp en yeni tarihleri kesiyordu -- her seri ayrı sorgulanıyor.
+  const sonuclar = await Promise.all(
+    SERI_ADLARI.map((seriAdi) =>
+      supabase.from("evds_seriler").select("seri_adi, tarih, deger").eq("seri_adi", seriAdi).order("tarih"),
+    ),
+  );
+  const error = sonuclar.find((r) => r.error)?.error;
+  const data = sonuclar.flatMap((r) => r.data ?? []);
 
   if (error) {
     return <p className="text-sm text-destructive">{error.message}</p>;
   }
-  if (!data || data.length === 0) {
+  if (data.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         TÜFE/M2/KFE verisi bulunamadı -- evds_seriler tablosu boş.

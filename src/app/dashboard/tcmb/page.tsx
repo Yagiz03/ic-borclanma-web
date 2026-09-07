@@ -6,6 +6,7 @@ import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
 import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
 import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
 import { DisDengeBolumu } from "./dis-denge";
+import { NetRezervBolumu } from "./net-rezerv";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -33,20 +34,18 @@ export default async function TcmbPage() {
     "dibs_piy_deg_dunya_geri_kalani",
   ];
   const kurSeriler = ["usdtry", "eurtry"];
-  const rezervSeriler = ["rezerv_toplam", "rezerv_doviz", "rezerv_altin"];
   const enflasyonSeriler = ["tufe_yillik_yuzde", "beklenti_tufe_yilsonu", "beklenti_politika_faizi_yilsonu"];
 
   // Supabase projesinin satır limiti (proje ayarı, .limit() ile aşılamıyor)
-  // tek seferde tüm 17 seriyi (~1700 satır) çekmeyi keserdi -- her sekme
-  // sadece kendi serilerini ayrı sorguyla çekiyor (~100-330 satır/sorgu).
+  // tek seferde tüm serileri (bazıları 5-17 seri x 300-1700 satır) birlikte
+  // çekmek keserdi -- her seri kendi sorgusuyla, ayrı ayrı çekiliyor.
   const [
-    dibsRes, tlrefRes, kurRes, rezervRes, repoRes, enflasyonRes,
+    dibsSonuclari, tlrefRes, kurSonuclari, repoRes, enflasyonRes,
     koridorRes, politikaRes, enflasyonRaporuRes,
   ] = await Promise.all([
-    supabase.from("evds_seriler").select("*").in("seri_adi", dibsSeriler).order("tarih"),
+    Promise.all(dibsSeriler.map((s) => supabase.from("evds_seriler").select("*").eq("seri_adi", s).order("tarih"))),
     supabase.from("evds_seriler").select("*").eq("seri_adi", "tlref_kapanis").order("tarih"),
-    supabase.from("evds_seriler").select("*").in("seri_adi", kurSeriler).order("tarih"),
-    supabase.from("evds_seriler").select("*").in("seri_adi", rezervSeriler).order("tarih"),
+    Promise.all(kurSeriler.map((s) => supabase.from("evds_seriler").select("*").eq("seri_adi", s).order("tarih"))),
     supabase.from("evds_seriler").select("*").eq("seri_adi", "repo_gecelik_bist").order("tarih"),
     supabase.from("evds_seriler").select("*").in("seri_adi", enflasyonSeriler).order("tarih"),
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih"),
@@ -54,7 +53,7 @@ export default async function TcmbPage() {
     supabase.from("tcmb_enflasyon_raporu").select("*").limit(1).maybeSingle(),
   ]);
 
-  const ilkHata = [dibsRes, tlrefRes, kurRes, rezervRes, repoRes, enflasyonRes].find((r) => r.error)?.error;
+  const ilkHata = [...dibsSonuclari, tlrefRes, ...kurSonuclari, repoRes, enflasyonRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
       <div className="mx-auto max-w-5xl">
@@ -64,10 +63,9 @@ export default async function TcmbPage() {
     );
   }
 
-  const dibsVeri = pivotla(dibsRes.data ?? []);
+  const dibsVeri = pivotla(dibsSonuclari.flatMap((r) => r.data ?? []));
   const tlrefVeri = pivotla(tlrefRes.data ?? []);
-  const kurVeri = pivotla(kurRes.data ?? []);
-  const rezervVeri = pivotla(rezervRes.data ?? []);
+  const kurVeri = pivotla(kurSonuclari.flatMap((r) => r.data ?? []));
   const repoVeri = pivotla(repoRes.data ?? []);
   const enflasyonVeri = pivotla(enflasyonRes.data ?? []);
 
@@ -201,16 +199,7 @@ export default async function TcmbPage() {
             </TabsContent>
 
             <TabsContent value="rezerv">
-              <p className="mb-3 text-sm text-muted-foreground">TCMB brüt rezervleri (Milyon USD, haftalık).</p>
-              <CokluCizgiGrafigi
-                veri={rezervVeri}
-                seriler={[
-                  { anahtar: "rezerv_toplam", etiket: "Toplam" },
-                  { anahtar: "rezerv_doviz", etiket: "Döviz" },
-                  { anahtar: "rezerv_altin", etiket: "Altın" },
-                ]}
-                ondalik={0}
-              />
+              <NetRezervBolumu />
             </TabsContent>
 
             <TabsContent value="enflasyon">

@@ -62,11 +62,21 @@ async function dogrudanSatisGerceklesen(
 
   const buAyFx = (fx ?? []).filter((r) => ayYilEsit(r.ihrac_tarihi, yil, ay));
   if (buAyFx.length > 0) {
+    // usdtry+eurtry birlikte ~3400 satır -- Supabase'in 1000 satır sınırını
+    // aşardı. kurBul() sadece bu ayın (ve gerekirse hemen öncesinin) as-of
+    // kurunu aradığından, sorguyu ay başından ~10 gün öncesine kadar
+    // daraltmak yeterli ve doğru.
+    const ayBasiOncesi = new Date(Date.UTC(yil, ay - 1, 1));
+    ayBasiOncesi.setUTCDate(ayBasiOncesi.getUTCDate() - 10);
+    const ayBasiStr = ayBasiOncesi.toISOString().slice(0, 10);
+    const aySonuStr = new Date(Date.UTC(yil, ay, 0)).toISOString().slice(0, 10);
     const { data: evds } = await supabase
       .from("evds_seriler")
       .select("seri_adi, tarih, deger")
       .in("seri_adi", ["usdtry", "eurtry"])
       .not("deger", "is", null)
+      .gte("tarih", ayBasiStr)
+      .lte("tarih", aySonuStr)
       .order("tarih");
     const usdtry = (evds ?? []).filter((r) => r.seri_adi === "usdtry") as { tarih: string; deger: number }[];
     const eurtry = (evds ?? []).filter((r) => r.seri_adi === "eurtry") as { tarih: string; deger: number }[];

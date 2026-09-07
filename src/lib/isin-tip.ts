@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { trTarihAyristir } from "@/lib/tarih";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
 /**
  * ISIN -> kağıt tipi eşlemesi (pages/tcmb_gostergeler.py::_isin_tip_sozlugu'nun
@@ -41,7 +42,10 @@ export async function isinTipSozlugunuGetir(
     supabase.from("hmb_ihale_sonuclari_eski_ocr").select("isin, senet_tanimi, ihale_tarihi"),
     supabase.from("hazine_ihale_eski_ocr").select("isin, senet_tanimi, ihale_tarihi"),
     supabase.from("isin_ozet").select("isin, senet_tanimi"),
-    supabase.from("tcmb_dibs_tip_wayback").select("isin, senet_tanimi"),
+    // 1691 satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
+    tumSatirlariGetir<{ isin: string; senet_tanimi: string | null }>((from, to) =>
+      supabase.from("tcmb_dibs_tip_wayback").select("isin, senet_tanimi").order("isin").range(from, to),
+    ),
   ]);
 
   type Row = { isin: string; senet_tanimi: string | null; ihale_tarihi: string };

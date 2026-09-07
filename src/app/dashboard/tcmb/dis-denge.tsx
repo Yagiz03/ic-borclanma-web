@@ -26,21 +26,32 @@ function milyon(v: number | null | undefined): string {
 export async function DisDengeBolumu() {
   const supabase = await createClient();
 
-  const [{ data: cariData }, { data: krediData }, { data: bilancoData }] = await Promise.all([
+  // Bilanço/swap serileri (5 seri x ~1400-1700 satır/2020'den) tek .in()
+  // sorgusunda Supabase'in 1000 satır sınırını fazlasıyla aşardı -- her
+  // seri ayrı ve tarih filtreli sorgulanıyor (bkz. net-rezerv.tsx'teki
+  // aynı düzeltme).
+  const bilancoSeriler = [
+    "bilanco_dis_varliklar",
+    "bilanco_toplam_doviz_yukumluluk",
+    "bilanco_kamu_diger_doviz_mevduat",
+    "swap_stok_alim_yonlu",
+    "swap_stok_satim_yonlu",
+  ];
+  const [{ data: cariData }, { data: krediData }, bilancoSonuclari] = await Promise.all([
     supabase.from("evds_seriler").select("seri_adi, tarih, deger").eq("seri_adi", "cari_islemler_dengesi").order("tarih"),
     supabase.from("evds_seriler").select("seri_adi, tarih, deger").eq("seri_adi", "kredi_tuketici_toplam").order("tarih"),
-    supabase
-      .from("evds_seriler")
-      .select("seri_adi, tarih, deger")
-      .in("seri_adi", [
-        "bilanco_dis_varliklar",
-        "bilanco_toplam_doviz_yukumluluk",
-        "bilanco_kamu_diger_doviz_mevduat",
-        "swap_stok_alim_yonlu",
-        "swap_stok_satim_yonlu",
-      ])
-      .order("tarih"),
+    Promise.all(
+      bilancoSeriler.map((seriAdi) =>
+        supabase
+          .from("evds_seriler")
+          .select("seri_adi, tarih, deger")
+          .eq("seri_adi", seriAdi)
+          .gte("tarih", "2023-01-01")
+          .order("tarih"),
+      ),
+    ),
   ]);
+  const bilancoData = bilancoSonuclari.flatMap((r) => r.data ?? []);
 
   const cari = (cariData ?? []).filter((r) => r.deger != null).sort((a, b) => a.tarih.localeCompare(b.tarih));
   const kredi = (krediData ?? []).filter((r) => r.deger != null).sort((a, b) => a.tarih.localeCompare(b.tarih));

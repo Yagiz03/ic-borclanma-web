@@ -1,20 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 import { isinTipSozlugunuGetir } from "@/lib/isin-tip";
 import { outstandingDefteriHesapla } from "@/lib/outstanding-ledger";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { KagitTipiDagilimiClient } from "./kagit-tipi-dagilimi-client";
 
 export async function KagitTipiDagilimiBolumu() {
   const supabase = await createClient();
 
   const [{ data: ihaleIst, error }, { data: stok }] = await Promise.all([
-    supabase
-      .from("tcmb_ihale_istatistikleri")
-      .select("isin, ihrac_tarihi, vade_tarihi, nominal_mn, doviz_kodu"),
+    tumSatirlariGetir((from, to) =>
+      supabase
+        .from("tcmb_ihale_istatistikleri")
+        .select("isin, ihrac_tarihi, vade_tarihi, nominal_mn, doviz_kodu")
+        .order("ihale_tarihi")
+        .order("isin")
+        .range(from, to),
+    ),
     supabase.from("borc_stoku").select("yil, ay, ic_borc_toplam"),
   ]);
 
   if (error) {
-    return <p className="text-sm text-destructive">{error.message}</p>;
+    return <p className="text-sm text-destructive">{error}</p>;
   }
   if (!ihaleIst || ihaleIst.length === 0) {
     return null;

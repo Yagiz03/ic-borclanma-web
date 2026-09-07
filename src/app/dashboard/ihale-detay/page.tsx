@@ -16,6 +16,7 @@ import { finansmanIlerlemeVerisiGetir } from "@/lib/finansman-ilerleme";
 import { RenkliBarGrafik } from "@/app/dashboard/tcmb/coklu-cizgi-grafigi";
 import { HeroBant } from "@/components/hero-bant";
 import { GaugeGrafigi } from "@/components/gauge-grafigi";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
 const AY_ADLARI = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -415,10 +416,15 @@ async function IhaleDetayTabIcerigi() {
 async function TcmbDogrudanAlimBolumu() {
   const supabase = await createClient();
   const [{ data: tcmb, error }, { data: ozet }] = await Promise.all([
-    supabase
-      .from("tcmb_dogrudan_alim")
-      .select("ihale_tarihi, isin, kazanan_tutar_nominal_bin_tl")
-      .order("ihale_tarihi"),
+    // 1152 satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
+    tumSatirlariGetir<{ ihale_tarihi: string; isin: string; kazanan_tutar_nominal_bin_tl: number | null }>((from, to) =>
+      supabase
+        .from("tcmb_dogrudan_alim")
+        .select("ihale_tarihi, isin, kazanan_tutar_nominal_bin_tl")
+        .order("ihale_tarihi")
+        .order("isin")
+        .range(from, to),
+    ),
     supabase.from("isin_ozet").select("isin, senet_tanimi"),
   ]);
 
