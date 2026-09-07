@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine, Pie, PieChart } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine, Pie, PieChart, ComposedChart } from "recharts";
 
 const RENKLER = [
   "oklch(0.55 0.21 264)",
@@ -216,6 +216,44 @@ export function YiginliAlanGrafigi({
           />
         ))}
       </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Aylık bar (işarete göre yeşil/kırmızı) + kümülatif çizgi kombinasyonu --
+ * cari işlemler dengesi gibi "tek ay pozitif/negatif ama trend nasıl"
+ * sorusuna cevap veren seriler için. */
+export function BarCizgiGrafigi({
+  veri, barDataKey, cizgiDataKey, barEtiket, cizgiEtiket, birim = "",
+}: {
+  veri: Record<string, string | number>[];
+  barDataKey: string;
+  cizgiDataKey: string;
+  barEtiket: string;
+  cizgiEtiket: string;
+  birim?: string;
+}) {
+  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  return (
+    <ResponsiveContainer width="100%" height={380}>
+      <ComposedChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+        <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
+        <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={72} />
+        <Tooltip
+          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+          labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
+          formatter={(v, isim) => [`${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 0 })}${birim}`, isim]}
+        />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <ReferenceLine y={0} stroke="var(--border)" />
+        <Bar dataKey={barDataKey} name={barEtiket}>
+          {veri.map((v, i) => (
+            <Cell key={i} fill={Number(v[barDataKey]) < 0 ? "oklch(0.6 0.19 35)" : "oklch(0.65 0.16 155)"} />
+          ))}
+        </Bar>
+        <Line type="monotone" dataKey={cizgiDataKey} name={cizgiEtiket} stroke="oklch(0.6 0.19 35)" strokeWidth={2} dot={false} connectNulls />
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

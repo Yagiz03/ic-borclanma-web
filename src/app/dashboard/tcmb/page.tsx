@@ -5,6 +5,7 @@ import { CokluCizgiGrafigi, YiginliAlanGrafigi, RenkliBarGrafik } from "./coklu-
 import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
 import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
 import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
+import { DisDengeBolumu } from "./dis-denge";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -105,6 +106,7 @@ export default async function TcmbPage() {
               <TabsTrigger value="tufem2kfebono" className="shrink-0">TÜFE, M2, KFE ve Bono</TabsTrigger>
               <TabsTrigger value="koridor" className="shrink-0">Repo Faiz Koridoru</TabsTrigger>
               <TabsTrigger value="tlref" className="shrink-0">TLREF</TabsTrigger>
+              <TabsTrigger value="disdenge" className="shrink-0">Dış Denge</TabsTrigger>
               <TabsTrigger value="kur" className="shrink-0">Döviz Kuru</TabsTrigger>
               <TabsTrigger value="rezerv" className="shrink-0">Net Rezerv</TabsTrigger>
               <TabsTrigger value="enflasyon" className="shrink-0">Enflasyon &amp; Beklentiler</TabsTrigger>
@@ -180,6 +182,10 @@ export default async function TcmbPage() {
             <TabsContent value="tlref">
               <p className="mb-3 text-sm text-muted-foreground">TLREF endeksi kapanış değeri (günlük).</p>
               <CokluCizgiGrafigi veri={tlrefVeri} seriler={[{ anahtar: "tlref_kapanis", etiket: "TLREF Kapanış" }]} ondalik={2} />
+            </TabsContent>
+
+            <TabsContent value="disdenge">
+              <DisDengeBolumu />
             </TabsContent>
 
             <TabsContent value="kur">
