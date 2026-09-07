@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { trTarihSirala } from "@/lib/tarih";
 import { IsinCokSecici } from "./isin-cok-secici";
 import { KarsilastirmaGrafigi } from "./karsilastirma-grafigi";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
 export default async function KarsilastirPage({
   searchParams,
@@ -27,10 +28,16 @@ export default async function KarsilastirPage({
 
   const siraliOzet = trTarihSirala(ozetHam, (r) => r.vade_tarihi);
 
-  const { data: butunBist } = await supabase
-    .from("bist_bap_fiyatlar")
-    .select("isin, tarih, kapanis_bilesik_getiri_pct")
-    .not("kapanis_bilesik_getiri_pct", "is", null);
+  // 3500+ satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
+  const { data: butunBist } = await tumSatirlariGetir((from, to) =>
+    supabase
+      .from("bist_bap_fiyatlar")
+      .select("isin, tarih, kapanis_bilesik_getiri_pct")
+      .not("kapanis_bilesik_getiri_pct", "is", null)
+      .order("isin")
+      .order("tarih")
+      .range(from, to),
+  );
 
   const bistIsinSeti = new Set((butunBist ?? []).map((r) => r.isin));
   const varsayilanlar = siraliOzet.filter((r) => bistIsinSeti.has(r.isin)).slice(0, 2).map((r) => r.isin);

@@ -1,13 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { TppClient } from "./tpp-client";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
 export default async function TakasbankTppPage() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("takasbank_tpp")
-    .select("tarih, vade_gun, min_oran, maks_oran, ort_oran, islem_hacmi_tl, islem_hacmi_usd, islem_sayisi")
-    .order("tarih");
+  // 1858 satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
+  const { data, error } = await tumSatirlariGetir((from, to) =>
+    supabase
+      .from("takasbank_tpp")
+      .select("tarih, vade_gun, min_oran, maks_oran, ort_oran, islem_hacmi_tl, islem_hacmi_usd, islem_sayisi")
+      .order("tarih")
+      .order("vade_gun")
+      .range(from, to),
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -23,7 +29,7 @@ export default async function TakasbankTppPage() {
       <Card>
         <CardContent className="pt-6">
           {error ? (
-            <p className="text-sm text-destructive">{error.message}</p>
+            <p className="text-sm text-destructive">{error}</p>
           ) : (
             <TppClient veri={data ?? []} />
           )}
