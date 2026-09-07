@@ -165,6 +165,17 @@ export function GetiriEgrisiClient({
     setKarsilastirmaTarihleri((liste) => (liste.includes(t) ? liste.filter((x) => x !== t) : [...liste, t]));
   }
 
+  const [yeniTarihGirisi, setYeniTarihGirisi] = useState("");
+  function yaziliTarihEkle() {
+    if (!yeniTarihGirisi) return;
+    const hedef = new Date(yeniTarihGirisi).getTime();
+    const aday = karsilastirmaSecenekleri.filter((t) => new Date(t).getTime() <= hedef);
+    if (!aday.length) return;
+    const eklenecek = aday[0];
+    setKarsilastirmaTarihleri((liste) => (liste.includes(eklenecek) ? liste : [...liste, eklenecek]));
+    setYeniTarihGirisi("");
+  }
+
   const egriler = karsilastirmaTarihleri
     .map((t, i) => ({ etiket: tarihFmt(t), veri: egriVerisi(t, minHacim), renk: RENKLER[(i + 1) % RENKLER.length] }))
     .filter((e) => e.veri.length > 0);
@@ -278,7 +289,7 @@ export function GetiriEgrisiClient({
                 <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" unit=" yıl" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} />
+                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
                     formatter={(v, name) => [typeof v === "number" ? v.toFixed(2) : v, name]}
@@ -301,22 +312,37 @@ export function GetiriEgrisiClient({
               <Button type="button" size="sm" variant="outline" onClick={() => hizliEkle(30)}>+ 1 ay önce</Button>
               <Button type="button" size="sm" variant="outline" onClick={() => hizliEkle(90)}>+ 3 ay önce</Button>
             </div>
-            <div>
-              <p className="mb-1 text-xs text-muted-foreground">Karşılaştırma tarihleri (istediğin kadar seçebilirsin)</p>
-              <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto rounded-md border border-border p-2">
-                {karsilastirmaSecenekleri.slice(0, 120).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => tarihToggle(t)}
-                    className={`rounded-full px-2.5 py-1 text-xs font-figures transition-colors ${
-                      karsilastirmaTarihleri.includes(t) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"
-                    }`}
-                  >
-                    {tarihFmt(t)}
-                  </button>
-                ))}
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground" htmlFor="ge-karsilastirma-tarih">
+                Karşılaştırma tarihi ekle (istediğin kadar ekleyebilirsin)
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  id="ge-karsilastirma-tarih"
+                  type="date"
+                  value={yeniTarihGirisi}
+                  onChange={(e) => setYeniTarihGirisi(e.target.value)}
+                  min={karsilastirmaSecenekleri[karsilastirmaSecenekleri.length - 1] ?? undefined}
+                  max={karsilastirmaSecenekleri[0] ?? undefined}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm font-figures"
+                />
+                <Button type="button" size="sm" onClick={yaziliTarihEkle} disabled={!yeniTarihGirisi}>Ekle</Button>
               </div>
+              {karsilastirmaTarihleri.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {karsilastirmaTarihleri.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => tarihToggle(t)}
+                      title="Kaldırmak için tıkla"
+                      className="rounded-full bg-primary px-2.5 py-1 text-xs font-figures text-primary-foreground transition-opacity hover:opacity-80"
+                    >
+                      {tarihFmt(t)} ✕
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {egriler.length === 0 ? (
@@ -359,7 +385,7 @@ export function GetiriEgrisiClient({
                 <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" unit=" yıl" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                  <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} />
+                  <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} formatter={(v) => (typeof v === "number" ? v.toFixed(2) : v)} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={gunluk} type="monotone" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="oklch(0.55 0.21 264)" strokeWidth={3} dot={{ r: 3 }} />
@@ -425,7 +451,7 @@ export function GetiriEgrisiClient({
                 <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" unit=" yıl" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} />
+                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <ZAxis dataKey="zSkoru" range={[40, 200]} />
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
@@ -518,7 +544,7 @@ export function GetiriEgrisiClient({
                 <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" unit=" yıl" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} />
+                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
                     formatter={(v, name) => [typeof v === "number" ? v.toFixed(2) : v, name]}
