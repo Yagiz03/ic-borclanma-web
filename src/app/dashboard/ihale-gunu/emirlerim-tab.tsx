@@ -84,7 +84,7 @@ function YeniTakipFormu() {
   );
 }
 
-function TakipKarti({ takip }: { takip: Track }) {
+function TakipKarti({ takip, oneri }: { takip: Track; oneri: number | null }) {
   const router = useRouter();
   const [emirFiyat, setEmirFiyat] = useState("");
   const [emirNominal, setEmirNominal] = useState("");
@@ -183,6 +183,13 @@ function TakipKarti({ takip }: { takip: Track }) {
           </div>
           <Button onClick={kesmeKaydet} variant="secondary">Kaydet</Button>
         </div>
+        {oneri != null && oneri !== takip.en_dusuk_gerceklesen_fiyat && (
+          <p className="text-xs text-muted-foreground">
+            İhale sonuçlarında bu ISIN için resmi &quot;en düşük gerçekleşen fiyat&quot;{" "}
+            <b className="text-foreground">{oneri.toFixed(3)}</b> olarak bulundu -- yukarıya yazıp
+            &quot;Kaydet&quot;e basabilirsin.
+          </p>
+        )}
 
         {takip.emirler.length === 0 ? (
           <p className="text-sm text-muted-foreground">Henüz emir eklenmedi.</p>
@@ -254,14 +261,14 @@ function TakipKarti({ takip }: { takip: Track }) {
   );
 }
 
-export function EmirlerimTab({ takipler }: { takipler: Track[] }) {
+export function EmirlerimTab({ takipler, kesmeOnerileri }: { takipler: Track[]; kesmeOnerileri: Record<string, number> }) {
   return (
     <div className="space-y-4">
       <YeniTakipFormu />
       {takipler.length === 0 ? (
         <p className="text-sm text-muted-foreground">Henüz takip edilen bir ihale emri yok.</p>
       ) : (
-        takipler.map((t) => <TakipKarti key={t.id} takip={t} />)
+        takipler.map((t) => <TakipKarti key={t.id} takip={t} oneri={kesmeOnerileri[t.isin] ?? null} />)
       )}
     </div>
   );

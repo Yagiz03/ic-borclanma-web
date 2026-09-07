@@ -20,7 +20,7 @@ export default async function IhaleGunuPage() {
     supabase
       .from("ihale_sonuclari")
       .select(
-        "isin, senet_tanimi, ihale_tarihi, vade_tarihi, ihrac_tipi, toplam_gerceklesme_mn, kamu_kurumlari_gerceklesme_mn, ort_yillik_bilesik_gerceklesme, en_dusuk_bilesik_gerceklesme, en_yuksek_bilesik_gerceklesme, tail_bps, toplam_oran_pct, bid_to_cover, ort_fiyat_gerceklesme",
+        "isin, senet_tanimi, ihale_tarihi, vade_tarihi, ihrac_tipi, toplam_gerceklesme_mn, kamu_kurumlari_gerceklesme_mn, ort_yillik_bilesik_gerceklesme, en_dusuk_bilesik_gerceklesme, en_yuksek_bilesik_gerceklesme, tail_bps, toplam_oran_pct, bid_to_cover, ort_fiyat_gerceklesme, en_dusuk_fiyat_gerceklesme",
       ),
     supabase.from("ihrac_takvimi").select("tarih, yontem, senet_turu, vade, itfa_tarihi").order("tarih"),
     supabase.from("finansman_planlari").select("yil, ay, piyasadan_ihale"),
@@ -37,6 +37,13 @@ export default async function IhaleGunuPage() {
     .map((r) => ({ isin: r.isin, etiket: r.senet_tanimi ?? "", vadeD: trTarihAyristir(r.vade_tarihi) }))
     .filter((r): r is { isin: string; etiket: string; vadeD: Date } => r.vadeD != null && r.vadeD.getTime() > bugun.getTime())
     .sort((a, b) => a.vadeD.getTime() - b.vadeD.getTime());
+
+  // Bu ISIN'ler için ihale_sonuclari'nda zaten resmi "En Düşük Fiyat Gerçekleşme"
+  // varsa (pipeline sonucu çektiyse), kesme fiyatı alanına öneri olarak sunulur.
+  const kesmeOnerileri: Record<string, number> = {};
+  for (const r of ihaleHam ?? []) {
+    if (r.en_dusuk_fiyat_gerceklesme != null) kesmeOnerileri[r.isin] = Number(r.en_dusuk_fiyat_gerceklesme);
+  }
 
   const takipler = (tracksHam ?? []).map((t) => ({
     id: t.id,
@@ -71,7 +78,7 @@ export default async function IhaleGunuPage() {
               <TahminTab ihaleHam={ihaleHam ?? []} takvim={takvimHam ?? []} planlar={planlarHam ?? []} />
             </TabsContent>
             <TabsContent value="emirlerim">
-              <EmirlerimTab takipler={takipler} />
+              <EmirlerimTab takipler={takipler} kesmeOnerileri={kesmeOnerileri} />
             </TabsContent>
             <TabsContent value="performans">
               <PerformansTab ihale={ihaleHam ?? []} bist={bistHam ?? []} isinler={isinler} />
