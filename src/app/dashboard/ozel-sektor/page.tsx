@@ -8,6 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HeroBant } from "@/components/hero-bant";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
 function yuzde(v: number | string | null | undefined): string {
   if (v == null) return "–";
@@ -18,11 +20,16 @@ function yuzde(v: number | string | null | undefined): string {
 export default async function OzelSektorPage() {
   const supabase = await createClient();
 
-  const { data: kagitlar, error } = await supabase
-    .from("menkul_kiymet_bilgileri")
-    .select("*")
-    .eq("ozel_sektor_mu", true)
-    .order("ihracci_kurum", { ascending: true });
+  // 1100 satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
+  const { data: kagitlar, error } = await tumSatirlariGetir((from, to) =>
+    supabase
+      .from("menkul_kiymet_bilgileri")
+      .select("*")
+      .eq("ozel_sektor_mu", true)
+      .order("ihracci_kurum", { ascending: true })
+      .order("isin")
+      .range(from, to),
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -34,9 +41,30 @@ export default async function OzelSektorPage() {
         </p>
       </div>
 
+      {kagitlar && kagitlar.length > 0 && (
+        <HeroBant
+          ustBaslik="ÖZEL SEKTÖR -- İŞLEM GÖREN BORÇLANMA ARAÇLARI"
+          deger={String(kagitlar.length)}
+          birim="kağıt"
+          aciklama={`${new Set(kagitlar.map((k) => k.ihracci_kurum)).size} farklı ihraççı -- BIST Kesin Alım Satım Pazarı'nda o gün işlem görenler`}
+          yanKartlar={[
+            {
+              etiket: "Toplam İhraç Tutarı",
+              deger: `${(kagitlar.reduce((s, k) => s + (Number(k.toplam_ihrac_tutari_bin) || 0), 0) / 1_000_000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} Mlr TL`,
+            },
+            {
+              etiket: "En Yaygın Tür",
+              deger:
+                [...kagitlar.reduce((m, k) => m.set(k.mk_turu ?? "–", (m.get(k.mk_turu ?? "–") ?? 0) + 1), new Map<string, number>())]
+                  .sort((a, b) => b[1] - a[1])[0]?.[0] ?? "–",
+            },
+          ]}
+        />
+      )}
+
       <Card>
         <CardContent className="pt-6">
-          {error && <p className="text-sm text-destructive">{error.message}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           {kagitlar && kagitlar.length === 0 ? (
             <p className="text-sm text-muted-foreground">Veri yok.</p>
           ) : (
