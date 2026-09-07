@@ -34,27 +34,23 @@ export default async function TcmbPage() {
     "dibs_piy_deg_yatirim_fonlari",
     "dibs_piy_deg_dunya_geri_kalani",
   ];
-  const kurSeriler = ["usdtry", "eurtry"];
-  const enflasyonSeriler = ["tufe_yillik_yuzde", "beklenti_tufe_yilsonu", "beklenti_politika_faizi_yilsonu"];
 
   // Supabase projesinin satır limiti (proje ayarı, .limit() ile aşılamıyor)
   // tek seferde tüm serileri (bazıları 5-17 seri x 300-1700 satır) birlikte
   // çekmek keserdi -- her seri kendi sorgusuyla, ayrı ayrı çekiliyor.
   const [
-    dibsSonuclari, tlrefRes, kurSonuclari, repoRes, enflasyonRes,
+    dibsSonuclari, tlrefRes, repoRes,
     koridorRes, politikaRes, enflasyonRaporuRes,
   ] = await Promise.all([
     Promise.all(dibsSeriler.map((s) => supabase.from("evds_seriler").select("*").eq("seri_adi", s).order("tarih"))),
     supabase.from("evds_seriler").select("*").eq("seri_adi", "tlref_kapanis").order("tarih"),
-    Promise.all(kurSeriler.map((s) => supabase.from("evds_seriler").select("*").eq("seri_adi", s).order("tarih"))),
     supabase.from("evds_seriler").select("*").eq("seri_adi", "repo_gecelik_bist").order("tarih"),
-    supabase.from("evds_seriler").select("*").in("seri_adi", enflasyonSeriler).order("tarih"),
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih"),
     supabase.from("tcmb_politika_faizi").select("tarih, politika_faizi").order("tarih"),
     supabase.from("tcmb_enflasyon_raporu").select("*").limit(1).maybeSingle(),
   ]);
 
-  const ilkHata = [...dibsSonuclari, tlrefRes, ...kurSonuclari, repoRes, enflasyonRes].find((r) => r.error)?.error;
+  const ilkHata = [...dibsSonuclari, tlrefRes, repoRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
       <div className="mx-auto max-w-7xl">
@@ -66,9 +62,6 @@ export default async function TcmbPage() {
 
   const dibsVeri = pivotla(dibsSonuclari.flatMap((r) => r.data ?? []));
   const tlrefVeri = pivotla(tlrefRes.data ?? []);
-  const kurVeri = pivotla(kurSonuclari.flatMap((r) => r.data ?? []));
-  const repoVeri = pivotla(repoRes.data ?? []);
-  const enflasyonVeri = pivotla(enflasyonRes.data ?? []);
 
   const koridorVeri = (koridorRes.data ?? []).map((r) => ({ tarih: r.tarih, "Alt bant": Number(r.borc_alma), "Üst bant": Number(r.borc_verme) }));
   const politikaVeri = (politikaRes.data ?? []).map((r) => ({ tarih: r.tarih, "Politika faizi": Number(r.politika_faizi) }));
@@ -106,10 +99,9 @@ export default async function TcmbPage() {
               <TabsTrigger value="koridor" className="shrink-0">Repo Faiz Koridoru</TabsTrigger>
               <TabsTrigger value="tlref" className="shrink-0">TLREF</TabsTrigger>
               <TabsTrigger value="disdenge" className="shrink-0">Dış Denge</TabsTrigger>
-              <TabsTrigger value="kur" className="shrink-0">Döviz Kuru</TabsTrigger>
               <TabsTrigger value="rezerv" className="shrink-0">Net Rezerv</TabsTrigger>
               <TabsTrigger value="beklenti" className="shrink-0">Piyasa Beklentileri</TabsTrigger>
-              <TabsTrigger value="enflasyon" className="shrink-0">Enflasyon &amp; Beklentiler</TabsTrigger>
+              <TabsTrigger value="ppkfarki" className="shrink-0">PPK Karar Farkı</TabsTrigger>
               <TabsTrigger value="enflasyonraporu" className="shrink-0">Enflasyon Raporu</TabsTrigger>
             </TabsList>
 
@@ -188,18 +180,6 @@ export default async function TcmbPage() {
               <DisDengeBolumu />
             </TabsContent>
 
-            <TabsContent value="kur">
-              <p className="mb-3 text-sm text-muted-foreground">USD/TRY ve EUR/TRY (TCMB gösterge kuru).</p>
-              <CokluCizgiGrafigi
-                veri={kurVeri}
-                seriler={[
-                  { anahtar: "usdtry", etiket: "USD/TRY" },
-                  { anahtar: "eurtry", etiket: "EUR/TRY" },
-                ]}
-                ondalik={3}
-              />
-            </TabsContent>
-
             <TabsContent value="rezerv">
               <NetRezervBolumu />
             </TabsContent>
@@ -208,21 +188,29 @@ export default async function TcmbPage() {
               <PiyasaBeklentileriBolumu />
             </TabsContent>
 
-            <TabsContent value="enflasyon">
+            <TabsContent value="ppkfarki">
               <p className="mb-3 text-sm text-muted-foreground">
-                Gerçekleşen yıllık TÜFE ve piyasa beklenti anketi (yıl sonu TÜFE / politika faizi beklentisi).
+                PPK&apos;nın son iki &quot;Faiz Oranlarına İlişkin Basın Duyurusu&quot; metni arasındaki fark,
+                Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde -- kırmızı üstü çizili kısımlar önceki
+                karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
               </p>
-              <CokluCizgiGrafigi
-                veri={enflasyonVeri}
-                seriler={[
-                  { anahtar: "tufe_yillik_yuzde", etiket: "TÜFE (yıllık)" },
-                  { anahtar: "beklenti_tufe_yilsonu", etiket: "Beklenti: TÜFE (yıl sonu)" },
-                  { anahtar: "beklenti_politika_faizi_yilsonu", etiket: "Beklenti: Politika Faizi (yıl sonu)" },
-                ]}
-                ondalik={1}
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
+                <h3 className="text-base font-semibold">Fark raporu (PDF)</h3>
+                <a
+                  href="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
+                >
+                  📄 PDF&apos;i indir / yeni sekmede aç
+                </a>
+              </div>
+              <iframe
+                src="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
+                title="PPK Karar Farkı"
+                className="mt-3 h-[80vh] w-full rounded-lg border border-border"
               />
             </TabsContent>
-
 
             <TabsContent value="enflasyonraporu">
               {!enflasyonRaporu ? (
