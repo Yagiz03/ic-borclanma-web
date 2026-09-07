@@ -41,7 +41,7 @@ export default async function DibsDetayPage({
 
   if (ozetHata || !ozetHam || ozetHam.length === 0) {
     return (
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
         <p className="mt-4 text-sm text-destructive">
           {ozetHata?.message ?? "isin_ozet tablosu boş."}
@@ -103,7 +103,7 @@ export default async function DibsDetayPage({
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
         <IsinSecici
@@ -189,9 +189,9 @@ export default async function DibsDetayPage({
           {siraliIhale.length === 0 ? (
             <p className="text-sm text-muted-foreground">Bu ISIN için ihale kaydı bulunamadı.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="max-h-[340px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>İhraç Tipi</TableHead>

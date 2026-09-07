@@ -13,7 +13,7 @@ export default async function PricingPage() {
 
   if (error || !ozetHam) {
     return (
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <h1 className="text-2xl font-semibold">Pricing</h1>
         <p className="mt-4 text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>
       </div>
@@ -35,7 +35,7 @@ export default async function PricingPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Pricing</h1>
         <p className="text-sm text-muted-foreground">

@@ -30,20 +30,25 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
+// Sıra ve isimler Python tarafındaki dashboard.py::main()'deki st.Page
+// listesiyle BİREBİR eşleşiyor (kullanıcı isteği, 04.09.2026'da orada
+// sabitlenen sıra). Karşılaştır/P&L/İzleme Listesi orijinalde ayrı üst
+// bar sayfası değil, DİBS Detay/Pricing içinde gömülü alt-sekme -- şimdilik
+// burada ayrı sayfa olarak kaldılar, sona eklendi.
 const anaSayfalar: NavItem[] = [
-  { href: "/dashboard/dibs-detay", label: "DİBS Detay", icon: FileSearch },
   { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge },
-  { href: "/dashboard/ihale-gunu", label: "İhale Günü", icon: CalendarClock },
-  { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare },
-  { href: "/dashboard/pricing", label: "Pricing", icon: Wallet },
-  { href: "/dashboard/pnl", label: "P&L", icon: Landmark },
-  { href: "/dashboard/getiri-egrisi", label: "Getiri Eğrisi", icon: LineChart },
+  { href: "/dashboard/ihale-gunu", label: "İhale günü", icon: CalendarClock },
+  { href: "/dashboard/dibs-detay", label: "DİBS Detay", icon: FileSearch },
+  { href: "/dashboard/getiri-egrisi", label: "Getiri eğrisi", icon: LineChart },
+  { href: "/dashboard/pricing", label: "Bono ve Getiri Hesaplayıcı", icon: Wallet },
   { href: "/dashboard/tcmb", label: "TCMB", icon: Banknote },
   { href: "/dashboard/hazine", label: "Hazine", icon: Coins },
+  { href: "/dashboard/takasbank-tpp", label: "TPP", icon: ArrowRightLeft },
+  { href: "/dashboard/ozel-sektor", label: "Özel sektör tahvilleri", icon: Building2 },
+  { href: "/dashboard/strateji", label: "Borçlanma stratejisi", icon: FileText },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays },
-  { href: "/dashboard/takasbank-tpp", label: "Takasbank TPP", icon: ArrowRightLeft },
-  { href: "/dashboard/ozel-sektor", label: "Özel Sektör", icon: Building2 },
-  { href: "/dashboard/strateji", label: "Strateji", icon: FileText },
+  { href: "/dashboard/karsilastir", label: "Karşılaştır", icon: GitCompare },
+  { href: "/dashboard/pnl", label: "P&L", icon: Landmark },
   { href: "/dashboard/izleme-listesi", label: "İzleme Listesi", icon: Star },
 ];
 

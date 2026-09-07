@@ -360,9 +360,9 @@ async function IhaleDetayTabIcerigi() {
           {siraliIhaleler.length === 0 ? (
             <p className="text-sm text-muted-foreground">Henüz ihale kaydı yok.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>ISIN</TableHead>
@@ -521,7 +521,7 @@ async function TcmbDogrudanAlimBolumu() {
 
 export default function IhaleDetayPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">İhale Detay</h1>
         <p className="text-sm text-muted-foreground">

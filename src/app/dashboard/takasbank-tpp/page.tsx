@@ -16,7 +16,7 @@ export default async function TakasbankTppPage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Takasbank Para Piyasası (TPP)</h1>
         <p className="text-sm text-muted-foreground">

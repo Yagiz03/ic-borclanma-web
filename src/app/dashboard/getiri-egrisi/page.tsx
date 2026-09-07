@@ -24,7 +24,7 @@ export default async function GetiriEgrisiPage() {
 
   if (error || !ozetHam) {
     return (
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <h1 className="text-2xl font-semibold">Getiri Eğrisi</h1>
         <p className="mt-4 text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>
       </div>
@@ -50,7 +50,7 @@ export default async function GetiriEgrisiPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Getiri Eğrisi</h1>
         <p className="text-sm text-muted-foreground">
@@ -70,8 +70,9 @@ export default async function GetiriEgrisiPage() {
           {kagitlar.length === 0 ? (
             <p className="text-sm text-muted-foreground">Veri yok.</p>
           ) : (
+            <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10 bg-card">
                 <TableRow>
                   <TableHead>ISIN</TableHead>
                   <TableHead>Tür</TableHead>
@@ -96,6 +97,7 @@ export default async function GetiriEgrisiPage() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

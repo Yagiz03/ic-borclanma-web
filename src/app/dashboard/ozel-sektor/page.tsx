@@ -32,7 +32,7 @@ export default async function OzelSektorPage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Özel Sektör</h1>
         <p className="text-sm text-muted-foreground">
@@ -68,9 +68,9 @@ export default async function OzelSektorPage() {
           {kagitlar && kagitlar.length === 0 ? (
             <p className="text-sm text-muted-foreground">Veri yok.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
                     <TableHead>İhraççı</TableHead>
                     <TableHead>ISIN</TableHead>

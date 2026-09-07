@@ -57,7 +57,7 @@ export default async function TcmbPage() {
   const ilkHata = [...dibsSonuclari, tlrefRes, ...kurSonuclari, repoRes, enflasyonRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <h1 className="text-2xl font-semibold">TCMB</h1>
         <p className="mt-4 text-sm text-destructive">{ilkHata.message}</p>
       </div>
@@ -88,7 +88,7 @@ export default async function TcmbPage() {
   const enflasyonRaporu = enflasyonRaporuRes.data;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">TCMB</h1>
         <p className="text-sm text-muted-foreground">
