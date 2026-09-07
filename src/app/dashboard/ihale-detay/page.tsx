@@ -295,15 +295,7 @@ async function IhaleDetayTabIcerigi() {
     <div className="space-y-6">
       <HeroVeKpiBolumu />
 
-      <details className="group rounded-xl bg-card ring-1 ring-foreground/10">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold marker:content-none">
-          <span className="mr-2 inline-block transition-transform group-open:rotate-90">▶</span>
-          Finansman ilerlemesi (detay)
-        </summary>
-        <div className="border-t border-border p-4">
-          <FinansmanIlerlemeBolumu />
-        </div>
-      </details>
+      <FinansmanIlerlemeBolumu />
 
       <details className="group rounded-xl bg-card ring-1 ring-foreground/10">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold marker:content-none">
