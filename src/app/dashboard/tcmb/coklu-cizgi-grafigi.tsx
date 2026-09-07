@@ -168,18 +168,39 @@ export function PastaGrafigi({
   );
 }
 
-export function YiginliAlanGrafigi({ veri, seriler }: { veri: Record<string, string | number>[]; seriler: Seri[] }) {
+/** Yığılmış alan grafiği -- varsayılan olarak gerçek tarih ekseni (DİBS
+ * piyasa değeri gibi haftalık seriler) bekler. `xKey`/`kategorik` ile
+ * önceden formatlanmış kategorik etiketler (ör. "2026 Temmuz" gibi aylık
+ * bir `etiket` sütunu) kullanan seriler için de kullanılabilir. */
+export function YiginliAlanGrafigi({
+  veri,
+  seriler,
+  xKey = "tarih",
+  kategorik = false,
+  birim = "Mn TL",
+}: {
+  veri: Record<string, string | number>[];
+  seriler: Seri[];
+  xKey?: string;
+  kategorik?: boolean;
+  birim?: string;
+}) {
   if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
   return (
     <ResponsiveContainer width="100%" height={340}>
       <AreaChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
+        <XAxis
+          dataKey={xKey}
+          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tickFormatter={kategorik ? undefined : tarihFmt}
+          minTickGap={32}
+        />
         <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} />
         <Tooltip
           contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-          labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
-          formatter={(v, isim) => [`${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} Mn TL`, isim]}
+          labelFormatter={kategorik ? undefined : (v) => (typeof v === "string" ? tarihFmt(v) : "")}
+          formatter={(v, isim) => [`${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} ${birim}`, isim]}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         {seriler.map((s, i) => (
