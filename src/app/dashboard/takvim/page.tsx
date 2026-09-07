@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
+import { globalOlaylariAyIcinBul } from "@/lib/global-takvim";
 
 const AY_ADLARI = [
   "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -30,12 +31,14 @@ function ayEkle(yil: number, ay: number, delta: number): { yil: number; ay: numb
 export default async function TakvimPage({
   searchParams,
 }: {
-  searchParams: Promise<{ yil?: string; ay?: string }>;
+  searchParams: Promise<{ yil?: string; ay?: string; global?: string }>;
 }) {
   const params = await searchParams;
   const bugun = new Date();
   const yil = params.yil ? Number(params.yil) : bugun.getFullYear();
   const ay = params.ay ? Number(params.ay) : bugun.getMonth() + 1;
+  const globalIzgarada = params.global === "1";
+  const globalOlaylar = globalOlaylariAyIcinBul(yil, ay);
 
   const supabase = await createClient();
   const ayBaslangic = `${yil}-${String(ay).padStart(2, "0")}-01`;
@@ -60,6 +63,12 @@ export default async function TakvimPage({
       renk: RENK[kisaYontem] ?? "bg-muted-foreground",
       detay: `${i.vade}${i.itfa_tarihi ? ` -- İtfa: ${i.itfa_tarihi}` : ""}`,
     });
+  }
+
+  if (globalIzgarada) {
+    for (const o of globalOlaylar) {
+      (gunler[o.gun] ??= []).push({ etiket: `🌐 ${o.etiket}`, renk: "bg-slate-500", detay: o.detay });
+    }
   }
 
   const ilkGun = new Date(Date.UTC(yil, ay - 1, 1));
@@ -111,16 +120,29 @@ export default async function TakvimPage({
             </Link>
           </div>
 
-          {lejant.length > 0 && (
-            <div className="mb-4 flex flex-wrap justify-center gap-3">
-              {lejant.map((etiket) => (
-                <span key={etiket} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className={`size-2 rounded-full ${RENK[etiket]}`} />
-                  {etiket}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+            {lejant.map((etiket) => (
+              <span key={etiket} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className={`size-2 rounded-full ${RENK[etiket]}`} />
+                {etiket}
+              </span>
+            ))}
+            {globalIzgarada && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="size-2 rounded-full bg-slate-500" />
+                🌐 Global olay
+              </span>
+            )}
+            <Link
+              href={`/dashboard/takvim?yil=${yil}&ay=${ay}${globalIzgarada ? "" : "&global=1"}`}
+              title="Fed/ECB/BOJ/BOE faiz kararı ve ABD CPI-PPI günlerini takvim ızgarasına da işler. Aşağıdaki listede her zaman görünürler."
+              className={`ml-2 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                globalIzgarada ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              🌐 Takvimde göster
+            </Link>
+          </div>
 
           <div className="grid grid-cols-5 gap-1 overflow-x-auto">
             {GUN_BASLIKLARI.map((g) => (
@@ -158,6 +180,23 @@ export default async function TakvimPage({
               </div>
             ))}
           </div>
+
+          {globalOlaylar.length > 0 && (
+            <div className="mt-4 border-t border-border pt-4">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">🌐 Global olaylar (bu ay)</p>
+              <div className="space-y-1">
+                {globalOlaylar.map((o, i) => (
+                  <div key={i} className="flex flex-wrap items-baseline gap-x-2 text-xs">
+                    <span className="font-figures font-semibold text-foreground">
+                      {String(o.gun).padStart(2, "0")}.{String(ay).padStart(2, "0")}.{yil}
+                    </span>
+                    <span className="text-foreground">{o.etiket}</span>
+                    <span className="text-muted-foreground">-- {o.detay}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
