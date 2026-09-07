@@ -13,10 +13,11 @@ import {
 } from "@/lib/bond-math/tahvil-fiyatlama";
 import { utcTarihe } from "@/lib/tarih";
 import { SenetBadge } from "@/components/senet-badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export type FiyatlanabilirKagit = {
   isin: string;
@@ -81,6 +82,18 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
 
     return { getiri, kirli, birikmis, temiz, modified, dv01, konveksite, kalanKuponSayisi };
   }, [kagit, valorStr, mod, girdi]);
+
+  const kuponOdemeleri = useMemo(() => {
+    if (!kagit) return null;
+    const vade = utcTarihe(kagit.vade);
+    const anchor = utcTarihe(kagit.anchor);
+    if (!vade || !anchor) return null;
+    try {
+      return nakitAkislariniOlustur(vade, anchor, kagit.kuponOraniPct / 100);
+    } catch {
+      return null;
+    }
+  }, [kagit]);
 
   return (
     <div className="space-y-6">
@@ -169,6 +182,43 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
         (6 aylık) kupon periyodu varsayımıyla. Sadece sabit kuponlu / kuponsuz kağıtlar için geçerli --
         TLREF/TÜFE/Değişken Faizli kağıtların floater formülleri henüz portlanmadı.
       </p>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Kupon ödemeleri</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!kagit || !kuponOdemeleri || kuponOdemeleri.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Bu kağıt için kupon takvimi hesaplanamadı.</p>
+          ) : (
+            <>
+              <p className="mb-3 text-sm text-muted-foreground">
+                {kagit.isin} -- {kagit.senetTanimi} kağıdının tüm kupon takvimi (geçmiş ödenenler dahil).
+              </p>
+              <div className="max-h-[340px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-card">
+                    <TableRow>
+                      <TableHead>Tarih</TableHead>
+                      <TableHead className="text-right">Nakit akışı (100 nominal)</TableHead>
+                      <TableHead>Durum</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {kuponOdemeleri.map((a, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-figures">{a.tarih.toLocaleDateString("tr-TR", { timeZone: "UTC" })}</TableCell>
+                        <TableCell className="font-figures text-right">{a.tutar.toFixed(3)}</TableCell>
+                        <TableCell>{a.tarih.getTime() <= Date.now() ? "Ödendi" : "Yaklaşan"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

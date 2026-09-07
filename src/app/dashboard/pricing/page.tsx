@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { trTarihSirala, trTarihAyristir } from "@/lib/tarih";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PricingHesaplayici, type FiyatlanabilirKagit } from "./pricing-hesaplayici";
+import { TakasMevduatHesaplayici } from "./takas-mevduat-hesaplayici";
 import { PnlBolumu } from "@/app/dashboard/pnl/pnl-bolumu";
 
 export default async function PricingPage({
@@ -10,6 +11,7 @@ export default async function PricingPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab } = await searchParams;
+  const gecerliTab = tab === "pnl" ? "pnl" : tab === "takas" ? "takas" : "hesaplayici";
   const supabase = await createClient();
 
   const { data: ozetHam, error } = await supabase
@@ -50,9 +52,10 @@ export default async function PricingPage({
         </p>
       </div>
 
-      <Tabs defaultValue={tab === "pnl" ? "pnl" : "hesaplayici"}>
+      <Tabs defaultValue={gecerliTab}>
         <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
           <TabsTrigger value="hesaplayici" className="shrink-0">ISIN Hesaplayıcı</TabsTrigger>
+          <TabsTrigger value="takas" className="shrink-0">Takas / Mevduat → O/N</TabsTrigger>
           <TabsTrigger value="pnl" className="shrink-0">P&L</TabsTrigger>
         </TabsList>
 
@@ -62,6 +65,10 @@ export default async function PricingPage({
           ) : (
             <PricingHesaplayici kagitlar={kagitlar} />
           )}
+        </TabsContent>
+
+        <TabsContent value="takas">
+          <TakasMevduatHesaplayici />
         </TabsContent>
 
         <TabsContent value="pnl">
