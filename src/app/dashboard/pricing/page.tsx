@@ -43,6 +43,18 @@ export default async function PricingPage({
     kuponOraniPct: Number(r.tahmini_kupon_orani),
   }));
 
+  const [{ data: koridorHam }, { data: politikaHam }, { data: ppkHam }] = await Promise.all([
+    supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih", { ascending: false }).limit(1),
+    supabase.from("tcmb_politika_faizi").select("tarih, politika_faizi").order("tarih", { ascending: false }).limit(1),
+    supabase.from("tcmb_takvim").select("tarih").eq("tur", "PPK Toplantı Kararı").gte("tarih", bugun.toISOString().slice(0, 10)),
+  ]);
+
+  const koridor = koridorHam?.[0]
+    ? { altBant: Number(koridorHam[0].borc_alma), ustBant: Number(koridorHam[0].borc_verme) }
+    : null;
+  const politikaFaizi = politikaHam?.[0]?.politika_faizi != null ? Number(politikaHam[0].politika_faizi) : null;
+  const ppkGunleri = (ppkHam ?? []).map((r) => r.tarih).sort();
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div>
@@ -68,7 +80,7 @@ export default async function PricingPage({
         </TabsContent>
 
         <TabsContent value="takas">
-          <TakasMevduatHesaplayici />
+          <TakasMevduatHesaplayici koridor={koridor} politikaFaizi={politikaFaizi} ppkGunleri={ppkGunleri} />
         </TabsContent>
 
         <TabsContent value="pnl">

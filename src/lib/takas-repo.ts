@@ -79,3 +79,66 @@ export function mevduatHesapla(gun: number, mevduatOran: number, baslangic: Date
     takasEslenigi: (getiri / 100 - 1 + takasKomisyonu(gun)) * 365 / gun,
   };
 }
+
+export type OranDonemi = { baslangic: Date; oran: number };
+
+/** O/N repoyu her iş günü çevirerek (rollover) günlük değer patikası --
+ * core.takas_repo.on_repo_patikasi'nin portu. `oranDonemleri` tarihe göre
+ * artan sırada olmalı; işlem günü hangi dönemin içindeyse o oran kullanılır. */
+export function onRepoPatikasi(
+  gun: number, oranDonemleri: OranDonemi[], baslangic: Date,
+  repoKomisyon = REPO_KOMISYON_GUNLUK, baslangicDeger = 100,
+): Map<string, number> {
+  const bitis = gunEkle(baslangic, gun);
+  const donemler = [...oranDonemleri].sort((a, b) => a.baslangic.getTime() - b.baslangic.getTime());
+
+  function oranBul(t: Date): number {
+    let aktif = donemler[0].oran;
+    for (const d of donemler) {
+      if (t.getTime() >= d.baslangic.getTime()) aktif = d.oran;
+    }
+    return aktif;
+  }
+
+  const patika = new Map<string, number>();
+  patika.set(isoStr(baslangic), baslangicDeger);
+  let deger = baslangicDeger;
+  let t = new Date(baslangic.getTime());
+  while (t.getTime() < bitis.getTime() && !isGunuMu(t)) {
+    t = gunEkle(t, 1);
+    patika.set(isoStr(t), deger);
+  }
+  while (t.getTime() < bitis.getTime()) {
+    let sonraki = gunEkle(t, 1);
+    while (sonraki.getTime() < bitis.getTime() && !isGunuMu(sonraki)) sonraki = gunEkle(sonraki, 1);
+    const w = Math.round((sonraki.getTime() - t.getTime()) / 86_400_000);
+    const oran = oranBul(t);
+    for (let k = 1; k <= w; k++) {
+      patika.set(isoStr(gunEkle(t, k)), deger * (1 + (oran / 365) * k - repoKomisyon * w));
+    }
+    deger = patika.get(isoStr(sonraki))!;
+    t = sonraki;
+  }
+  return patika;
+}
+
+/** Takas işleminin günlük değer patikası -- komisyon 1. günden düşük,
+ * faiz oran/365 ile doğrusal. */
+export function takasPatikasi(gun: number, takasOran: number, baslangic: Date, baslangicDeger = 100): Map<string, number> {
+  const kom = takasKomisyonu(gun);
+  const patika = new Map<string, number>();
+  patika.set(isoStr(baslangic), baslangicDeger);
+  for (let k = 1; k <= gun; k++) {
+    patika.set(isoStr(gunEkle(baslangic, k)), baslangicDeger * (1 + (takasOran / 365) * k - kom));
+  }
+  return patika;
+}
+
+/** Mevduatın günlük değer patikası -- komisyonsuz doğrusal faiz işleyişi. */
+export function mevduatPatikasi(gun: number, mevduatOran: number, baslangic: Date, baslangicDeger = 100): Map<string, number> {
+  const patika = new Map<string, number>();
+  for (let k = 0; k <= gun; k++) {
+    patika.set(isoStr(gunEkle(baslangic, k)), baslangicDeger * (1 + (mevduatOran / 365) * k));
+  }
+  return patika;
+}

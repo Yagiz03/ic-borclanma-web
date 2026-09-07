@@ -39,6 +39,13 @@ function ayGunEsit(ayGun: string, ay: number): number | null {
   return a === ay ? g : null;
 }
 
+/** TÜİK'in TÜFE/Yİ-ÜFE açıklama günü: ayın 3'ü, hafta sonuysa ilk iş günü. */
+export function trEnflasyonGunu(yil: number, ay: number): Date {
+  const t = new Date(Date.UTC(yil, ay - 1, 3));
+  while (t.getUTCDay() === 0 || t.getUTCDay() === 6) t.setUTCDate(t.getUTCDate() + 1);
+  return t;
+}
+
 export function globalOlaylariAyIcinBul(yil: number, ay: number): GlobalOlay[] {
   const olaylar: GlobalOlay[] = [];
   for (const [kaynak, etiket, detay] of [

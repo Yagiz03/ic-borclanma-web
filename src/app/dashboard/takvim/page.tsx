@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
-import { globalOlaylariAyIcinBul } from "@/lib/global-takvim";
+import { globalOlaylariAyIcinBul, trEnflasyonGunu } from "@/lib/global-takvim";
 
 const AY_ADLARI = [
   "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -16,6 +16,7 @@ const RENK: Record<string, string> = {
   "Finansal İstikrar Raporu": "bg-[oklch(0.6_0.18_155)]",
   "İhale": "bg-[oklch(0.55_0.2_300)]",
   "Doğrudan Satış": "bg-[oklch(0.72_0.18_85)]",
+  "Türkiye Enflasyonu": "bg-[oklch(0.62_0.2_15)]",
 };
 
 type Olay = { etiket: string; renk: string; detay: string };
@@ -45,9 +46,21 @@ export default async function TakvimPage({
   const ayBitisTarih = new Date(Date.UTC(yil, ay, 1));
   const ayBitis = ayBitisTarih.toISOString().slice(0, 10);
 
-  const [{ data: tcmb }, { data: ihrac }] = await Promise.all([
+  const enflasyonTarihi = trEnflasyonGunu(yil, ay);
+  const oncekiAy = ay === 1 ? 12 : ay - 1;
+  const oncekiYil = ay === 1 ? yil - 1 : yil;
+  const oncekiAyReferans = `${oncekiYil}-${String(oncekiAy).padStart(2, "0")}-01`;
+
+  const [{ data: tcmb }, { data: ihrac }, { data: enflasyonSeriler }] = await Promise.all([
     supabase.from("tcmb_takvim").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("ihrac_takvimi").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
+    enflasyonTarihi.getTime() <= bugun.getTime()
+      ? supabase
+          .from("evds_seriler")
+          .select("seri_adi, deger")
+          .in("seri_adi", ["tufe_fe25_aylik_yuzde", "tufe_fe25_yillik_yuzde", "yiufe_aylik_yuzde", "yiufe_yillik_yuzde"])
+          .eq("tarih", oncekiAyReferans)
+      : Promise.resolve({ data: [] as { seri_adi: string; deger: number }[] }),
   ]);
 
   const gunler: Record<number, Olay[]> = {};
@@ -62,6 +75,23 @@ export default async function TakvimPage({
       etiket: `${kisaYontem}: ${i.senet_turu}`,
       renk: RENK[kisaYontem] ?? "bg-muted-foreground",
       detay: `${i.vade}${i.itfa_tarihi ? ` -- İtfa: ${i.itfa_tarihi}` : ""}`,
+    });
+  }
+
+  {
+    const veri = new Map((enflasyonSeriler ?? []).map((r) => [r.seri_adi, Number(r.deger)]));
+    const tufeAylik = veri.get("tufe_fe25_aylik_yuzde");
+    const tufeYillik = veri.get("tufe_fe25_yillik_yuzde");
+    const yiufeAylik = veri.get("yiufe_aylik_yuzde");
+    const yiufeYillik = veri.get("yiufe_yillik_yuzde");
+    const parcalar: string[] = [];
+    if (tufeAylik != null && tufeYillik != null) parcalar.push(`TÜFE aylık %${tufeAylik.toFixed(2)}, yıllık %${tufeYillik.toFixed(2)}`);
+    if (yiufeAylik != null && yiufeYillik != null) parcalar.push(`Yİ-ÜFE aylık %${yiufeAylik.toFixed(2)}, yıllık %${yiufeYillik.toFixed(2)}`);
+    const detay = parcalar.length > 0 ? `${AY_ADLARI[oncekiAy]} verisi: ${parcalar.join(" | ")}` : `${AY_ADLARI[oncekiAy]} verisi -- 10:00 (TÜİK)`;
+    (gunler[enflasyonTarihi.getUTCDate()] ??= []).push({
+      etiket: "Türkiye Enflasyonu (TÜFE + Yİ-ÜFE)",
+      renk: RENK["Türkiye Enflasyonu"],
+      detay,
     });
   }
 
@@ -88,6 +118,7 @@ export default async function TakvimPage({
   const bugunMu = (g: number) => yil === bugun.getFullYear() && ay === bugun.getMonth() + 1 && g === bugun.getDate();
 
   const lejant = Object.keys(RENK).filter((k) =>
+    k === "Türkiye Enflasyonu" ||
     [...(tcmb ?? []).map((t) => t.tur), ...(ihrac ?? []).map((i) => (i.yontem.startsWith("İhale") ? "İhale" : "Doğrudan Satış"))].includes(k),
   );
 
