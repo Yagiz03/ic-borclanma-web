@@ -11,6 +11,7 @@ import {
 } from "@/lib/bond-math/tahvil-fiyatlama";
 import { PozisyonEkleFormu } from "./pozisyon-ekle-formu";
 import { PozisyonSilButonu } from "./pozisyon-sil-butonu";
+import { HeroBant } from "@/components/hero-bant";
 
 const FIYATLANABILIR_TIPLER = new Set(["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili"]);
 
@@ -131,39 +132,17 @@ export default async function PnlPage() {
         <p className="text-sm text-muted-foreground">Henüz pozisyon eklenmedi.</p>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground">Toplam K/Z</p>
-                <p className={`font-figures text-xl font-semibold ${toplamKz >= 0 ? "text-emerald-600" : "text-destructive"}`}>
-                  {paraFmt(toplamKz)} TL
-                </p>
-                {toplamPct != null && (
-                  <p className="text-xs text-muted-foreground">%{toplamPct.toFixed(2)}</p>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground">Pozisyon sayısı</p>
-                <p className="font-figures text-xl font-semibold">{satirlar.length}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground">Portföy DV01</p>
-                <p className="font-figures text-xl font-semibold">{toplamDv01.toFixed(2)} TL / 1bp</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground">Ağırlıklı Ort. Duration</p>
-                <p className="font-figures text-xl font-semibold">
-                  {agirlikliDuration != null ? `${agirlikliDuration.toFixed(2)} yıl` : "–"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          <HeroBant
+            ustBaslik="PORTFÖY -- TOPLAM KÂR / ZARAR"
+            deger={`${toplamKz >= 0 ? "+" : ""}${paraFmt(toplamKz)}`}
+            birim="TL"
+            aciklama={toplamPct != null ? `Maliyete göre %${toplamPct.toFixed(2)} -- ${satirlar.length} açık pozisyon` : `${satirlar.length} açık pozisyon`}
+            yanKartlar={[
+              { etiket: "Pozisyon sayısı", deger: String(satirlar.length) },
+              { etiket: "Portföy DV01", deger: `${toplamDv01.toFixed(2)} TL/1bp` },
+              { etiket: "Ağırlıklı Ort. Duration", deger: agirlikliDuration != null ? `${agirlikliDuration.toFixed(2)} yıl` : "–" },
+            ]}
+          />
 
           <div className="space-y-3">
             {satirlar.map((s) => (
