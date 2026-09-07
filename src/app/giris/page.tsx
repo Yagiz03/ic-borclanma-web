@@ -33,7 +33,7 @@ export default function GirisPage() {
     // uygulamasındaki "gerçek auth değil, sadece veri ayrımı" felsefesiyle
     // aynı). Anonim Supabase Auth oturumu (signInAnonymously) gerçek bir
     // auth.uid() veriyor -- e-posta round-trip'i olmadan -- böylece RLS
-    // (watchlist/positions/page_views) yine de çalışıyor.
+    // (watchlist/positions) yine de çalışıyor.
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error || !data.user) {
       setYukleniyor(false);

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileSearch,
-  Activity,
   Gauge,
   LineChart,
   CalendarDays,
@@ -150,18 +149,6 @@ export function AppShell({
           </nav>
 
           <div className="hidden items-center gap-1 lg:flex">
-            <Link
-              href="/dashboard/analitik"
-              className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
-                pathname.startsWith("/dashboard/analitik")
-                  ? "gradient-marka text-white shadow-sm"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-              )}
-            >
-              <Activity className="size-4 shrink-0" />
-              Ziyaret Takibi
-            </Link>
             <YakindaMenu />
           </div>
 
@@ -186,11 +173,6 @@ export function AppShell({
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} onClick={() => setMobilAcik(false)} />
             ))}
-            <NavLink
-              item={{ href: "/dashboard/analitik", label: "Ziyaret Takibi", icon: Activity }}
-              pathname={pathname}
-              onClick={() => setMobilAcik(false)}
-            />
             <div className="my-1 h-px bg-border" />
             {yakindaSayfalar.map((item) => (
               <div
