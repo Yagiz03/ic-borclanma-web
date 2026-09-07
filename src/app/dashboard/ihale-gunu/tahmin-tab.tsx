@@ -2,6 +2,17 @@
 
 import { Fragment, useMemo, useState } from "react";
 import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  ResponsiveContainer,
+  Scatter,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
   aylikDagilimTahminiOlustur,
   ayKalanPlanHesapla,
   benzerIhaleleriBul,
@@ -9,6 +20,8 @@ import {
   medyan,
   ortalama,
   ozetPenceresiSec,
+  vadeYilCikar,
+  yaklasanIhaleleriBul,
   type DagilimSatiri,
   type IhaleHam,
   type IhalePrep,
@@ -168,10 +181,33 @@ export function TahminTab({
     () => Array.from(new Set(ihale.map((r) => r.senet_tanimi).filter((s): s is string => !!s))).sort(),
     [ihale],
   );
-  const [senetTipi, setSenetTipi] = useState(
-    senetTipleri.includes("Sabit Kuponlu Devlet Tahvili") ? "Sabit Kuponlu Devlet Tahvili" : (senetTipleri[0] ?? ""),
-  );
-  const [hedefVadeYil, setHedefVadeYil] = useState(5.0);
+
+  const yaklasan = useMemo(() => yaklasanIhaleleriBul(takvim, bugun), [takvim, bugun]);
+  const [yaklasanIdx, setYaklasanIdx] = useState(0);
+  const secilenYaklasan = yaklasan[yaklasanIdx];
+
+  const varsayilanSenetTipi =
+    secilenYaklasan && senetTipleri.includes(secilenYaklasan.senet_turu)
+      ? secilenYaklasan.senet_turu
+      : senetTipleri.includes("Sabit Kuponlu Devlet Tahvili")
+        ? "Sabit Kuponlu Devlet Tahvili"
+        : (senetTipleri[0] ?? "");
+  const varsayilanVadeYil = (secilenYaklasan ? vadeYilCikar(secilenYaklasan.vade) : null) ?? 5.0;
+
+  const [senetTipi, setSenetTipi] = useState(varsayilanSenetTipi);
+  const [hedefVadeYil, setHedefVadeYil] = useState(varsayilanVadeYil);
+  const [manuelDegistirildi, setManuelDegistirildi] = useState(false);
+
+  // Yaklaşan ihale seçimi değişince, kullanıcı henüz elle bir şey değiştirmediyse
+  // senet tipi/vade alanlarını o ihaleye göre güncelle (Python'daki varsayılan
+  // değer davranışıyla tutarlı).
+  const sonSecilenIsin = secilenYaklasan ? `${secilenYaklasan.tarih}-${secilenYaklasan.senet_turu}` : null;
+  const [izlenenSecim, setIzlenenSecim] = useState(sonSecilenIsin);
+  if (sonSecilenIsin !== izlenenSecim && !manuelDegistirildi) {
+    setIzlenenSecim(sonSecilenIsin);
+    setSenetTipi(varsayilanSenetTipi);
+    setHedefVadeYil(varsayilanVadeYil);
+  }
 
   const benzer = useMemo(
     () => (senetTipi ? benzerIhaleleriBul(ihale, senetTipi, hedefVadeYil) : []),
@@ -215,13 +251,42 @@ export function TahminTab({
         )}
       </div>
 
+      {yaklasan.length > 0 ? (
+        <div className="rounded-lg border border-border p-4">
+          <h3 className="mb-3 text-sm font-semibold">Bu ayki ihaleler</h3>
+          {yaklasan.length === 1 ? (
+            <p className="text-sm">
+              {yaklasan[0].tarihD.toLocaleDateString("tr-TR")} -- {yaklasan[0].senet_turu} ({yaklasan[0].vade})
+            </p>
+          ) : (
+            <select
+              value={yaklasanIdx}
+              onChange={(e) => setYaklasanIdx(Number(e.target.value))}
+              className="block w-full max-w-md rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            >
+              {yaklasan.map((y, i) => (
+                <option key={i} value={i}>
+                  {y.tarihD.toLocaleDateString("tr-TR")} -- {y.senet_turu} ({y.vade})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Bu ay planlanmış bir ihale bulunamadı -- aşağıdaki &quot;Manuel senet tipi / vade seçimi&quot; bölümünden
+          istediğin senet tipi/vadeyi analiz edebilirsin.
+        </p>
+      )}
+
       <div className="rounded-lg border border-border p-4">
         <h3 className="mb-3 text-sm font-semibold">Manuel senet tipi / vade seçimi</h3>
         <div className="flex flex-wrap items-end gap-4">
           <div className="space-y-1.5">
             <label className="text-sm text-muted-foreground" htmlFor="senet-tipi">Senet tipi</label>
             <select
-              id="senet-tipi" value={senetTipi} onChange={(e) => setSenetTipi(e.target.value)}
+              id="senet-tipi" value={senetTipi}
+              onChange={(e) => { setManuelDegistirildi(true); setSenetTipi(e.target.value); }}
               className="block rounded-md border border-input bg-background px-2 py-1.5 text-sm"
             >
               {senetTipleri.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -231,7 +296,7 @@ export function TahminTab({
             <label className="text-sm text-muted-foreground" htmlFor="hedef-vade">Hedef vade (yıl)</label>
             <input
               id="hedef-vade" type="number" min={0.1} max={15} step={0.5} value={hedefVadeYil}
-              onChange={(e) => setHedefVadeYil(Number(e.target.value))}
+              onChange={(e) => { setManuelDegistirildi(true); setHedefVadeYil(Number(e.target.value)); }}
               className="block w-28 rounded-md border border-input bg-background px-2 py-1.5 text-sm font-figures"
             />
           </div>
@@ -300,6 +365,47 @@ export function TahminTab({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div>
+            <h4 className="mb-2 text-sm font-semibold">Her ihalede kabul edilen getiri aralığı ve ortalama</h4>
+            <ResponsiveContainer width="100%" height={340}>
+              <ComposedChart
+                data={[...sonBenzer]
+                  .sort((a, b) => a.ihaleTarihiD.getTime() - b.ihaleTarihiD.getTime())
+                  .map((r) => ({
+                    etiket: `${r.ihaleTarihiD.toLocaleDateString("tr-TR")} ${r.isin}`,
+                    taban: r.en_dusuk_bilesik_gerceklesme,
+                    aralik:
+                      r.en_dusuk_bilesik_gerceklesme != null && r.en_yuksek_bilesik_gerceklesme != null
+                        ? r.en_yuksek_bilesik_gerceklesme - r.en_dusuk_bilesik_gerceklesme
+                        : null,
+                    ortalama: r.ort_yillik_bilesik_gerceklesme,
+                    enDusuk: r.en_dusuk_bilesik_gerceklesme,
+                    enYuksek: r.en_yuksek_bilesik_gerceklesme,
+                  }))}
+                margin={{ top: 8, right: 16, left: 0, bottom: 40 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="etiket" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} angle={-35} textAnchor="end" interval={0} height={70} />
+                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} unit="%" domain={["dataMin - 0.2", "dataMax + 0.2"]} />
+                <Tooltip
+                  contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  formatter={(v, name, item) => {
+                    if (name === "aralik") {
+                      const p = item.payload as { enDusuk: number | null; enYuksek: number | null };
+                      return [`${p.enDusuk?.toFixed(2)}% -- ${p.enYuksek?.toFixed(2)}%`, "Kabul aralığı"];
+                    }
+                    if (name === "ortalama") return [`${Number(v).toFixed(2)}%`, "Ortalama kabul"];
+                    return [v, name];
+                  }}
+                />
+                <Bar dataKey="taban" stackId="a" fill="transparent" isAnimationActive={false} legendType="none" />
+                <Bar dataKey="aralik" stackId="a" fill="oklch(0.6 0.1 264)" fillOpacity={0.35} radius={[3, 3, 3, 3]} name="Kabul aralığı (en düşük -- en yüksek)" />
+                <Scatter dataKey="ortalama" fill="oklch(0.55 0.21 264)" name="Ortalama kabul" />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

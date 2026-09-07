@@ -94,9 +94,25 @@ export type TakvimSatiri = {
   itfa_tarihi: string;
 };
 
-function vadeYilCikar(vade: string): number | null {
+export function vadeYilCikar(vade: string): number | null {
   const m = /\/\s*(\d+)\s*Gün/.exec(vade || "");
   return m ? Math.round((Number(m[1]) / 365) * 10) / 10 : null;
+}
+
+export type YaklasanIhale = { tarihD: Date; tarih: string; senet_turu: string; vade: string };
+
+/** core/finansman_ilerleme.py::yaklasan_ihaleleri_bul(ay_boyunca=True) portu --
+ * ihrac_takvimi'nden bu ayın "İhale" yöntemiyle yapılan (Doğrudan Satış hariç)
+ * planlı ihalelerini tarihe göre artan sırada döner. */
+export function yaklasanIhaleleriBul(takvim: TakvimSatiri[], bugun: Date): YaklasanIhale[] {
+  const yil = bugun.getFullYear();
+  const ay = bugun.getMonth();
+  return takvim
+    .filter((r) => r.yontem?.startsWith("İhale"))
+    .map((r) => ({ ...r, tarihD: trTarihAyristir(r.tarih) }))
+    .filter((r): r is TakvimSatiri & { tarihD: Date } => r.tarihD != null && r.tarihD.getFullYear() === yil && r.tarihD.getMonth() === ay)
+    .sort((a, b) => a.tarihD.getTime() - b.tarihD.getTime())
+    .map((r) => ({ tarihD: r.tarihD, tarih: r.tarih, senet_turu: r.senet_turu, vade: r.vade }));
 }
 
 export type DagilimSatiri = {
