@@ -4,14 +4,29 @@
  * biri ihaleli hafta (14-20 Eylül 2026), biri PPK'lı hafta (8-13 Eylül).
  */
 import { describe, expect, it } from "vitest";
-import { haftaAraligi, olaylariKur } from "../haftalik-olaylar";
+import {
+  haftaAraligi,
+  olaylariKur,
+  type IhracTakvimSatiri,
+  type TcmbTakvimSatiri,
+} from "../haftalik-olaylar";
 import veri from "./fixtures/hafta-takvim.json";
 
-const kur = (h: typeof veri.ihaleHaftasi) =>
+// JSON'dan gelen boş diziler `never[]` olarak çıkarsandığı için hafta tipi
+// açıkça yazılıyor (iki haftanın şekli birbirinin tersi: birinde ihrac boş,
+// diğerinde tcmb).
+type Hafta = {
+  baslangic: string;
+  bitis: string;
+  tcmb: TcmbTakvimSatiri[];
+  ihrac: IhracTakvimSatiri[];
+};
+
+const kur = (h: Hafta) =>
   olaylariKur(h.tcmb, h.ihrac, { baslangic: h.baslangic, bitis: h.bitis });
 
 describe("olaylariKur — ihaleli hafta (14-20 Eylül 2026)", () => {
-  const olaylar = kur(veri.ihaleHaftasi);
+  const olaylar = kur(veri.ihaleHaftasi as Hafta);
 
   it("ihaleleri senet türü ve vadesiyle listeler", () => {
     const etiketler = olaylar.map((o) => o.etiket);
@@ -55,7 +70,7 @@ describe("olaylariKur — ihaleli hafta (14-20 Eylül 2026)", () => {
 });
 
 describe("olaylariKur — PPK'lı hafta (8-13 Eylül 2026)", () => {
-  const olaylar = kur(veri.ppkHaftasi);
+  const olaylar = kur(veri.ppkHaftasi as Hafta);
 
   it("PPK kararını ppk türüyle işaretler", () => {
     const ppk = olaylar.find((o) => o.etiket.includes("PPK"));
