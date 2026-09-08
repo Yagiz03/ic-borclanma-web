@@ -42,16 +42,7 @@ export async function POST() {
   const token = process.env.GITHUB_DISPATCH_TOKEN;
   if (!token) {
     return Response.json(
-      {
-        hata: "Sunucuda GITHUB_DISPATCH_TOKEN tanımlı değil — tetikleme kapalı.",
-        // GEÇİCİ TEŞHİS: sadece anahtar İSİMLERİ (değer yok) -- isim yanlış mı
-        // yoksa değişken bu ortama (Production) hiç tanımlanmamış mı ayırt
-        // etmek için. Teşhis bitince kaldırılacak.
-        teshis: {
-          benzerAnahtarlar: Object.keys(process.env).filter((k) => /GIT|HUB|DISPATCH|TOKEN|PAT/i.test(k)),
-          ortam: process.env.VERCEL_ENV ?? null,
-        },
-      },
+      { hata: "Sunucuda GITHUB_DISPATCH_TOKEN tanımlı değil — tetikleme kapalı." },
       { status: 503 },
     );
   }
