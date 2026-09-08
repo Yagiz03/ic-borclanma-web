@@ -14,8 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "İç Borçlanma Dashboard",
-  description: "Türkiye Hazine iç borçlanma senetleri (DİBS) takip paneli",
+  title: "Türkiye Tahvil ve Bono Terminali",
+  description:
+    "Hazine iç borçlanma senetleri (DİBS), ihale sonuçları, getiri eğrisi ve tahvil fiyatlama terminali.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

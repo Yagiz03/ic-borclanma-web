@@ -135,15 +135,18 @@ export default function GirisPage() {
         />
         <div className="relative flex items-center gap-2">
           <div className="flex size-9 items-center justify-center rounded-lg bg-white/20 text-sm font-bold backdrop-blur-sm">
-            İB
+            TT
           </div>
-          <span className="font-semibold">İç Borçlanma Dashboard</span>
+          <span className="font-semibold">Türkiye Tahvil</span>
         </div>
 
         <div className="relative space-y-8">
           <h1 className="text-4xl font-semibold tracking-tight text-balance">
-            Türkiye Hazine iç borçlanma senetlerini tek panelde takip et.
+            Türkiye tahvil ve bono terminali.
           </h1>
+          <p className="-mt-4 text-sm text-white/80">
+            Hazine iç borçlanma senetlerini ihaleden ikincil piyasaya tek panelde takip et.
+          </p>
           <ul className="space-y-4">
             {OZELLIKLER.map((o) => (
               <li key={o.metin} className="flex items-center gap-3 text-sm text-white/90">
@@ -163,7 +166,7 @@ export default function GirisPage() {
         <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-md">
           <CardHeader>
             <div className="gradient-marka mb-2 flex size-9 items-center justify-center rounded-lg text-sm font-bold text-white lg:hidden">
-              İB
+              TT
             </div>
             <CardTitle className="text-xl">{baslik}</CardTitle>
             <CardDescription>{aciklama}</CardDescription>
