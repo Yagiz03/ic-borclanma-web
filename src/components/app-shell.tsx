@@ -66,13 +66,20 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  ustBant,
+}: {
+  children: React.ReactNode;
+  ustBant?: React.ReactNode;
+}) {
   const pathname = usePathname();
   const [mobilAcik, setMobilAcik] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-background/70 backdrop-blur-xl backdrop-saturate-150">
+        {ustBant}
         <div className="flex h-16 w-full items-center gap-4 px-5 lg:px-8">
           <nav className="hidden min-w-0 flex-1 items-center gap-1 lg:flex">
             {anaSayfalar.map((item) => (

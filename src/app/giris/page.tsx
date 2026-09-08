@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Landmark, LineChart, Star, Activity } from "lucide-react";
+import { Landmark, LineChart, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,44 +15,113 @@ const OZELLIKLER = [
   { icon: Star, metin: "Kendi izleme listeni oluştur, kağıt takip et" },
 ];
 
+type Mod = "giris" | "kayit" | "sifremi-unuttum";
+
+/** Supabase'in İngilizce hata mesajlarını kullanıcıya gösterilebilir Türkçeye çevirir. */
+function hataMesaji(mesaj: string): string {
+  const m = mesaj.toLowerCase();
+  if (m.includes("invalid login credentials")) return "E-posta veya şifre hatalı.";
+  if (m.includes("email not confirmed")) return "E-postanı henüz doğrulamamışsın -- gelen kutunu kontrol et.";
+  if (m.includes("user already registered") || m.includes("already been registered"))
+    return "Bu e-posta ile zaten bir hesap var. Giriş yap sekmesini kullan.";
+  if (m.includes("password should be at least")) return "Şifre en az 8 karakter olmalı.";
+  if (m.includes("rate limit") || m.includes("too many"))
+    return "Çok fazla deneme yapıldı, birkaç dakika sonra tekrar dene.";
+  if (m.includes("unable to validate email")) return "Geçerli bir e-posta adresi gir.";
+  return mesaj;
+}
+
 export default function GirisPage() {
   const router = useRouter();
+  const [mod, setMod] = useState<Mod>("giris");
   const [adSoyad, setAdSoyad] = useState("");
   const [email, setEmail] = useState("");
+  const [sifre, setSifre] = useState("");
   const [hata, setHata] = useState<string | null>(null);
+  const [bilgi, setBilgi] = useState<string | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
 
-  async function girisYap(e: React.FormEvent) {
+  function modDegistir(yeni: Mod) {
+    setMod(yeni);
+    setHata(null);
+    setBilgi(null);
+  }
+
+  async function gonder(e: React.FormEvent) {
     e.preventDefault();
     setYukleniyor(true);
     setHata(null);
+    setBilgi(null);
     const supabase = createClient();
 
-    // E-posta doğrulama linki YOK -- kullanıcı isteğiyle, ad soyad + e-posta
-    // yazıp DOĞRUDAN içeri giriyor (core/kullanici.py'deki mevcut Streamlit
-    // uygulamasındaki "gerçek auth değil, sadece veri ayrımı" felsefesiyle
-    // aynı). Anonim Supabase Auth oturumu (signInAnonymously) gerçek bir
-    // auth.uid() veriyor -- e-posta round-trip'i olmadan -- böylece RLS
-    // (watchlist/positions) yine de çalışıyor.
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error || !data.user) {
-      setYukleniyor(false);
-      setHata(error?.message ?? "Giriş yapılamadı.");
-      return;
-    }
+    try {
+      if (mod === "sifremi-unuttum") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/callback?sonraki=/sifre-yenile`,
+        });
+        if (error) throw error;
+        setBilgi("Şifre sıfırlama linki e-postana gönderildi.");
+        return;
+      }
 
-    const { error: metaError } = await supabase.auth.updateUser({
-      data: { ad_soyad: adSoyad, email },
-    });
-    if (metaError) {
-      setYukleniyor(false);
-      setHata(metaError.message);
-      return;
-    }
+      if (mod === "giris") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password: sifre });
+        if (error) throw error;
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
 
-    router.push("/dashboard");
-    router.refresh();
+      // mod === "kayit". Tarayıcıda hâlâ eski anonim oturum duruyorsa, YENİ hesap
+      // açmak yerine o oturumu kalıcı hesaba YÜKSELTİYORUZ: auth.uid() aynı kaldığı
+      // için kullanıcının izleme listesi / pozisyonları / ihale emirleri korunuyor.
+      // (Eski sürümde giriş signInAnonymously() ile yapılıyordu.)
+      const { data: mevcut } = await supabase.auth.getUser();
+      if (mevcut.user?.is_anonymous) {
+        const { error } = await supabase.auth.updateUser({
+          email,
+          password: sifre,
+          data: { ad_soyad: adSoyad },
+        });
+        if (error) throw error;
+        setBilgi(
+          "Hesabın oluşturuldu ve mevcut verilerin korundu. E-postana gönderilen doğrulama linkine tıkla.",
+        );
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: sifre,
+        options: {
+          data: { ad_soyad: adSoyad },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+
+      // Supabase'de "Confirm email" açıksa signUp oturum döndürmez.
+      if (!data.session) {
+        setBilgi("Hesabın oluşturuldu. E-postana gönderilen doğrulama linkine tıklayıp giriş yap.");
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e) {
+      setHata(hataMesaji(e instanceof Error ? e.message : "Bir şeyler ters gitti."));
+    } finally {
+      setYukleniyor(false);
+    }
   }
+
+  const baslik =
+    mod === "giris" ? "Giriş yap" : mod === "kayit" ? "Hesap oluştur" : "Şifremi unuttum";
+  const aciklama =
+    mod === "giris"
+      ? "E-posta ve şifrenle hesabına gir."
+      : mod === "kayit"
+        ? "İzleme listen, pozisyonların ve ihale emirlerin hesabına kayıtlı kalır."
+        : "Kayıtlı e-postanı gir, sıfırlama linki gönderelim.";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
@@ -65,7 +134,7 @@ export default function GirisPage() {
           }}
         />
         <div className="relative flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-white/20 font-figures text-sm font-bold backdrop-blur-sm">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-white/20 text-sm font-bold backdrop-blur-sm">
             İB
           </div>
           <span className="font-semibold">İç Borçlanma Dashboard</span>
@@ -93,41 +162,109 @@ export default function GirisPage() {
       <div className="flex items-center justify-center p-4">
         <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-md">
           <CardHeader>
-            <div className="gradient-marka mb-2 flex size-9 items-center justify-center rounded-lg font-figures text-sm font-bold text-white lg:hidden">
+            <div className="gradient-marka mb-2 flex size-9 items-center justify-center rounded-lg text-sm font-bold text-white lg:hidden">
               İB
             </div>
-            <CardTitle className="text-xl">Giriş yap</CardTitle>
-            <CardDescription>
-              Ad soyad ve e-posta yazıp doğrudan gir -- şifre ya da e-posta doğrulaması gerekmiyor.
-            </CardDescription>
+            <CardTitle className="text-xl">{baslik}</CardTitle>
+            <CardDescription>{aciklama}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={girisYap} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="ad_soyad">Ad soyad</Label>
-                <Input
-                  id="ad_soyad"
-                  required
-                  value={adSoyad}
-                  onChange={(e) => setAdSoyad(e.target.value)}
-                  placeholder="Ad Soyad"
-                />
+          <CardContent className="space-y-4">
+            {mod !== "sifremi-unuttum" && (
+              <div className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+                {(["giris", "kayit"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => modDegistir(m)}
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                      mod === m
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {m === "giris" ? "Giriş yap" : "Hesap oluştur"}
+                  </button>
+                ))}
               </div>
+            )}
+
+            <form onSubmit={gonder} className="space-y-4">
+              {mod === "kayit" && (
+                <div className="space-y-2">
+                  <Label htmlFor="ad_soyad">Ad soyad</Label>
+                  <Input
+                    id="ad_soyad"
+                    required
+                    autoComplete="name"
+                    value={adSoyad}
+                    onChange={(e) => setAdSoyad(e.target.value)}
+                    placeholder="Ad Soyad"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">E-posta</Label>
                 <Input
                   id="email"
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ornek@eposta.com"
                 />
               </div>
+
+              {mod !== "sifremi-unuttum" && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sifre">Şifre</Label>
+                    {mod === "giris" && (
+                      <button
+                        type="button"
+                        onClick={() => modDegistir("sifremi-unuttum")}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Şifremi unuttum
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    id="sifre"
+                    type="password"
+                    required
+                    minLength={8}
+                    autoComplete={mod === "giris" ? "current-password" : "new-password"}
+                    value={sifre}
+                    onChange={(e) => setSifre(e.target.value)}
+                    placeholder="En az 8 karakter"
+                  />
+                </div>
+              )}
+
               {hata && <p className="text-sm text-destructive">{hata}</p>}
+              {bilgi && <p className="text-sm text-primary">{bilgi}</p>}
+
               <Button type="submit" className="w-full" disabled={yukleniyor}>
-                {yukleniyor ? "Giriş yapılıyor..." : "Giriş yap"}
+                {yukleniyor
+                  ? "Lütfen bekle..."
+                  : mod === "giris"
+                    ? "Giriş yap"
+                    : mod === "kayit"
+                      ? "Hesap oluştur"
+                      : "Sıfırlama linki gönder"}
               </Button>
+
+              {mod === "sifremi-unuttum" && (
+                <button
+                  type="button"
+                  onClick={() => modDegistir("giris")}
+                  className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Girişe dön
+                </button>
+              )}
             </form>
           </CardContent>
         </Card>
