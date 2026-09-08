@@ -7,8 +7,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { trTarihAyristir } from "@/lib/tarih";
+import { tufeSerileriniZincirle } from "@/lib/bond-math/tufe-zincir";
 
-export type SeriNoktalari = { tarihler: string[]; degerler: number[] };
+export type { SeriNoktalari } from "@/lib/bond-math/tufe-zincir";
+import type { SeriNoktalari } from "@/lib/bond-math/tufe-zincir";
 
 type EvdsSatir = { seri_adi: string; tarih: string; deger: number | null };
 
@@ -44,27 +46,9 @@ export const tlrefEndeksSerisiYukle = () => evdsSeri("tlref_kapanis");
  */
 export async function tufeDuzeySerisiYukle(): Promise<SeriNoktalari> {
   const [eski, yeni] = await Promise.all([evdsSeri("tufe_duzey"), evdsSeri("tufe_fe25_duzey")]);
-  if (yeni.tarihler.length === 0) return eski;
-  if (eski.tarihler.length === 0) return yeni;
-
-  const eskiH = new Map(eski.tarihler.map((t, i) => [t, eski.degerler[i]]));
-  const yeniH = new Map(yeni.tarihler.map((t, i) => [t, yeni.degerler[i]]));
-  const ortak = [...eskiH.keys()].filter((t) => yeniH.has(t)).sort();
-  // Ortak ay yoksa zincirleme yapılamaz -- eski seriyle devam et (yanlış
-  // ölçekli bir seri, eksik seriden daha tehlikeli olurdu).
-  if (ortak.length === 0) return eski;
-
-  const capa = ortak[ortak.length - 1];
-  const capaYeni = yeniH.get(capa)!;
-  if (!capaYeni) return eski;
-  const katsayi = eskiH.get(capa)! / capaYeni;
-
-  const birlesik = new Map(eskiH);
-  for (const [t, v] of yeniH) if (t > capa) birlesik.set(t, v * katsayi);
-
-  const tarihler = [...birlesik.keys()].sort();
-  return { tarihler, degerler: tarihler.map((t) => birlesik.get(t)!) };
+  return tufeSerileriniZincirle(eski, yeni);
 }
+
 
 export type ReferansIhaleSatiri = { valor: string; vade: string; bf: number; ts: number };
 

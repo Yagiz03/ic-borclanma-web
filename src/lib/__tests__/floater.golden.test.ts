@@ -14,6 +14,7 @@ import {
   type TlrefSeri,
   type TufeSeri,
 } from "../bond-math/floater";
+import { tufeSerileriniZincirle } from "../bond-math/tufe-zincir";
 
 const g = (s: string) => new Date(`${s}T00:00:00Z`);
 
@@ -98,4 +99,34 @@ describe("TÜFE'ye endeksli referans endeks / endeks oranı", () => {
       else expect(o!).toBeCloseTo(k.endeksOrani, 12);
     });
   }
+});
+
+describe("TÜFE endeks düzeyi zincirleme (2003=100 -> 2025=100)", () => {
+  it("TS zincirlemesi Python'un ürettiği seriyle birebir aynı", () => {
+    const zincirli = tufeSerileriniZincirle(fixture.tufe_ham.eski, fixture.tufe_ham.yeni);
+    // fixture.tufe_seri, core/data.py::tufe_duzey_serisi_yukle'nin çıktısı.
+    expect(zincirli.tarihler).toEqual(fixture.tufe_seri.tarihler);
+    expect(zincirli.degerler.length).toBe(fixture.tufe_seri.duzeyler.length);
+    zincirli.degerler.forEach((v, i) => {
+      expect(v).toBeCloseTo(fixture.tufe_seri.duzeyler[i], 9);
+    });
+  });
+
+  it("taban değişiminden sonraki aylar eski tabanın ölçeğine çekiliyor", () => {
+    const z = tufeSerileriniZincirle(fixture.tufe_ham.eski, fixture.tufe_ham.yeni);
+    const sonEski = fixture.tufe_ham.eski.tarihler[fixture.tufe_ham.eski.tarihler.length - 1];
+    const i = z.tarihler.indexOf(sonEski);
+    // Çapa ayı eski değeriyle aynı kalmalı, sonraki aylar ondan büyük olmalı.
+    expect(z.degerler[i]).toBeCloseTo(
+      fixture.tufe_ham.eski.degerler[fixture.tufe_ham.eski.degerler.length - 1],
+      9,
+    );
+    expect(z.degerler[z.degerler.length - 1]).toBeGreaterThan(z.degerler[i]);
+    expect(z.tarihler.length).toBeGreaterThan(fixture.tufe_ham.eski.tarihler.length);
+  });
+
+  it("yeni seri yoksa eski seriyle devam eder", () => {
+    const bos = { tarihler: [], degerler: [] };
+    expect(tufeSerileriniZincirle(fixture.tufe_ham.eski, bos)).toEqual(fixture.tufe_ham.eski);
+  });
 });
