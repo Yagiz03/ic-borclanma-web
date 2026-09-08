@@ -30,11 +30,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // /dashboard altındaki her şey korumalı -- Faz 1'deki gerçek sayfalar
-  // (İhale Detay, DİBS Detay) buraya taşınacak.
+  // Oturumu olmayan ziyaretçi açılış ekranına düşer; orada "Başla"ya basınca
+  // sessizce misafir oturumu açılıp panele geçiliyor. (/giris ekranı kodda
+  // duruyor ama şu an devrede değil -- abonelik sistemiyle açılacak.)
   if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/giris";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 

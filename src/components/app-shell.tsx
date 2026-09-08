@@ -18,7 +18,6 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { SignOutButton } from "@/app/dashboard/sign-out-button";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -66,20 +65,13 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
   );
 }
 
-export function AppShell({
-  children,
-  ustBant,
-}: {
-  children: React.ReactNode;
-  ustBant?: React.ReactNode;
-}) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobilAcik, setMobilAcik] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-background/70 backdrop-blur-xl backdrop-saturate-150">
-        {ustBant}
         {/* Dar masaüstünde (ör. 1280px, 13" dizüstü) 11 sekme tek satıra sığmıyordu:
             menü taşıp son sekmeler erişilemez oluyor ve sayfa yatay kayıyordu.
             flex-wrap ile sekmeler ikinci satıra iniyor -- hiçbir sekme gizlenmiyor
@@ -91,8 +83,10 @@ export function AppShell({
             ))}
           </nav>
 
+          {/* Giriş sistemi şu an devrede olmadığı (herkes misafir oturumu) için
+              "Çıkış yap" burada yok: çıkılacak bir hesap yokken tek etkisi
+              misafirin izleme listesini/pozisyonlarını silmek olurdu. */}
           <div className="ml-auto flex items-center gap-3 lg:ml-0">
-            <SignOutButton />
             <button
               className="rounded-full p-2 hover:bg-foreground/[0.05] lg:hidden"
               onClick={() => setMobilAcik((v) => !v)}
