@@ -444,7 +444,7 @@ export default function IhaleDetayPage() {
       <div>
         <h1 className="text-2xl font-semibold">İhale Detay</h1>
         <p className="text-sm text-muted-foreground">
-          Gerçekleşen tüm Hazine ihalelerinin sonuçları — en yeniden eskiye.
+          Gerçekleşen tüm Hazine ihalelerinin sonuçları.
         </p>
       </div>
 
