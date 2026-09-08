@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
 import { TppClient } from "./tpp-client";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 
@@ -26,15 +25,11 @@ export default async function TakasbankTppPage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          {error ? (
-            <p className="text-sm text-destructive">{error}</p>
-          ) : (
-            <TppClient veri={data ?? []} />
-          )}
-        </CardContent>
-      </Card>
+      {error ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : (
+        <TppClient veri={data ?? []} />
+      )}
     </div>
   );
 }
