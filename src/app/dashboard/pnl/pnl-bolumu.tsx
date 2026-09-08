@@ -86,6 +86,8 @@ export async function PnlBolumu() {
       id: p.id,
       isin: p.isin,
       senet,
+      // TL kağıtlarda para_birimi NULL geliyor -- TRY kabul ediliyor.
+      paraBirimi: (r?.para_birimi as string | null) ?? "TRY",
       nominal,
       alisFiyati,
       alisTarihi: p.alis_tarihi,
@@ -104,10 +106,16 @@ export async function PnlBolumu() {
     };
   });
 
-  const toplamKz = satirlar.reduce((s, r) => s + (r.kz ?? 0), 0);
-  const toplamMaliyet = satirlar.reduce((s, r) => s + (r.nominal * r.alisFiyati) / 100, 0);
+  // Toplam K/Z yalnızca TL (TRY) cinsi pozisyonlar için anlamlı: döviz/altına
+  // dayalı kağıtların kâr/zararı kendi para biriminde oluşuyor, TL'ye çevirmek
+  // için kur entegrasyonu yok. Hepsini tek toplama katmak YANLIŞ olurdu.
+  const trySatirlari = satirlar.filter((r) => r.paraBirimi === "TRY");
+  const fxSatirlari = satirlar.filter((r) => r.paraBirimi !== "TRY");
+
+  const toplamKz = trySatirlari.reduce((s, r) => s + (r.kz ?? 0), 0);
+  const toplamMaliyet = trySatirlari.reduce((s, r) => s + (r.nominal * r.alisFiyati) / 100, 0);
   const toplamPct = toplamMaliyet ? (toplamKz / toplamMaliyet) * 100 : null;
-  const dv01Hesaplanan = satirlar.filter((r) => r.dv01Pozisyon != null);
+  const dv01Hesaplanan = trySatirlari.filter((r) => r.dv01Pozisyon != null);
   const toplamDv01 = dv01Hesaplanan.reduce((s, r) => s + (r.dv01Pozisyon ?? 0), 0);
   const toplamPiyasaDegeri = dv01Hesaplanan.reduce((s, r) => s + ((r.guncelFiyat ?? 0) * r.nominal) / 100, 0);
   const agirlikliDuration = toplamPiyasaDegeri
@@ -130,16 +138,39 @@ export async function PnlBolumu() {
       ) : (
         <>
           <HeroBant
-            ustBaslik="PORTFÖY — TOPLAM KÂR / ZARAR"
+            ustBaslik="PORTFÖY — TOPLAM KÂR / ZARAR (TL POZİSYONLAR)"
             deger={`${toplamKz >= 0 ? "+" : ""}${paraFmt(toplamKz)}`}
             birim="TL"
-            aciklama={toplamPct != null ? `Maliyete göre %${toplamPct.toFixed(2)} — ${satirlar.length} açık pozisyon` : `${satirlar.length} açık pozisyon`}
+            aciklama={
+              toplamPct != null
+                ? `Maliyete göre %${toplamPct.toFixed(2)} — ${trySatirlari.length} TL pozisyon`
+                : `${trySatirlari.length} TL pozisyon`
+            }
             yanKartlar={[
-              { etiket: "Pozisyon sayısı", deger: String(satirlar.length) },
-              { etiket: "Portföy DV01", deger: `${toplamDv01.toFixed(2)} TL/1bp` },
+              { etiket: "TL pozisyon sayısı", deger: String(trySatirlari.length) },
+              { etiket: "Portföy DV01 (TL pozisyonlar)", deger: `${toplamDv01.toFixed(2)} TL/1bp` },
               { etiket: "Ağırlıklı Ort. Duration", deger: agirlikliDuration != null ? `${agirlikliDuration.toFixed(2)} yıl` : "–" },
+              ...(fxSatirlari.length > 0
+                ? [
+                    {
+                      etiket: "Döviz/altın cinsi pozisyon",
+                      deger: String(fxSatirlari.length),
+                    },
+                  ]
+                : []),
             ]}
           />
+
+          {fxSatirlari.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Yukarıdaki toplam yalnızca TL cinsi pozisyonları kapsıyor.{" "}
+              <b className="font-figures text-foreground">
+                {fxSatirlari.map((r) => r.isin).join(", ")}
+              </b>{" "}
+              döviz/altın cinsi — kâr/zararları kendi para biriminde aşağıda ayrı ayrı görünüyor,
+              TL karşılığı için kur entegrasyonu henüz yok.
+            </p>
+          )}
 
           <div className="space-y-3">
             {satirlar.map((s) => (
@@ -174,7 +205,10 @@ export async function PnlBolumu() {
                         {(s.kirliKullanildi ? s.guncelKirli! : s.guncelFiyat).toFixed(3)}
                       </span>
                       <span>
-                        <b className="text-foreground">Fark:</b> {s.fark! >= 0 ? "+" : ""}
+                        <b className="text-foreground">
+                          {s.kirliKullanildi ? "Kirli fiyat farkı:" : "Fiyat farkı (temiz):"}
+                        </b>{" "}
+                        {s.fark! >= 0 ? "+" : ""}
                         {s.fark!.toFixed(3)}
                       </span>
                       <span className={s.kz! >= 0 ? "text-emerald-600" : "text-destructive"}>

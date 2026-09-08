@@ -83,7 +83,10 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
       .map((r) => {
         const m = mkbHarita.get(r.isin);
         const kirliFiyat = r.temiz_fiyat != null && r.birikmis_faiz != null ? r.temiz_fiyat + r.birikmis_faiz : null;
-        return { ...r, ...m, kirliFiyat };
+        // İhraç büyüklüğü BIST'in referans listesinde BİN TL cinsinden.
+        const ihracBuyukluguMn =
+          m?.toplam_ihrac_tutari_bin != null ? Number(m.toplam_ihrac_tutari_bin) / 1000 : null;
+        return { ...r, ...m, kirliFiyat, ihracBuyukluguMn };
       })
       .sort((a, b) => (b.islem_hacmi_tl ?? 0) - (a.islem_hacmi_tl ?? 0));
   }, [bist, seciliTarih, mkbHarita]);
@@ -227,6 +230,7 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
               <TableHead>İhraççı</TableHead>
               <TableHead>Tip</TableHead>
               <TableHead>Getiri Türü</TableHead>
+              <TableHead className="text-right">İhraç Büyüklüğü (Mn TL)</TableHead>
               <TableHead className="text-right">Temiz Fiyat</TableHead>
               <TableHead className="text-right">Takas Fiyatı</TableHead>
               <TableHead className="text-right">Bileşik Getiri</TableHead>
@@ -243,6 +247,11 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
                 <TableCell className="max-w-40 truncate text-xs" title={r.ihracci_kurum ?? ""}>{r.ihracci_kurum ?? "–"}</TableCell>
                 <TableCell className="max-w-32 truncate text-xs text-muted-foreground">{r.mk_turu ?? "–"}</TableCell>
                 <TableCell className="max-w-32 truncate text-xs text-muted-foreground">{r.getiri_turu ?? "–"}</TableCell>
+                <TableCell className="font-figures text-right">
+                  {r.ihracBuyukluguMn != null
+                    ? r.ihracBuyukluguMn.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+                    : "–"}
+                </TableCell>
                 <TableCell className="font-figures text-right">{r.temiz_fiyat != null ? r.temiz_fiyat.toFixed(3) : "–"}</TableCell>
                 <TableCell className="font-figures text-right">{r.ag_ort_takas_fiyati != null ? r.ag_ort_takas_fiyati.toFixed(3) : "–"}</TableCell>
                 <TableCell className="font-figures text-right">{yuzde(r.kapanis_bilesik_getiri_pct)}</TableCell>
