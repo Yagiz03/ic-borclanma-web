@@ -14,7 +14,7 @@ import { SenetBadge } from "@/components/senet-badge";
 import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
 import { IzlemeButonu } from "./izleme-butonu";
-import { HeroBant } from "@/components/hero-bant";
+import { OzetSerit } from "./ozet-serit";
 import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolumu";
 import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 
@@ -98,11 +98,29 @@ export default async function DibsDetayPage({
         : undefined,
     });
   }
-  if (secilen.son_ihrac_sonrasi_stok_mn) {
+  // Bazı Kamu Kira Sertifikalarında BIST referans verisinde ihraç tutarı
+  // eksik/sıfır geliyor; o durumda stok/TCMB/serbest dolaşım rakamlarının hepsi
+  // anlamsız "0" çıkar. Gerçek veri yoksa satırı hiç göstermemek yanıltıcı "0"
+  // yazmaktan daha doğru (pages/isin_detay.py ile aynı kural).
+  if (secilen.son_ihrac_sonrasi_stok_mn && Number(secilen.son_ihrac_sonrasi_stok_mn) > 0) {
+    const binToMilyon = (v: unknown) =>
+      v == null ? null : Number(v) / 1000;
+    const tcmbMn = binToMilyon(secilen.tcmb_toplam_alim_bin_tl);
+    const serbestMn = binToMilyon(secilen.serbest_dolasim_bin_tl);
+
     alanlar.push({ etiket: "Toplam ihraç stoku", deger: milyon(secilen.son_ihrac_sonrasi_stok_mn) });
-    if (secilen.tcmb_pay_pct != null) {
-      alanlar.push({ etiket: "TCMB payı", deger: yuzde(secilen.tcmb_pay_pct, 1) });
-    }
+    alanlar.push({
+      etiket: "TCMB'nin geri aldığı",
+      deger: tcmbMn != null ? `${tcmbMn.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Milyon` : "0",
+    });
+    alanlar.push({
+      etiket: "Serbest dolaşım (tahmini)",
+      deger: serbestMn != null ? `${serbestMn.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Milyon` : "–",
+    });
+    alanlar.push({
+      etiket: "TCMB payı",
+      deger: secilen.tcmb_pay_pct != null ? yuzde(secilen.tcmb_pay_pct, 1) : "%0",
+    });
   }
 
   return (
@@ -136,54 +154,35 @@ export default async function DibsDetayPage({
         <IzlemeButonu isin={secilen.isin} baslangicIzlemede={!!izlemeSatiri} />
       </div>
 
-      {sonBist ? (
-        <HeroBant
-          ustBaslik={`${secilen.isin} — SON BİLEŞİK GETİRİ (${isoTarihGoster(sonBist.tarih)})`}
-          deger={yuzde(sonBist.kapanis_bilesik_getiri_pct)}
-          aciklama={`Son temiz fiyat ${Number(sonBist.temiz_fiyat).toFixed(3)} — BIST Kesin Alım Satım Pazarı`}
-          yanKartlar={[
-            { etiket: "İlk ihraç", deger: isoTarihGoster(secilen.ilk_ihrac_tarihi) },
-            { etiket: "Vade", deger: secilen.vade_tarihi ?? "–" },
-            {
-              etiket: "O günkü işlem hacmi",
-              deger:
-                sonBist.islem_hacmi_tl != null
-                  ? `${Number(sonBist.islem_hacmi_tl).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} TL`
-                  : "–",
-            },
-          ]}
-        />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {alanlar.map((a) => (
-            <Card key={a.etiket}>
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground">{a.etiket}</p>
-                <p className="font-figures text-xl font-semibold">{a.deger}</p>
-                {a.yardim && <p className="mt-1 text-xs text-muted-foreground">{a.yardim}</p>}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <OzetSerit alanlar={alanlar} />
 
       {sonBist && (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {alanlar.map((a) => (
-              <Card key={a.etiket}>
-                <CardContent className="pt-6">
-                  <p className="text-xs text-muted-foreground">{a.etiket}</p>
-                  <p className="font-figures text-xl font-semibold">{a.deger}</p>
-                  {a.yardim && <p className="mt-1 text-xs text-muted-foreground">{a.yardim}</p>}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>BIST ikincil piyasa fiyatı (Kesin Alım Satım Pazarı)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OzetSerit
+                alanlar={[
+                  { etiket: "Son temiz fiyat", deger: Number(sonBist.temiz_fiyat).toFixed(3) },
+                  { etiket: "Son bileşik getiri", deger: yuzde(sonBist.kapanis_bilesik_getiri_pct) },
+                  { etiket: "Tarih", deger: isoTarihGoster(sonBist.tarih) },
+                  {
+                    etiket: "O günkü işlem hacmi",
+                    deger:
+                      sonBist.islem_hacmi_tl != null
+                        ? `${Number(sonBist.islem_hacmi_tl).toLocaleString("tr-TR", { maximumFractionDigits: 0 })} TL`
+                        : "–",
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Temiz fiyatın zaman içindeki seyri</CardTitle>
+              <CardTitle>Temiz fiyatın zaman içindeki seyri (kapanış)</CardTitle>
             </CardHeader>
             <CardContent>
               <FiyatGrafigi
@@ -191,6 +190,22 @@ export default async function DibsDetayPage({
                 veri={(bistFiyatlar ?? [])
                   .filter((r) => r.temiz_fiyat != null)
                   .map((r) => ({ tarih: r.tarih, deger: Number(r.temiz_fiyat) }))}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>İkincil piyasa bileşik getirisinin zaman içindeki seyri</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FiyatGrafigi
+                birim="%"
+                renk="var(--chart-2)"
+                ondalik={2}
+                veri={(bistFiyatlar ?? [])
+                  .filter((r) => r.kapanis_bilesik_getiri_pct != null)
+                  .map((r) => ({ tarih: r.tarih, deger: Number(r.kapanis_bilesik_getiri_pct) }))}
               />
             </CardContent>
           </Card>
