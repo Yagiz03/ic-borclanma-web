@@ -84,25 +84,25 @@ export default function GirisPage() {
           data: { ad_soyad: adSoyad },
         });
         if (error) throw error;
-        setBilgi(
-          "Hesabın oluşturuldu ve mevcut verilerin korundu. E-postana gönderilen doğrulama linkine tıkla.",
-        );
+        router.push("/dashboard");
+        router.refresh();
         return;
       }
 
+      // E-posta doğrulaması bilinçli olarak KAPALI (kullanıcı kararı, 08.09.2026):
+      // her yeni kayıtta doğrulama maili göndermek, ani kullanıcı akınında
+      // e-posta gönderim limitine takılır. Kayıt olan doğrudan içeri giriyor.
+      // (Şifre sıfırlama maili duruyor -- o sadece unutan kullanıcı kadar.)
       const { data, error } = await supabase.auth.signUp({
         email,
         password: sifre,
-        options: {
-          data: { ad_soyad: adSoyad },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+        options: { data: { ad_soyad: adSoyad } },
       });
       if (error) throw error;
 
-      // Supabase'de "Confirm email" açıksa signUp oturum döndürmez.
+      // Supabase tarafında "Confirm email" sonradan açılırsa signUp oturum döndürmez.
       if (!data.session) {
-        setBilgi("Hesabın oluşturuldu. E-postana gönderilen doğrulama linkine tıklayıp giriş yap.");
+        setBilgi("Hesabın oluşturuldu. Şimdi giriş yapabilirsin.");
         return;
       }
       router.push("/dashboard");
