@@ -241,6 +241,26 @@ export function GetiriEgrisiClient({
     return { etiket: e.etiket, renk: e.renk, noktalar };
   }).filter((s) => s.noktalar.length > 0);
 
+  // Çubuk grafik, çizginin aksine seri başına ayrı `data` kabul etmiyor:
+  // tüm karşılaştırma günleri ISIN bazında TEK veri kümesinde birleştiriliyor
+  // (her karşılaştırma günü ayrı bir kolon/dataKey oluyor).
+  const spreadVerisi = (() => {
+    const satirlar = new Map<string, Record<string, string | number | null>>();
+    for (const s of spreadSerileri) {
+      for (const n of s.noktalar) {
+        let satir = satirlar.get(n.isin);
+        if (!satir) {
+          satir = { isin: n.isin, senetTanimi: n.senetTanimi ?? "", kalanVadeYil: n.kalanVadeYil };
+          satirlar.set(n.isin, satir);
+        }
+        satir[s.etiket] = n.farkBps;
+      }
+    }
+    return [...satirlar.values()].sort(
+      (a, b) => Number(a.kalanVadeYil) - Number(b.kalanVadeYil),
+    );
+  })();
+
   // --- RV z-skoru (2. derece polinom) ---
   // Fit bir kez hesaplanıyor; hem satırların spread/z-skoru hem de grafikte
   // çizilen eğri aynı fit'ten türüyor (önce grafikte sadece noktalar vardı,
@@ -477,20 +497,27 @@ export function GetiriEgrisiClient({
                   Sıfır çizgisinin üstü: getiri o günden bu yana yükselmiş. Eğrinin kısa vadede aşağı,
                   uzun vadede yukarı gitmesi <b>steepener</b>; tersi <b>flattener</b> hareketidir.
                 </p>
-                <ResponsiveContainer width="100%" height={220}>
-                  <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <ComposedChart data={spreadVerisi} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} allowDuplicatedCategory={false} />
-                    <YAxis type="number" dataKey="farkBps" unit=" bp" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} domain={["dataMin - 5", "dataMax + 5"]} tickFormatter={(v) => Number(v).toFixed(0)} />
+                    <XAxis dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} interval={0} />
+                    <YAxis type="number" unit=" bp" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} domain={["dataMin - 5", "dataMax + 5"]} tickFormatter={(v) => Number(v).toFixed(0)} />
                     <Tooltip
                       contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
                       formatter={(v) => (typeof v === "number" ? `${v >= 0 ? "+" : ""}${v.toFixed(0)} bp` : v)}
-                      labelFormatter={(v) => (typeof v === "number" ? `Kalan vade: ${v.toFixed(2)} yıl` : String(v))}
+                      labelFormatter={(v, yuk) => {
+                        const p = yuk?.[0]?.payload as { isin?: string; kalanVadeYil?: number } | undefined;
+                        const vade = p?.kalanVadeYil != null ? `${p.kalanVadeYil.toFixed(2)} yıl` : String(v);
+                        return p?.isin ? `${p.isin} — ${vade}` : vade;
+                      }}
                     />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeDasharray="3 3" />
+                    <ReferenceLine y={0} stroke="var(--muted-foreground)" />
+                    {/* Bloomberg terminalindeki gibi spread ÇUBUK olarak: sıfır
+                        çizgisinden yukarı/aşağı uzayan çubuklar, kağıt bazındaki
+                        farkı çizgiden çok daha okunaklı gösteriyor. */}
                     {spreadSerileri.map((s) => (
-                      <Line key={s.etiket} data={s.noktalar} type="monotone" dataKey="farkBps" name={`Δ ${s.etiket}`} stroke={s.renk} strokeWidth={2} dot={{ r: 2 }} />
+                      <Bar key={s.etiket} dataKey={s.etiket} name={`Δ ${s.etiket}`} fill={s.renk} radius={[2, 2, 0, 0]} />
                     ))}
                   </ComposedChart>
                 </ResponsiveContainer>
