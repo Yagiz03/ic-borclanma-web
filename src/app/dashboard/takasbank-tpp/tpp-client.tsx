@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Area,
   AreaChart,
@@ -54,7 +55,14 @@ function sayi(v: number | null, ondalik = 0): string {
   return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: ondalik });
 }
 
+const SEKMELER = ["on", "egri", "tablo"] as const;
+
 export function TppClient({ veri }: { veri: Satir[] }) {
+  // Global aramadan ?tab= ile doğrudan ilgili sekmeye gelinebilsin diye.
+  const aramaParam = useSearchParams().get("tab");
+  const gecerliTab = SEKMELER.includes(aramaParam as (typeof SEKMELER)[number])
+    ? aramaParam!
+    : "on";
   const onSerisi = useMemo(
     () => veri.filter((r) => r.vade_gun === "O/N").sort((a, b) => a.tarih.localeCompare(b.tarih)),
     [veri],
@@ -84,7 +92,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
   const son = onSerisi[onSerisi.length - 1];
 
   return (
-    <Tabs defaultValue="on">
+    <Tabs defaultValue={gecerliTab}>
       <TabsList variant="line" className="mb-5 overflow-x-auto">
         <TabsTrigger value="on" className="shrink-0">Gecelik (O/N)</TabsTrigger>
         <TabsTrigger value="egri" className="shrink-0">Vade Yapısı</TabsTrigger>

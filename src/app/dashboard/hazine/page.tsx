@@ -197,7 +197,17 @@ async function IcBorcCevirmeOraniBolumu() {
   );
 }
 
-export default function HazinePage() {
+// Global aramadan ?tab= ile doğrudan ilgili sekmeye gelinebilsin diye
+// (önce her sonuç sayfanın ilk sekmesini açıyordu).
+const SEKMELER = ["borcnakit", "cevirme", "vade"] as const;
+
+export default async function HazinePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const gecerliTab = SEKMELER.includes(tab as (typeof SEKMELER)[number]) ? tab! : "borcnakit";
   return (
     <div className="space-y-6">
       <div>
@@ -209,7 +219,7 @@ export default function HazinePage() {
         </p>
       </div>
 
-      <Tabs defaultValue="borcnakit">
+      <Tabs defaultValue={gecerliTab}>
         <TabsList variant="line" className="mb-5 overflow-x-auto">
           <TabsTrigger value="borcnakit" className="shrink-0">Borç Stoku / Nakit</TabsTrigger>
           <TabsTrigger value="cevirme" className="shrink-0">İç Borç Çevirme Oranı</TabsTrigger>

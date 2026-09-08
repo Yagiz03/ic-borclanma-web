@@ -5,7 +5,17 @@ import { TahminTab } from "./tahmin-tab";
 import { EmirlerimTab } from "./emirlerim-tab";
 import { PerformansTab } from "./performans-tab";
 
-export default async function IhaleGunuPage() {
+// Global aramadan ?tab= ile doğrudan ilgili sekmeye gelinebilsin diye
+// (önce her sonuç sayfanın ilk sekmesini açıyordu).
+const SEKMELER = ["tahmin", "emirlerim", "performans"] as const;
+
+export default async function IhaleGunuPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const gecerliTab = SEKMELER.includes(tab as (typeof SEKMELER)[number]) ? tab! : "tahmin";
   const supabase = await createClient();
 
   const [
@@ -65,7 +75,7 @@ export default async function IhaleGunuPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="tahmin">
+      <Tabs defaultValue={gecerliTab}>
         <TabsList variant="line" className="mb-5 overflow-x-auto">
           <TabsTrigger value="tahmin" className="shrink-0">Tahmin</TabsTrigger>
           <TabsTrigger value="emirlerim" className="shrink-0">Emirlerim</TabsTrigger>

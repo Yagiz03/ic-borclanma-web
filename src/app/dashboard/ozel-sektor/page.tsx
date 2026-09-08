@@ -7,7 +7,17 @@ function turkceKisimAyikla(v: string | null): string | null {
   return v ? v.split("/")[0].trim() : v;
 }
 
-export default async function OzelSektorPage() {
+// Global aramadan ?tab= ile doğrudan ilgili sekmeye gelinebilsin diye
+// (önce her sonuç sayfanın ilk sekmesini açıyordu).
+const SEKMELER = ["gunluk", "ihracci"] as const;
+
+export default async function OzelSektorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const gecerliTab = SEKMELER.includes(tab as (typeof SEKMELER)[number]) ? tab! : "gunluk";
   const supabase = await createClient();
 
   const [{ data: mkbHam, error }, { data: araciKurumlar }] = await Promise.all([
@@ -65,7 +75,7 @@ export default async function OzelSektorPage() {
       </div>
 
       {error && <p className="text-sm text-destructive">{error.message}</p>}
-      <Tabs defaultValue="gunluk">
+      <Tabs defaultValue={gecerliTab}>
         <TabsList variant="line" className="mb-5 overflow-x-auto">
           <TabsTrigger value="gunluk" className="shrink-0">Günlük işlemler</TabsTrigger>
           <TabsTrigger value="ihracci" className="shrink-0">İhraççı profili</TabsTrigger>

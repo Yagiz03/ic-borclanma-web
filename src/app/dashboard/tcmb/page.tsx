@@ -1,5 +1,6 @@
 import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi } from "./coklu-cizgi-grafigi";
 import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
@@ -24,7 +25,21 @@ function pct1(v: number | null | undefined): string {
   return v == null ? "–" : `%${v.toFixed(1)}`;
 }
 
-export default async function TcmbPage() {
+// Geçerli sekme değerleri: global arama sonucundan ?tab= ile doğrudan ilgili
+// sekmeye gelinebilsin diye. Önce her sonuç sayfanın ilk sekmesini açıyordu,
+// kullanıcı aradığı bölümü kendisi bulmak zorunda kalıyordu.
+const SEKMELER = [
+  "dibs", "apiportfoyu", "tufem2kfebono", "koridor", "tlref",
+  "disdenge", "rezerv", "beklenti", "ppkfarki", "enflasyonraporu",
+] as const;
+
+export default async function TcmbPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const gecerliTab = SEKMELER.includes(tab as (typeof SEKMELER)[number]) ? tab! : "dibs";
   const supabase = await createClient();
 
   const dibsSeriler = [
@@ -35,27 +50,36 @@ export default async function TcmbPage() {
     "dibs_piy_deg_dunya_geri_kalani",
   ];
 
-  // Supabase projesinin satır limiti (proje ayarı, .limit() ile aşılamıyor)
-  // tek seferde tüm serileri (bazıları 5-17 seri x 300-1700 satır) birlikte
-  // çekmek keserdi -- her seri kendi sorgusuyla, ayrı ayrı çekiliyor.
+  // Supabase/PostgREST tek sorguda en fazla 1000 satır döndürüyor. Seriler bu
+  // sınırı aşıyor (tlref_kapanis 1659, repo_gecelik_bist 1680) ve düz .select()
+  // ile EN YENİ ~2,5 yıl sessizce kayboluyordu: grafikler Ocak 2024'te bitiyor
+  // ama hata da vermiyordu. Sayfalı okuma (tumSatirlariGetir) ile tamamı
+  // çekiliyor -- 1000+ satırlı diğer tablolarda zaten kullanılan yöntem.
+  const evdsSeri = (seri: string) =>
+    tumSatirlariGetir<{ seri_adi: string; tarih: string; deger: number | null }>((from, to) =>
+      supabase.from("evds_seriler").select("*").eq("seri_adi", seri).order("tarih").range(from, to),
+    );
+
   const [
     dibsSonuclari, tlrefRes, repoRes,
     koridorRes, politikaRes, enflasyonRaporuRes,
   ] = await Promise.all([
-    Promise.all(dibsSeriler.map((s) => supabase.from("evds_seriler").select("*").eq("seri_adi", s).order("tarih"))),
-    supabase.from("evds_seriler").select("*").eq("seri_adi", "tlref_kapanis").order("tarih"),
-    supabase.from("evds_seriler").select("*").eq("seri_adi", "repo_gecelik_bist").order("tarih"),
+    Promise.all(dibsSeriler.map(evdsSeri)),
+    evdsSeri("tlref_kapanis"),
+    evdsSeri("repo_gecelik_bist"),
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih"),
     supabase.from("tcmb_politika_faizi").select("tarih, politika_faizi").order("tarih"),
     supabase.from("tcmb_enflasyon_raporu").select("*").limit(1).maybeSingle(),
   ]);
 
+  // tumSatirlariGetir hatayı düz string olarak döndürüyor (Supabase'in kendi
+  // sorgusundaki gibi { message } nesnesi değil).
   const ilkHata = [...dibsSonuclari, tlrefRes, repoRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
       <div className="w-full">
         <h1 className="text-2xl font-semibold">TCMB</h1>
-        <p className="mt-4 text-sm text-destructive">{ilkHata.message}</p>
+        <p className="mt-4 text-sm text-destructive">{ilkHata}</p>
       </div>
     );
   }
@@ -89,7 +113,7 @@ export default async function TcmbPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="dibs">
+      <Tabs defaultValue={gecerliTab}>
         <TabsList variant="line" className="mb-5 overflow-x-auto">
           <TabsTrigger value="dibs" className="shrink-0">DİBS Piyasa Değeri</TabsTrigger>
           <TabsTrigger value="apiportfoyu" className="shrink-0">TCMB APİ Portföyü</TabsTrigger>
