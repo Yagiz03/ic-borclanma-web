@@ -3,11 +3,6 @@ import { CokluCizgiGrafigi, BarCizgiGrafigi } from "./coklu-cizgi-grafigi";
 
 type SeriRow = { seri_adi: string; tarih: string; deger: number | null };
 
-function ayAnahtari(tarihStr: string): string {
-  const d = new Date(tarihStr);
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
 function pivotla(rows: SeriRow[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
   for (const r of rows) {

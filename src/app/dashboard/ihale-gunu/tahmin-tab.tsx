@@ -170,7 +170,13 @@ export function TahminTab({
   const gelecekAyNo = ayNo < 12 ? ayNo + 1 : 1;
   const gelecekYil = ayNo < 12 ? yil : yil + 1;
   const planGelecek = planlar.find((p) => p.yil === gelecekYil && p.ay === gelecekAyNo);
-  const gelecekAyIlkGunu = new Date(gelecekYil, gelecekAyNo - 1, 1);
+  // Her render'da yeni bir Date üretmek aşağıdaki useMemo'yu geçersiz kılıyor
+  // (React Compiler da bu yüzden bileşeni optimize etmeden geçiyordu) --
+  // kimliği yıl/ay ilkelleri üzerinden sabitleniyor.
+  const gelecekAyIlkGunu = useMemo(
+    () => new Date(gelecekYil, gelecekAyNo - 1, 1),
+    [gelecekYil, gelecekAyNo],
+  );
   const kalanGelecek = ayKalanPlanHesapla(ihale, planGelecek?.piyasadan_ihale ?? null, gelecekYil, gelecekAyNo);
   const dagilimGelecek = useMemo(
     () => aylikDagilimTahminiOlustur(ihale, takvim, planGelecek?.piyasadan_ihale ?? null, kalanGelecek, gelecekAyIlkGunu),

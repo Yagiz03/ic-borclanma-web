@@ -32,6 +32,9 @@ export function Combobox({
   const rootRef = React.useRef<HTMLDivElement>(null)
   const inputRef = React.useRef<HTMLInputElement>(null)
   const listRef = React.useRef<HTMLDivElement>(null)
+  // role="combobox" aria-controls ZORUNLU kılıyor -- açılır listeye kararlı bir
+  // id verip girdiden ona işaret ediyoruz (ekran okuyucular listeyi bulabilsin).
+  const listeId = React.useId()
 
   const selected = options.find((o) => o.value === value)
 
@@ -103,6 +106,8 @@ export function Combobox({
           placeholder={placeholder}
           role="combobox"
           aria-expanded={open}
+          aria-controls={listeId}
+          aria-autocomplete="list"
           autoComplete="off"
           className="h-10 w-full rounded-md border border-input bg-transparent px-3 pr-8 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
         />
@@ -112,6 +117,8 @@ export function Combobox({
       {open && (
         <div
           ref={listRef}
+          id={listeId}
+          role="listbox"
           className="absolute z-50 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
         >
           {filtered.length === 0 ? (

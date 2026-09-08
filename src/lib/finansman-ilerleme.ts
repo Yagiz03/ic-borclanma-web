@@ -135,7 +135,6 @@ async function dogrudanSatisGerceklesen(
 
 export type FinansmanKalem = {
   kalem: string;
-  aciklama?: string;
   plan: number | null;
   gerceklesen: number | null;
   kalan: number | null;

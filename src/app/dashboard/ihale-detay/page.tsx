@@ -64,7 +64,6 @@ async function FinansmanIlerlemeBolumu() {
                 <TableRow key={k.kalem}>
                   <TableCell>
                     <div className="font-medium">{k.kalem}</div>
-                    {k.aciklama && <div className="mt-0.5 text-xs text-muted-foreground">{k.aciklama}</div>}
                   </TableCell>
                   <TableCell className="font-figures text-right">{milyarTl(k.plan)}</TableCell>
                   <TableCell className="font-figures text-right">{milyarTl(k.gerceklesen)}</TableCell>

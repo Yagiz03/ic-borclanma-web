@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { SenetBadge } from "@/components/senet-badge";
 import { utcTarihe } from "@/lib/tarih";
 import {
-  nakitAkislariniOlustur,
   birikmisFaizHesapla,
   getiriBul,
 } from "@/lib/bond-math/tahvil-fiyatlama";
@@ -94,6 +93,13 @@ function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { paylo
   );
 }
 
+/** Bugünün UTC gün damgası (YYYY-MM-DD). String döndüğü için render'lar
+ *  arasında kararlı -- Date nesnesinin aksine memo bağımlılığı olabiliyor. */
+function bugununIsoGunu(): string {
+  const d = new Date();
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString().slice(0, 10);
+}
+
 export function GetiriEgrisiClient({
   isinOzet, bist, tlrefSonPct,
 }: {
@@ -119,7 +125,7 @@ export function GetiriEgrisiClient({
   const [minHacim, setMinHacim] = useState(50_000_000);
   const [seciliTarih, setSeciliTarih] = useState(tarihler[0] ?? "");
 
-  function egriVerisi(tarih: string, minHacimTl: number): EgriNokta[] {
+  const egriVerisi = useCallback((tarih: string, minHacimTl: number): EgriNokta[] => {
     const referans = utcTarihe(tarih)!;
     return bist
       .filter((r) => r.tarih === tarih && (minHacimTl <= 0 || (r.islem_hacmi_tl ?? 0) >= minHacimTl))
@@ -132,16 +138,18 @@ export function GetiriEgrisiClient({
       })
       .filter((r): r is EgriNokta => r != null)
       .sort((a, b) => a.kalanVadeYil - b.kalanVadeYil);
-  }
+  }, [bist, vadeBilgi]);
 
-  function canliEgriVerisi(minHacimTl: number): EgriNokta[] {
+  const canliEgriVerisi = useCallback((minHacimTl: number, bugunIso: string): EgriNokta[] => {
     if (!tarihler.length) return [];
     const sonTarih = tarihler[0];
     const sonKapanisIsinleri = new Set(
       bist.filter((r) => r.tarih === sonTarih && (minHacimTl <= 0 || (r.islem_hacmi_tl ?? 0) >= minHacimTl)).map((r) => r.isin),
     );
-    const bugun = new Date();
-    const bugunUtc = new Date(Date.UTC(bugun.getFullYear(), bugun.getMonth(), bugun.getDate()));
+    // Başlıkta gösterilen referans günle AYNI gün kullanılıyor (ayrı bir
+    // `new Date()` üretilirse gece yarısını geçen bir oturumda ikisi
+    // ayrışabiliyordu).
+    const bugunUtc = utcTarihe(bugunIso)!;
 
     const enSonPerIsin = new Map<string, BistSatiri>();
     for (const r of bist) {
@@ -172,10 +180,25 @@ export function GetiriEgrisiClient({
       sonuc.push({ isin, senetTanimi: v.senetTanimi, vade: v.vade, kalanVadeYil, getiri });
     }
     return sonuc.sort((a, b) => a.kalanVadeYil - b.kalanVadeYil);
-  }
+  }, [bist, tarihler, vadeBilgi]);
 
-  const referansTarihDate = mod === "canli" ? new Date() : (utcTarihe(seciliTarih) ?? new Date());
-  const gunluk = mod === "canli" ? canliEgriVerisi(minHacim) : egriVerisi(seciliTarih, minHacim);
+  // Referans gün ISO STRING olarak tutuluyor: "canlı" modda her render'da
+  // `new Date()` üretmek Date nesnesinin kimliğini değiştirip aşağıdaki tüm
+  // useMemo'ları geçersiz kılıyordu (React Compiler da bu yüzden bu bileşeni
+  // optimize etmeden geçiyordu). Eğri yalnızca GÜNÜ kullandığından saat
+  // bilgisi zaten gereksiz.
+  const referansIso = mod === "canli" ? bugununIsoGunu() : seciliTarih;
+  const referansTarihDate = useMemo(
+    () => utcTarihe(referansIso) ?? new Date(),
+    [referansIso],
+  );
+  const gunluk = useMemo(
+    () =>
+      mod === "canli"
+        ? canliEgriVerisi(minHacim, referansIso)
+        : egriVerisi(seciliTarih, minHacim),
+    [mod, minHacim, seciliTarih, referansIso, canliEgriVerisi, egriVerisi],
+  );
   const baslik =
     mod === "canli"
       ? `${tarihFmt(referansTarihDate)} getiri eğrisi (canlı — her ISIN'in son bilinen fiyatı sabit tutulup bugünün kalan vadesi/birikmiş faiziyle yeniden çözüldü)`
