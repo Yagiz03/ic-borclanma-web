@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { trTarihSirala, isoTarihGoster } from "@/lib/tarih";
+import { trTarihAyristir, trTarihSirala, trTarihPadle, isoTarihGoster } from "@/lib/tarih";
 import { SenetBadge } from "@/components/senet-badge";
 import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
@@ -68,8 +68,18 @@ export default async function DibsDetayPage({
   // açabiliyor (eski projedeki aynı davranış).
   const veriYokMu = (r: (typeof ozetHam)[number]) =>
     (r.senet_tanimi ?? "").includes("Kira Sertifikas") && r.bist_son_tarih == null;
-  const bosKagitSayisi = ozetHam.filter(veriYokMu).length;
-  const listelenenler = bosKagitlariGoster ? ozetHam : ozetHam.filter((r) => !veriYokMu(r));
+
+  // İtfa olmuş (vadesi geçmiş) kağıtlar listede yok -- artık işlem görmüyorlar,
+  // seçilebilir olmaları listeyi gereksiz uzatıyordu.
+  const bugunMs = new Date().getTime();
+  const itfaOlmusMu = (r: (typeof ozetHam)[number]) => {
+    const v = trTarihAyristir(r.vade_tarihi);
+    return v != null && v.getTime() <= bugunMs;
+  };
+
+  const aktifler = ozetHam.filter((r) => !itfaOlmusMu(r));
+  const bosKagitSayisi = aktifler.filter(veriYokMu).length;
+  const listelenenler = bosKagitlariGoster ? aktifler : aktifler.filter((r) => !veriYokMu(r));
 
   const siraliOzet = trTarihSirala(listelenenler, (r) => r.vade_tarihi);
   // URL'de gizlenmiş bir kağıt istenmişse (ör. aramadan gelen bağlantı) yine
@@ -77,8 +87,15 @@ export default async function DibsDetayPage({
   const secilen =
     ozetHam.find((r) => r.isin === secilenParam) ?? siraliOzet[0] ?? ozetHam[0];
 
-  const [{ data: ihaleler }, { data: bistFiyatlar }, { data: duyurular }, { data: tcmbAlimlar }] =
-    await Promise.all([
+  const [
+    { data: ihaleler },
+    { data: bistFiyatlar },
+    { data: duyurular },
+    { data: tcmbAlimlar },
+    { data: eskiHtml },
+    { data: eskiOcr },
+    { data: hazineOcr },
+  ] = await Promise.all([
     supabase.from("ihale_sonuclari").select("*").eq("isin", secilen.isin),
     supabase
       .from("bist_bap_fiyatlar")
@@ -95,6 +112,19 @@ export default async function DibsDetayPage({
       .from("tcmb_dogrudan_alim")
       .select("ihale_tarihi, kazanan_tutar_nominal_bin_tl")
       .eq("isin", secilen.isin),
+    // ESKİ İHALE ARŞİVLERİ: ihale_sonuclari yalnızca HMB'nin makine
+    // okunabilir duyurularını kapsıyor (2019 sonrası). Daha eski ihraçlar
+    // (ör. TRT181023T19'un 1. ve 2. ihracı) sadece bu HTML/OCR arşivlerinde
+    // var -- oran/tutar kolonları yok ama ihale TARİHİ ve kaynak duyurusu var.
+    supabase
+      .from("hmb_ihale_sonuclari_eski_html")
+      .select("ihale_tarihi, ihrac_tipi, ort_yillik_bilesik_gerceklesme, toplam_gerceklesme_mn, kaynak_url")
+      .eq("isin", secilen.isin),
+    supabase
+      .from("hmb_ihale_sonuclari_eski_ocr")
+      .select("ihale_tarihi, kaynak_url")
+      .eq("isin", secilen.isin),
+    supabase.from("hazine_ihale_eski_ocr").select("ihale_tarihi").eq("isin", secilen.isin),
   ]);
 
   const { data: izlemeSatiri } = await supabase
@@ -103,7 +133,45 @@ export default async function DibsDetayPage({
     .eq("isin", secilen.isin)
     .maybeSingle();
 
-  const siraliIhale = ihaleler ? trTarihSirala(ihaleler, (r) => r.ihale_tarihi) : [];
+  // İhale geçmişi = ana tablo + eski arşivler. Aynı ihale tarihi birden çok
+  // kaynakta olabiliyor; ana tablo (tam detaylı) önceliklidir.
+  type Sayi = number | string | null | undefined;
+  type IhaleSatiri = {
+    ihale_tarihi: string;
+    ihrac_tipi?: string | null;
+    toplam_teklif_mn?: Sayi;
+    toplam_gerceklesme_mn?: Sayi;
+    ihrac_sonrasi_stok_mn?: Sayi;
+    ort_yillik_bilesik_gerceklesme?: Sayi;
+    en_dusuk_bilesik_gerceklesme?: Sayi;
+    en_yuksek_bilesik_gerceklesme?: Sayi;
+    ort_fiyat_gerceklesme?: Sayi;
+    toplam_oran_pct?: Sayi;
+    tail_bps?: Sayi;
+    rot_pay_toplam_pct?: Sayi;
+    top3_katilimci_pay_pct?: Sayi;
+    top5_katilimci_pay_pct?: Sayi;
+    kaynak_url?: string | null;
+    /** Satır eski HTML/OCR arşivinden geldi -- detay kolonları yok. */
+    arsivMi?: boolean;
+  };
+  const ihaleHarita = new Map<string, IhaleSatiri>();
+  for (const r of ihaleler ?? []) {
+    ihaleHarita.set(trTarihPadle(r.ihale_tarihi) ?? r.ihale_tarihi, r as unknown as IhaleSatiri);
+  }
+  const arsivEkle = (satirlar: Record<string, unknown>[] | null) => {
+    for (const r of satirlar ?? []) {
+      const anahtar = trTarihPadle(r.ihale_tarihi as string) ?? (r.ihale_tarihi as string);
+      if (!anahtar || ihaleHarita.has(anahtar)) continue;
+      ihaleHarita.set(anahtar, { ...r, ihale_tarihi: anahtar, arsivMi: true } as unknown as IhaleSatiri);
+    }
+  };
+  arsivEkle(eskiHtml);
+  arsivEkle(eskiOcr);
+  arsivEkle(hazineOcr);
+
+  const siraliIhale = trTarihSirala([...ihaleHarita.values()], (r) => r.ihale_tarihi);
+  const arsivSayisi = siraliIhale.filter((r) => r.arsivMi).length;
   const siraliDuyuru = duyurular ? trTarihSirala(duyurular, (r) => r.ihale_tarihi) : [];
 
   // İhale geçmişinin iki grafiği: gerçekleşen faizin seyri ve yeniden
@@ -326,6 +394,14 @@ export default async function DibsDetayPage({
             HMB&apos;nin ihale SONRASI yayımladığı &quot;Gerçekleştirilen İhalelere Ait Basın
             Duyurusu&quot; verileri — bu kağıdın <b>tüm</b> ihaleleri. Tarihe tıklayınca kaynak
             duyuru (PDF) yeni sekmede açılır.
+            {arsivSayisi > 0 && (
+              <>
+                {" "}
+                <b className="text-foreground">arşiv</b> etiketli {arsivSayisi} satır, HMB&apos;nin
+                makine okunabilir duyuru arşivinden ÖNCEKİ (genelde 2019 öncesi) ihraçlar — bu eski
+                duyurularda oran/tutar dökümü yok, sadece ihale tarihi ve kaynak belgesi var.
+              </>
+            )}
           </p>
           {siraliIhale.length === 0 ? (
             <p className="text-sm text-muted-foreground">Bu ISIN için ihale kaydı bulunamadı.</p>
@@ -353,7 +429,17 @@ export default async function DibsDetayPage({
                 <TableBody>
                   {siraliIhale.map((h, i) => (
                     <KaynakSatiri key={i} url={h.kaynak_url} ilkHucre={h.ihale_tarihi}>
-                      <TableCell className="whitespace-nowrap">{h.ihrac_tipi ?? "–"}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {h.ihrac_tipi ?? "–"}
+                        {h.arsivMi && (
+                          <span
+                            className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                            title="Eski HMB arşivinden (HTML/OCR) — bu duyurularda oran/tutar detayı yok, sadece ihale tarihi ve kaynak var."
+                          >
+                            arşiv
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-figures text-right">{sayi(h.toplam_teklif_mn, 1)}</TableCell>
                       <TableCell className="font-figures text-right">{sayi(h.toplam_gerceklesme_mn, 1)}</TableCell>
                       <TableCell className="font-figures text-right">{sayi(h.ihrac_sonrasi_stok_mn, 1)}</TableCell>

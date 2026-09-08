@@ -1,7 +1,7 @@
 "use client";
 
 import { BosDurum } from "@/components/bos-durum";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -160,11 +160,27 @@ export function TahminTab({
   const yil = bugun.getFullYear();
   const ayNo = bugun.getMonth() + 1;
 
+  // aylikDagilimTahminiOlustur "O AYIN takvimi"ni bekliyor; tüm ihrac_takvimi
+  // tablosu verilince Ekim/Kasım ihaleleri de "Bu ayın ihale dağılımı
+  // tahmini" tablosuna sızıyordu (Python tarafı ay_label ile o ayın
+  // satırlarını alıyor).
+  const ayinTakvimi = useCallback(
+    (hedefYil: number, hedefAy: number) =>
+      takvim.filter((r) => {
+        const t = String(r.tarih).slice(0, 10);
+        return t.startsWith(`${hedefYil}-${String(hedefAy).padStart(2, "0")}`);
+      }),
+    [takvim],
+  );
+
   const planBu = planlar.find((p) => p.yil === yil && p.ay === ayNo);
   const kalanBu = ayKalanPlanHesapla(ihale, planBu?.piyasadan_ihale ?? null, yil, ayNo);
   const dagilimBu = useMemo(
-    () => aylikDagilimTahminiOlustur(ihale, takvim, planBu?.piyasadan_ihale ?? null, kalanBu, bugun),
-    [ihale, takvim, planBu, kalanBu, bugun],
+    () =>
+      aylikDagilimTahminiOlustur(
+        ihale, ayinTakvimi(yil, ayNo), planBu?.piyasadan_ihale ?? null, kalanBu, bugun,
+      ),
+    [ihale, ayinTakvimi, yil, ayNo, planBu, kalanBu, bugun],
   );
 
   const gelecekAyNo = ayNo < 12 ? ayNo + 1 : 1;
@@ -179,8 +195,12 @@ export function TahminTab({
   );
   const kalanGelecek = ayKalanPlanHesapla(ihale, planGelecek?.piyasadan_ihale ?? null, gelecekYil, gelecekAyNo);
   const dagilimGelecek = useMemo(
-    () => aylikDagilimTahminiOlustur(ihale, takvim, planGelecek?.piyasadan_ihale ?? null, kalanGelecek, gelecekAyIlkGunu),
-    [ihale, takvim, planGelecek, kalanGelecek, gelecekAyIlkGunu],
+    () =>
+      aylikDagilimTahminiOlustur(
+        ihale, ayinTakvimi(gelecekYil, gelecekAyNo),
+        planGelecek?.piyasadan_ihale ?? null, kalanGelecek, gelecekAyIlkGunu,
+      ),
+    [ihale, ayinTakvimi, gelecekYil, gelecekAyNo, planGelecek, kalanGelecek, gelecekAyIlkGunu],
   );
   const [gelecekAcik, setGelecekAcik] = useState(false);
 
