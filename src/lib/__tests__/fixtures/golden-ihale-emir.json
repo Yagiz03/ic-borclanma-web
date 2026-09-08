@@ -1,0 +1,244 @@
+[
+ {
+  "ad": "kesme yok",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 98.5,
+    "nominal": 1000000
+   }
+  ],
+  "kesmeFiyati": null,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 98.5,
+     "nominal": 1000000,
+     "geldi": null
+    }
+   ],
+   "toplam_talep": 1000000,
+   "toplam_gerceklesen": null,
+   "gerceklesme_orani": null,
+   "ort_gerceklesen_fiyat": null
+  }
+ },
+ {
+  "ad": "hepsi geldi",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 99.0,
+    "nominal": 500000
+   },
+   {
+    "id": "b",
+    "fiyat": 98.7,
+    "nominal": 250000
+   }
+  ],
+  "kesmeFiyati": 98.5,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 99.0,
+     "nominal": 500000,
+     "geldi": true
+    },
+    {
+     "id": "b",
+     "fiyat": 98.7,
+     "nominal": 250000,
+     "geldi": true
+    }
+   ],
+   "toplam_talep": 750000,
+   "toplam_gerceklesen": 750000,
+   "gerceklesme_orani": 100.0,
+   "ort_gerceklesen_fiyat": 98.9
+  }
+ },
+ {
+  "ad": "hicbiri gelmedi",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 97.0,
+    "nominal": 300000
+   },
+   {
+    "id": "b",
+    "fiyat": 96.5,
+    "nominal": 700000
+   }
+  ],
+  "kesmeFiyati": 98.0,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 97.0,
+     "nominal": 300000,
+     "geldi": false
+    },
+    {
+     "id": "b",
+     "fiyat": 96.5,
+     "nominal": 700000,
+     "geldi": false
+    }
+   ],
+   "toplam_talep": 1000000,
+   "toplam_gerceklesen": 0,
+   "gerceklesme_orani": 0.0,
+   "ort_gerceklesen_fiyat": null
+  }
+ },
+ {
+  "ad": "kismi",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 99.2,
+    "nominal": 400000
+   },
+   {
+    "id": "b",
+    "fiyat": 98.0,
+    "nominal": 600000
+   },
+   {
+    "id": "c",
+    "fiyat": 98.75,
+    "nominal": 150000
+   }
+  ],
+  "kesmeFiyati": 98.5,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 99.2,
+     "nominal": 400000,
+     "geldi": true
+    },
+    {
+     "id": "b",
+     "fiyat": 98.0,
+     "nominal": 600000,
+     "geldi": false
+    },
+    {
+     "id": "c",
+     "fiyat": 98.75,
+     "nominal": 150000,
+     "geldi": true
+    }
+   ],
+   "toplam_talep": 1150000,
+   "toplam_gerceklesen": 550000,
+   "gerceklesme_orani": 47.82608695652174,
+   "ort_gerceklesen_fiyat": 99.07727272727273
+  }
+ },
+ {
+  "ad": "tam esitlik kesmede",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 98.5,
+    "nominal": 1000000
+   }
+  ],
+  "kesmeFiyati": 98.5,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 98.5,
+     "nominal": 1000000,
+     "geldi": true
+    }
+   ],
+   "toplam_talep": 1000000,
+   "toplam_gerceklesen": 1000000,
+   "gerceklesme_orani": 100.0,
+   "ort_gerceklesen_fiyat": 98.5
+  }
+ },
+ {
+  "ad": "bos emir listesi",
+  "emirler": [],
+  "kesmeFiyati": 98.5,
+  "beklenen": {
+   "emirler": [],
+   "toplam_talep": 0,
+   "toplam_gerceklesen": 0,
+   "gerceklesme_orani": null,
+   "ort_gerceklesen_fiyat": null
+  }
+ },
+ {
+  "ad": "sifir nominal",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 99.0,
+    "nominal": 0
+   }
+  ],
+  "kesmeFiyati": 98.5,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 99.0,
+     "nominal": 0,
+     "geldi": true
+    }
+   ],
+   "toplam_talep": 0,
+   "toplam_gerceklesen": 0,
+   "gerceklesme_orani": null,
+   "ort_gerceklesen_fiyat": null
+  }
+ },
+ {
+  "ad": "ondalikli agirlik",
+  "emirler": [
+   {
+    "id": "a",
+    "fiyat": 101.234,
+    "nominal": 123456
+   },
+   {
+    "id": "b",
+    "fiyat": 100.987,
+    "nominal": 76544
+   }
+  ],
+  "kesmeFiyati": 100.5,
+  "beklenen": {
+   "emirler": [
+    {
+     "id": "a",
+     "fiyat": 101.234,
+     "nominal": 123456,
+     "geldi": true
+    },
+    {
+     "id": "b",
+     "fiyat": 100.987,
+     "nominal": 76544,
+     "geldi": true
+    }
+   ],
+   "toplam_talep": 200000,
+   "toplam_gerceklesen": 200000,
+   "gerceklesme_orani": 100.0,
+   "ort_gerceklesen_fiyat": 101.13946815999999
+  }
+ }
+]
