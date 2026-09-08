@@ -7,6 +7,7 @@ import {
   ComposedChart,
   Legend,
   Line,
+  ReferenceLine,
   ResponsiveContainer,
   Scatter,
   ScatterChart,
@@ -53,6 +54,28 @@ function yuzde(v: number | null): string {
 }
 function bp(v: number | null): string {
   return v == null || !Number.isFinite(v) ? "–" : `${v >= 0 ? "+" : ""}${v.toFixed(0)}`;
+}
+
+/** Uyarlanan eğriyi (polinom / Nelson-Siegel) çizebilmek için, verinin vade
+ *  aralığı boyunca eşit aralıklı örnekler üretir. */
+function egriNoktalariUret(
+  noktalar: { kalanVadeYil: number }[],
+  tahmin: (t: number) => number | null,
+  adet = 80,
+): { kalanVadeYil: number; egri: number }[] {
+  if (noktalar.length === 0) return [];
+  const vadeler = noktalar.map((n) => n.kalanVadeYil).filter(Number.isFinite);
+  if (vadeler.length === 0) return [];
+  const min = Math.min(...vadeler);
+  const max = Math.max(...vadeler);
+  if (!(max > min)) return [];
+  const cikti: { kalanVadeYil: number; egri: number }[] = [];
+  for (let i = 0; i <= adet; i++) {
+    const t = min + ((max - min) * i) / adet;
+    const y = tahmin(t);
+    if (y != null && Number.isFinite(y)) cikti.push({ kalanVadeYil: t, egri: y });
+  }
+  return cikti;
 }
 
 type NoktaTooltipPayload = { isin: string; senetTanimi?: string | null; kalanVadeYil: number; getiri: number; zSkoru?: number };
@@ -196,8 +219,33 @@ export function GetiriEgrisiClient({
     .map((t, i) => ({ etiket: tarihFmt(t), veri: egriVerisi(t, minHacim), renk: RENKLER[(i + 1) % RENKLER.length] }))
     .filter((e) => e.veri.length > 0);
 
+  // Karşılaştırma grafiğinde iki eğri üst üste çiziliyordu ama aralarındaki
+  // FARK okunamıyordu -- steepener/flattener tam olarak bu farkın vade boyunca
+  // nasıl değiştiğidir. Her karşılaştırma günü için, iki tarihte de işlem gören
+  // ISIN'lerin getiri farkı (bps) vadeye göre ayrı bir panelde çiziliyor.
+  const spreadSerileri = egriler.map((e) => {
+    const referansHarita = new Map(gunluk.map((r) => [r.isin, r]));
+    const noktalar = e.veri
+      .map((es) => {
+        const ref = referansHarita.get(es.isin);
+        if (!ref) return null;
+        return {
+          isin: es.isin,
+          senetTanimi: ref.senetTanimi,
+          kalanVadeYil: ref.kalanVadeYil,
+          farkBps: (ref.getiri - es.getiri) * 100,
+        };
+      })
+      .filter((n): n is NonNullable<typeof n> => n !== null)
+      .sort((a, b) => a.kalanVadeYil - b.kalanVadeYil);
+    return { etiket: e.etiket, renk: e.renk, noktalar };
+  }).filter((s) => s.noktalar.length > 0);
+
   // --- RV z-skoru (2. derece polinom) ---
-  const rvPoli = useMemo(() => {
+  // Fit bir kez hesaplanıyor; hem satırların spread/z-skoru hem de grafikte
+  // çizilen eğri aynı fit'ten türüyor (önce grafikte sadece noktalar vardı,
+  // uyarlanan eğrinin kendisi görünmüyordu).
+  const rvPoliSonuc = useMemo(() => {
     if (gunluk.length < 5) return null;
     const fit = polinom2Fit(gunluk.map((r) => r.kalanVadeYil), gunluk.map((r) => r.getiri));
     if (!fit) return null;
@@ -208,8 +256,12 @@ export function GetiriEgrisiClient({
     });
     const ortalama = satirlar.reduce((s, r) => s + r.spreadBps, 0) / satirlar.length;
     const std = Math.sqrt(satirlar.reduce((s, r) => s + (r.spreadBps - ortalama) ** 2, 0) / satirlar.length);
-    return satirlar.map((r) => ({ ...r, zSkoru: std ? (r.spreadBps - ortalama) / std : 0 }));
+    return {
+      satirlar: satirlar.map((r) => ({ ...r, zSkoru: std ? (r.spreadBps - ortalama) / std : 0 })),
+      egri: egriNoktalariUret(gunluk, fit),
+    };
   }, [gunluk]);
+  const rvPoli = rvPoliSonuc?.satirlar ?? null;
 
   // --- Nelson-Siegel RV ekranı ---
   const kuponMap = useMemo(() => {
@@ -228,6 +280,10 @@ export function GetiriEgrisiClient({
     [gunluk, kuponMap, anchorMap, fonlama, referansTarihDate],
   );
   const nsFit = rvNs && rvNs.length >= 5 ? nelsonSiegelFit(rvNs.map((r) => r.kalanVadeYil), rvNs.map((r) => r.getiri)) : null;
+  const nsEgriNoktalari = useMemo(
+    () => (rvNs && nsFit ? egriNoktalariUret(rvNs, (t) => nsFit.tahmin(t) as number) : []),
+    [rvNs, nsFit],
+  );
 
   if (tarihler.length === 0) {
     return <p className="text-sm text-muted-foreground">BIST fiyat verisi bulunamadı.</p>;
@@ -398,7 +454,11 @@ export function GetiriEgrisiClient({
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
                   <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
-                  <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} formatter={(v) => (typeof v === "number" ? v.toFixed(2) : v)} />
+                  <Tooltip
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                    formatter={(v) => (typeof v === "number" ? `%${v.toFixed(2)}` : v)}
+                    labelFormatter={(v) => (typeof v === "number" ? `Kalan vade: ${v.toFixed(2)} yıl` : String(v))}
+                  />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={gunluk} type="monotone" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="oklch(0.55 0.21 264)" strokeWidth={3} dot={{ r: 3 }} />
                   {egriler.map((e) => (
@@ -406,6 +466,35 @@ export function GetiriEgrisiClient({
                   ))}
                 </ComposedChart>
               </ResponsiveContainer>
+            )}
+
+            {gosterim === "grafik" && spreadSerileri.length > 0 && (
+              <div className="space-y-1.5 border-t border-border pt-4">
+                <h3 className="text-sm font-semibold">
+                  Spread farkı -- {tarihFmt(referansTarihDate)} eksi karşılaştırma günü (bps)
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Sıfır çizgisinin üstü: getiri o günden bu yana yükselmiş. Eğrinin kısa vadede aşağı,
+                  uzun vadede yukarı gitmesi <b>steepener</b>; tersi <b>flattener</b> hareketidir.
+                </p>
+                <ResponsiveContainer width="100%" height={220}>
+                  <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} allowDuplicatedCategory={false} />
+                    <YAxis type="number" dataKey="farkBps" unit=" bp" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} domain={["dataMin - 5", "dataMax + 5"]} tickFormatter={(v) => Number(v).toFixed(0)} />
+                    <Tooltip
+                      contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                      formatter={(v) => (typeof v === "number" ? `${v >= 0 ? "+" : ""}${v.toFixed(0)} bp` : v)}
+                      labelFormatter={(v) => (typeof v === "number" ? `Kalan vade: ${v.toFixed(2)} yıl` : String(v))}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeDasharray="3 3" />
+                    {spreadSerileri.map((s) => (
+                      <Line key={s.etiket} data={s.noktalar} type="monotone" dataKey="farkBps" name={`Δ ${s.etiket}`} stroke={s.renk} strokeWidth={2} dot={{ r: 2 }} />
+                    ))}
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             )}
             {egriler.length > 0 && gosterim === "grafik" && (
               <p className="text-xs text-muted-foreground">
@@ -460,15 +549,17 @@ export function GetiriEgrisiClient({
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={440}>
-                <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
+                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} allowDuplicatedCategory={false} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <ZAxis dataKey="zSkoru" range={[40, 200]} />
                   <Tooltip content={<NoktaTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line data={rvPoliSonuc?.egri ?? []} dataKey="egri" name="Uyarlanan eğri (2. derece polinom)" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
                   <Scatter name="Ucuz (z>0)" data={rvPoli.filter((r) => r.zSkoru >= 0)} fill="#34D399" />
                   <Scatter name="Pahalı (z<0)" data={rvPoli.filter((r) => r.zSkoru < 0)} fill="#F87171" />
-                </ScatterChart>
+                </ComposedChart>
               </ResponsiveContainer>
             )}
 
@@ -549,14 +640,16 @@ export function GetiriEgrisiClient({
 
             {nsFit && (
               <ResponsiveContainer width="100%" height={440}>
-                <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
+                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} allowDuplicatedCategory={false} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <Tooltip content={<NoktaTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line data={nsEgriNoktalari} dataKey="egri" name="Nelson-Siegel eğrisi" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
                   <Scatter name="Ucuz (z>0)" data={rvNs.filter((r) => r.zSkoru >= 0)} fill="#34D399" />
                   <Scatter name="Pahalı (z<0)" data={rvNs.filter((r) => r.zSkoru < 0)} fill="#F87171" />
-                </ScatterChart>
+                </ComposedChart>
               </ResponsiveContainer>
             )}
           </CardContent>
