@@ -1,68 +1,76 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { trTarihSirala } from "@/lib/tarih";
+import { trTarihAyristir, trTarihSirala } from "@/lib/tarih";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
-import { IsinCokSecici } from "./isin-cok-secici";
-import { KarsilastirmaGrafigi } from "./karsilastirma-grafigi";
+import { KarsilastirIstemci, type KagitBilgi, type GetiriNoktasi } from "./karsilastir-istemci";
+
+/** Aynı anda karşılaştırılabilecek kağıt sayısı (eski projedeki max_selections). */
+const AZAMI_SECIM = 5;
 
 export async function KarsilastirBolumu({ isinlerParam }: { isinlerParam?: string }) {
   const supabase = await createClient();
 
   const { data: ozetHam, error } = await supabase
     .from("isin_ozet")
-    .select("isin, senet_tanimi, vade_tarihi");
+    .select("isin, senet_tanimi, vade_tarihi, para_birimi, bist_son_tarih");
 
   if (error || !ozetHam) {
     return <p className="text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>;
   }
 
-  const siraliOzet = trTarihSirala(ozetHam, (r) => r.vade_tarihi);
-
-  // 3500+ satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
-  const { data: butunBist } = await tumSatirlariGetir((from, to) =>
-    supabase
-      .from("bist_bap_fiyatlar")
-      .select("isin, tarih, kapanis_bilesik_getiri_pct")
-      .not("kapanis_bilesik_getiri_pct", "is", null)
-      .order("isin")
-      .order("tarih")
-      .range(from, to),
-  );
-
-  const bistIsinSeti = new Set((butunBist ?? []).map((r) => r.isin));
-  const varsayilanlar = siraliOzet.filter((r) => bistIsinSeti.has(r.isin)).slice(0, 2).map((r) => r.isin);
-
-  const secililer = isinlerParam ? isinlerParam.split(",").filter(Boolean) : varsayilanlar;
-
-  const tarihSetiSirali = Array.from(
-    new Set((butunBist ?? []).filter((r) => secililer.includes(r.isin)).map((r) => r.tarih)),
-  ).sort();
-
-  const grafikVerisi = tarihSetiSirali.map((tarih) => {
-    const satir: Record<string, string | number> = { tarih };
-    for (const isin of secililer) {
-      const eslesen = butunBist?.find((r) => r.isin === isin && r.tarih === tarih);
-      if (eslesen) satir[isin] = Number(eslesen.kapanis_bilesik_getiri_pct);
-    }
-    return satir;
+  // İtfa olmuş kağıtlar listeden düşer (eski projedeki itfa_olmamislari_filtrele).
+  const bugun = new Date();
+  const itfaOlmamis = ozetHam.filter((r) => {
+    const v = trTarihAyristir(r.vade_tarihi);
+    return v != null && v.getTime() > bugun.getTime();
   });
 
+  const kagitlar: KagitBilgi[] = trTarihSirala(itfaOlmamis, (r) => r.vade_tarihi).map((r) => ({
+    isin: r.isin,
+    senetTanimi: r.senet_tanimi ?? "",
+    vade: r.vade_tarihi ?? "",
+    // TL kağıtlarda para_birimi NULL geliyor -- TRY kabul ediliyor (Python
+    // tarafındaki "nan or 'TRY'" tuzağının notu: pd.notna ile aynı davranış).
+    paraBirimi: r.para_birimi ?? "TRY",
+    bistVeriVarMi: r.bist_son_tarih != null,
+  }));
+
+  // Varsayılan: en yakın vadeli ve BIST'te GERÇEKTEN verisi olan 2 kağıt --
+  // aksi halde hiç işlem görmemiş bir kağıt en yakın vadeliyse sayfa boş açılır.
+  const varsayilanlar = kagitlar.filter((k) => k.bistVeriVarMi).slice(0, 2).map((k) => k.isin);
+  const gecerliIsinler = new Set(kagitlar.map((k) => k.isin));
+  const secililer = (isinlerParam ? isinlerParam.split(",").filter(Boolean) : varsayilanlar)
+    .filter((i) => gecerliIsinler.has(i))
+    .slice(0, AZAMI_SECIM);
+
+  // SADECE seçili kağıtların satırları çekiliyor. (Eskiden getirisi olan TÜM
+  // satırlar -- 58 binden fazla -- her sayfa açılışında sayfalanarak
+  // indiriliyordu; iki kağıtlık bir grafik için 58 ayrı sorgu demekti.)
+  const { data: bistHam } = secililer.length
+    ? await tumSatirlariGetir<{ isin: string; tarih: string; kapanis_bilesik_getiri_pct: number | null; temiz_fiyat: number | null }>(
+        (from, to) =>
+          supabase
+            .from("bist_bap_fiyatlar")
+            .select("isin, tarih, kapanis_bilesik_getiri_pct, temiz_fiyat")
+            .in("isin", secililer)
+            .order("isin")
+            .order("tarih")
+            .range(from, to),
+      )
+    : { data: [] };
+
+  const seriler: GetiriNoktasi[] = (bistHam ?? []).map((r) => ({
+    isin: r.isin,
+    tarih: String(r.tarih).slice(0, 10),
+    getiri: r.kapanis_bilesik_getiri_pct != null ? Number(r.kapanis_bilesik_getiri_pct) : null,
+    temizFiyat: r.temiz_fiyat != null ? Number(r.temiz_fiyat) : null,
+  }));
+
   return (
-    <Card>
-      <CardContent className="space-y-4 pt-6">
-        <p className="text-sm text-muted-foreground">
-          Birden fazla kağıdın BIST bileşik getirisini aynı grafikte karşılaştır (2-5 kağıt önerilir).
-        </p>
-        <IsinCokSecici
-          secililer={secililer}
-          secenekler={siraliOzet.map((r) => ({ isin: r.isin, etiket: r.senet_tanimi ?? "" }))}
-        />
-        {secililer.length === 0 ? (
-          <p className="text-sm text-muted-foreground">En az bir kağıt seç.</p>
-        ) : (
-          <KarsilastirmaGrafigi veri={grafikVerisi} isinler={secililer} />
-        )}
-      </CardContent>
-    </Card>
+    <KarsilastirIstemci
+      kagitlar={kagitlar}
+      secililer={secililer}
+      seriler={seriler}
+      azamiSecim={AZAMI_SECIM}
+    />
   );
 }
