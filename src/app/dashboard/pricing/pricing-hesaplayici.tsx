@@ -16,6 +16,7 @@ import { SenetBadge } from "@/components/senet-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Combobox } from "@/components/ui/combobox";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -102,17 +103,17 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2 sm:col-span-2">
               <Label>Kağıt</Label>
-              <select
+              <Combobox
                 value={isin}
-                onChange={(e) => setIsin(e.target.value)}
-                className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-              >
-                {kagitlar.map((k) => (
-                  <option key={k.isin} value={k.isin} className="bg-popover text-popover-foreground">
-                    {k.isin} — {k.senetTanimi} (kupon %{k.kuponOraniPct.toFixed(2)})
-                  </option>
-                ))}
-              </select>
+                onChange={setIsin}
+                placeholder="ISIN veya kağıt adı yazın..."
+                emptyText="Eşleşen kağıt yok."
+                options={kagitlar.map((k) => ({
+                  value: k.isin,
+                  label: `${k.isin} — ${k.senetTanimi} (kupon %${k.kuponOraniPct.toFixed(2)})`,
+                  keywords: k.isin,
+                }))}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="valor">Valör tarihi</Label>

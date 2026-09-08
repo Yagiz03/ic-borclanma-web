@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { trTarihAyristir } from "@/lib/tarih";
+import { Combobox } from "@/components/ui/combobox";
 
 type IhaleRow = {
   isin: string;
@@ -78,14 +79,15 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
         ucuz kaldığını (concession) düşündürür.
       </p>
 
-      <div className="space-y-1.5">
-        <label className="text-sm text-muted-foreground" htmlFor="perf-isin">ISIN</label>
-        <select
-          id="perf-isin" value={secili} onChange={(e) => setSecili(e.target.value)}
-          className="block rounded-md border border-input bg-background px-2 py-1.5 text-sm font-figures"
-        >
-          {isinler.map((r) => <option key={r.isin} value={r.isin}>{r.isin} — {r.etiket}</option>)}
-        </select>
+      <div className="max-w-sm space-y-1.5">
+        <label className="text-sm text-muted-foreground">ISIN</label>
+        <Combobox
+          value={secili}
+          onChange={setSecili}
+          placeholder="ISIN veya kağıt adı yazın..."
+          emptyText="Eşleşen ISIN yok."
+          options={isinler.map((r) => ({ value: r.isin, label: `${r.isin} — ${r.etiket}`, keywords: r.isin }))}
+        />
       </div>
 
       {satirlar.length === 0 ? (

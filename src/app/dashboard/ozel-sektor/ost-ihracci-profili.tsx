@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Combobox } from "@/components/ui/combobox";
 
 type MkbSatiri = {
   isin: string;
@@ -76,33 +77,31 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground" htmlFor="ost-ihracci">İhraççı kurum (detay için seç)</label>
-          <select
-            id="ost-ihracci"
+          <label className="text-sm text-muted-foreground">İhraççı kurum (detay için seç)</label>
+          <Combobox
+            className="max-w-72"
             value={seciliIhracci}
-            onChange={(e) => setSeciliIhracci(e.target.value)}
-            className="max-w-72 rounded-md border border-input bg-background px-2 py-1 text-sm"
-          >
-            <option value={TUMU}>{TUMU} ({kagitlar.length} kağıt)</option>
-            {ihracciOzet.map(([isim, sayi]) => (
-              <option key={isim} value={isim}>{isim} ({sayi} kağıt)</option>
-            ))}
-          </select>
+            onChange={setSeciliIhracci}
+            placeholder="Kurum ara..."
+            options={[
+              { value: TUMU, label: `${TUMU} (${kagitlar.length} kağıt)` },
+              ...ihracciOzet.map(([isim, sayi]) => ({ value: isim, label: `${isim} (${sayi} kağıt)` })),
+            ]}
+          />
         </div>
         {araciOzet.length > 0 && (
           <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground" htmlFor="ost-araci">Aracı kurum (detay için seç)</label>
-            <select
-              id="ost-araci"
+            <label className="text-sm text-muted-foreground">Aracı kurum (detay için seç)</label>
+            <Combobox
+              className="max-w-72"
               value={seciliAraci}
-              onChange={(e) => setSeciliAraci(e.target.value)}
-              className="max-w-72 rounded-md border border-input bg-background px-2 py-1 text-sm"
-            >
-              <option value={TUMU}>{TUMU} ({kagitlar.length} kağıt)</option>
-              {araciOzet.map(([isim, sayi]) => (
-                <option key={isim} value={isim}>{isim} ({sayi} kağıt)</option>
-              ))}
-            </select>
+              onChange={setSeciliAraci}
+              placeholder="Kurum ara..."
+              options={[
+                { value: TUMU, label: `${TUMU} (${kagitlar.length} kağıt)` },
+                ...araciOzet.map(([isim, sayi]) => ({ value: isim, label: `${isim} (${sayi} kağıt)` })),
+              ]}
+            />
           </div>
         )}
       </div>

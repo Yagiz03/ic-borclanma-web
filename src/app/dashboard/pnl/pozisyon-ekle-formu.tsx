@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Combobox } from "@/components/ui/combobox";
 
 const bugunIso = () => new Date().toISOString().slice(0, 10);
 
@@ -63,17 +64,13 @@ export function PozisyonEkleFormu({ isinler }: { isinler: { isin: string; etiket
         <form onSubmit={ekle} className="space-y-4">
           <div className="space-y-2">
             <Label>ISIN</Label>
-            <select
+            <Combobox
               value={isin}
-              onChange={(e) => setIsin(e.target.value)}
-              className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-            >
-              {isinler.map((i) => (
-                <option key={i.isin} value={i.isin} className="bg-popover text-popover-foreground">
-                  {i.isin} — {i.etiket}
-                </option>
-              ))}
-            </select>
+              onChange={setIsin}
+              placeholder="ISIN veya kağıt adı yazın..."
+              emptyText="Eşleşen kağıt yok."
+              options={isinler.map((i) => ({ value: i.isin, label: `${i.isin} — ${i.etiket}`, keywords: i.isin }))}
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-4">
             <div className="space-y-2">
