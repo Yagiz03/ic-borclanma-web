@@ -133,16 +133,13 @@ export default function GirisPage() {
               "radial-gradient(circle at 15% 15%, white, transparent 40%), radial-gradient(circle at 85% 85%, white, transparent 45%)",
           }}
         />
-        <div className="relative flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-white/20 text-sm font-bold backdrop-blur-sm">
-            TT
-          </div>
-          <span className="font-semibold">Türkiye Tahvil</span>
+        <div className="relative">
+          <span className="text-lg font-semibold tracking-tight">Türkiye Tahvil</span>
         </div>
 
         <div className="relative space-y-8">
           <h1 className="text-4xl font-semibold tracking-tight text-balance">
-            Türkiye tahvil ve bono terminali.
+            Türkiye tahvil ve bono terminali
           </h1>
           <p className="-mt-4 text-sm text-white/80">
             Hazine iç borçlanma senetlerini ihaleden ikincil piyasaya tek panelde takip et.
@@ -165,9 +162,9 @@ export default function GirisPage() {
       <div className="flex items-center justify-center p-4">
         <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-md">
           <CardHeader>
-            <div className="gradient-marka mb-2 flex size-9 items-center justify-center rounded-lg text-sm font-bold text-white lg:hidden">
-              TT
-            </div>
+            <p className="gradient-metin mb-2 text-base font-semibold tracking-tight lg:hidden">
+              Türkiye Tahvil
+            </p>
             <CardTitle className="text-xl">{baslik}</CardTitle>
             <CardDescription>{aciklama}</CardDescription>
           </CardHeader>

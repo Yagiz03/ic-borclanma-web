@@ -85,14 +85,6 @@ export function AppShell({
             flex-wrap ile sekmeler ikinci satıra iniyor -- hiçbir sekme gizlenmiyor
             ve etiketler eski projeyle birebir aynı kalıyor. */}
         <div className="flex min-h-16 w-full flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2 lg:px-8">
-          <Link
-            href="/dashboard/ihale-detay"
-            aria-label="Türkiye Tahvil ve Bono Terminali"
-            title="Türkiye Tahvil ve Bono Terminali"
-            className="gradient-marka flex size-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
-          >
-            TT
-          </Link>
           <nav className="hidden min-w-0 flex-1 flex-wrap items-center gap-1 lg:flex">
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} />
