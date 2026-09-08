@@ -15,10 +15,6 @@
 const REPO = "Yagiz03/ic-borclanma-dashboard";
 const WORKFLOW = "update-ost.yml";
 const GH = "https://api.github.com";
-/** İki tetikleme arasında beklenmesi gereken süre (dk). Endpoint herkese açık
- *  olduğu için kötüye kullanımı ve boşuna Actions dakikası harcanmasını
- *  engelliyor; ayrıca "zaten çalışıyor" durumunu kullanıcıya söylüyor. */
-const BEKLEME_DK = 5;
 /** Günlük veri penceresinin açıldığı an: 12:16 UTC = 15:16 TR (update-ost.yml
  *  cron'uyla aynı; BIST'in 14:00 ara bülteni ~15:15 TR'de yayımlanıyor).
  *  Bu saatten SONRA başarılı bir çalışma olduysa günün verisi alınmış
@@ -51,7 +47,7 @@ export async function POST() {
     );
   }
 
-  // Son çalışmaya bak: hâlâ sürüyorsa ya da az önce başladıysa yenisini açma.
+  // Son çalışmaya bak: hâlâ sürüyorsa ya da günün verisi alınmışsa yenisini açma.
   const sonlar = await fetch(
     `${GH}/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=1`,
     { headers: baslıklar(token), cache: "no-store" },
@@ -75,8 +71,7 @@ export async function POST() {
       }
       // Günün verisi zaten alınmışsa (15:16 TR'den sonra başarıyla çalışmış)
       // tekrar tetiklemeye gerek yok.
-      const simdi = new Date();
-      const pencere = bugunkuPencereBaslangici(simdi);
+      const pencere = bugunkuPencereBaslangici(new Date());
       if (pencere && son.conclusion === "success" && new Date(son.created_at) >= pencere) {
         return Response.json(
           {
@@ -88,17 +83,6 @@ export async function POST() {
         );
       }
 
-      const gecenDk = (simdi.getTime() - new Date(son.created_at).getTime()) / 60_000;
-      if (gecenDk < BEKLEME_DK) {
-        return Response.json(
-          {
-            durum: "cok_erken",
-            mesaj: `Az önce güncellendi. ${Math.ceil(BEKLEME_DK - gecenDk)} dk sonra tekrar deneyebilirsin.`,
-            url: son.html_url,
-          },
-          { status: 429 },
-        );
-      }
     }
   }
 
