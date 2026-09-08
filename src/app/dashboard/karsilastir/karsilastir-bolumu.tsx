@@ -32,11 +32,28 @@ export async function KarsilastirBolumu({ isinlerParam }: { isinlerParam?: strin
     // tarafındaki "nan or 'TRY'" tuzağının notu: pd.notna ile aynı davranış).
     paraBirimi: r.para_birimi ?? "TRY",
     bistVeriVarMi: r.bist_son_tarih != null,
+    bistSonTarih: r.bist_son_tarih ? String(r.bist_son_tarih).slice(0, 10) : null,
   }));
 
-  // Varsayılan: en yakın vadeli ve BIST'te GERÇEKTEN verisi olan 2 kağıt --
-  // aksi halde hiç işlem görmemiş bir kağıt en yakın vadeliyse sayfa boş açılır.
-  const varsayilanlar = kagitlar.filter((k) => k.bistVeriVarMi).slice(0, 2).map((k) => k.isin);
+  // Varsayılan seçim, "en yakın vadeli + BIST verisi var"dan daha seçici:
+  // o kural sayfayı çoğu zaman 1-8 günlük veriye sahip iki Kamu Kira
+  // Sertifikasıyla açıyordu (neredeyse hiç işlem görmüyorlar) -- grafik tek
+  // noktaya düşüyor, spread paneli "ortak gün yok" diyordu. Önce AKTİF
+  // (son 10 gün içinde işlem görmüş) ve KIYASLANABİLİR (TL, sabit kuponlu/
+  // kuponsuz) kağıtlar aranıyor, bulunamazsa kademeli olarak gevşetiliyor.
+  const KIYASLANABILIR = ["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili", "Hazine Bonosu"];
+  const onGunOnce = new Date(bugun.getTime() - 10 * 86_400_000).toISOString().slice(0, 10);
+  const aktifMi = (k: (typeof kagitlar)[number]) => k.bistSonTarih != null && k.bistSonTarih >= onGunOnce;
+
+  const adayKumeleri = [
+    kagitlar.filter((k) => aktifMi(k) && k.paraBirimi === "TRY" && KIYASLANABILIR.includes(k.senetTanimi)),
+    kagitlar.filter((k) => aktifMi(k) && k.paraBirimi === "TRY"),
+    kagitlar.filter((k) => aktifMi(k)),
+    kagitlar.filter((k) => k.bistVeriVarMi),
+  ];
+  const varsayilanlar = (adayKumeleri.find((k) => k.length >= 2) ?? adayKumeleri[3])
+    .slice(0, 2)
+    .map((k) => k.isin);
   const gecerliIsinler = new Set(kagitlar.map((k) => k.isin));
   const secililer = (isinlerParam ? isinlerParam.split(",").filter(Boolean) : varsayilanlar)
     .filter((i) => gecerliIsinler.has(i))

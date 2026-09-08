@@ -20,6 +20,7 @@ export type KagitBilgi = {
   vade: string;
   paraBirimi: string;
   bistVeriVarMi: boolean;
+  bistSonTarih: string | null;
 };
 
 export type GetiriNoktasi = {
