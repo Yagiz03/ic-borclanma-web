@@ -41,9 +41,10 @@ function milyon(v: number | string | null | undefined): string {
 export default async function DibsDetayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ isin?: string; isinler?: string; tab?: string }>;
+  searchParams: Promise<{ isin?: string; isinler?: string; tab?: string; bos?: string }>;
 }) {
-  const { isin: secilenParam, isinler: isinlerParam, tab } = await searchParams;
+  const { isin: secilenParam, isinler: isinlerParam, tab, bos } = await searchParams;
+  const bosKagitlariGoster = bos === "1";
   const supabase = await createClient();
 
   const { data: ozetHam, error: ozetHata } = await supabase
@@ -61,8 +62,20 @@ export default async function DibsDetayPage({
     );
   }
 
-  const siraliOzet = trTarihSirala(ozetHam, (r) => r.vade_tarihi);
-  const secilen = siraliOzet.find((r) => r.isin === secilenParam) ?? siraliOzet[0];
+  // İkincil piyasada HİÇ işlem görmemiş Kamu Kira Sertifikaları varsayılan
+  // olarak listede yok: seçilince İhale geçmişi, BIST fiyatı ve TCMB verisinin
+  // hiçbiri olmadığından sayfa neredeyse bomboş kalıyor. İsteyen kutucukla
+  // açabiliyor (eski projedeki aynı davranış).
+  const veriYokMu = (r: (typeof ozetHam)[number]) =>
+    (r.senet_tanimi ?? "").includes("Kira Sertifikas") && r.bist_son_tarih == null;
+  const bosKagitSayisi = ozetHam.filter(veriYokMu).length;
+  const listelenenler = bosKagitlariGoster ? ozetHam : ozetHam.filter((r) => !veriYokMu(r));
+
+  const siraliOzet = trTarihSirala(listelenenler, (r) => r.vade_tarihi);
+  // URL'de gizlenmiş bir kağıt istenmişse (ör. aramadan gelen bağlantı) yine
+  // de gösteriliyor -- filtre listeyi kısaltmak için, erişimi kapatmak için değil.
+  const secilen =
+    ozetHam.find((r) => r.isin === secilenParam) ?? siraliOzet[0] ?? ozetHam[0];
 
   const [{ data: ihaleler }, { data: bistFiyatlar }, { data: duyurular }, { data: tcmbAlimlar }] =
     await Promise.all([
@@ -187,6 +200,8 @@ export default async function DibsDetayPage({
 
         <TabsContent value="detay" className="space-y-6">
       <IsinSecici
+        bosKagitlariGoster={bosKagitlariGoster}
+        bosKagitSayisi={bosKagitSayisi}
         secili={secilen.isin}
         secenekler={siraliOzet.map((r) => ({ isin: r.isin, etiket: `${r.isin} — ${r.senet_tanimi ?? ""}` }))}
       />

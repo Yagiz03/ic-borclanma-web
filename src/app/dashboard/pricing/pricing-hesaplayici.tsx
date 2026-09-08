@@ -59,9 +59,12 @@ function SonucKart({ etiket, deger, birim = "" }: { etiket: string; deger: strin
 export function PricingHesaplayici({
   kagitlar,
   floaterVeri,
+  ppkGunleri,
 }: {
   kagitlar: FiyatlanabilirKagit[];
   floaterVeri: FloaterVeri;
+  /** Yaklaşan PPK karar günleri (ISO) -- TLREF senaryo analizinde kullanılıyor. */
+  ppkGunleri: string[];
 }) {
   const [isin, setIsin] = useState(kagitlar[0]?.isin ?? "");
   const [valorStr, setValorStr] = useState(bugunIso());
@@ -187,6 +190,7 @@ export function PricingHesaplayici({
         <FloaterBolumu
           kagit={kagit}
           valorStr={valorStr}
+          ppkGunleri={ppkGunleri}
           tlrefSeri={tlrefSeri}
           tufeSeri={tufeSeri}
           referansIhaleler={referansIhaleler}
@@ -262,12 +266,14 @@ export function PricingHesaplayici({
 function FloaterBolumu({
   kagit,
   valorStr,
+  ppkGunleri,
   tlrefSeri,
   tufeSeri,
   referansIhaleler,
 }: {
   kagit: FiyatlanabilirKagit;
   valorStr: string;
+  ppkGunleri: string[];
   tlrefSeri: Parameters<typeof TlrefFiyatlama>[0]["seri"];
   tufeSeri: Parameters<typeof TufeFiyatlama>[0]["tufeSeri"];
   referansIhaleler: Parameters<typeof FrnFiyatlama>[0]["referansIhaleler"];
@@ -289,6 +295,7 @@ function FloaterBolumu({
           </p>
         )}
         <TlrefFiyatlama
+          ppkGunleri={ppkGunleri}
           seri={tlrefSeri}
           ilkIhrac={ihrac}
           vade={vade}

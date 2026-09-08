@@ -117,7 +117,7 @@ export default async function PricingPage({
           {kagitlar.length === 0 ? (
             <p className="text-sm text-muted-foreground">Fiyatlanabilir kağıt bulunamadı.</p>
           ) : (
-            <PricingHesaplayici kagitlar={kagitlar} floaterVeri={floaterVeri} />
+            <PricingHesaplayici kagitlar={kagitlar} floaterVeri={floaterVeri} ppkGunleri={ppkGunleri} />
           )}
         </TabsContent>
 

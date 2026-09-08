@@ -142,3 +142,69 @@ export function mevduatPatikasi(gun: number, mevduatOran: number, baslangic: Dat
   }
   return patika;
 }
+
+/**
+ * TLREF'e endeksli kağıdın senaryo altındaki kirli fiyat patikası --
+ * core/tlref_senaryo.py::tlref_kirli_patika'nın portu.
+ *
+ * (100 + birikmiş) anapara+kupon tabanı, her İŞ GÜNÜ bloğunda senaryo TLREF
+ * oranıyla işler (hafta sonu/tatil, önceki iş gününün oranıyla birlikte
+ * sayılır). Kupon gününde birikmiş (+ dönemsel ek getiri) ödenip sıfırlanır.
+ *
+ * Dönüş: { patika: gün -> kirli fiyat, odemeler: kupon günü -> ödenen kupon }
+ */
+export function tlrefKirliPatika(
+  temizFiyat: number,
+  birikmisBaslangic: number,
+  gun: number,
+  oranDonemleri: OranDonemi[],
+  kuponTarihleri: Date[],
+  ekGetiriDonemsel = 0,
+  baslangic: Date,
+): { patika: Map<string, number>; odemeler: Map<string, number> } {
+  const bitis = gunEkle(baslangic, gun);
+  const donemler = [...oranDonemleri].sort((a, b) => a.baslangic.getTime() - b.baslangic.getTime());
+  const kuponlar = kuponTarihleri
+    .filter((t) => t.getTime() > baslangic.getTime() && t.getTime() <= bitis.getTime())
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  function oranBul(t: Date): number {
+    let aktif = donemler[0].oran;
+    for (const d of donemler) {
+      if (t.getTime() >= d.baslangic.getTime()) aktif = d.oran;
+    }
+    return aktif;
+  }
+
+  const patika = new Map<string, number>();
+  const odemeler = new Map<string, number>();
+  let birikmis = birikmisBaslangic;
+  patika.set(isoStr(baslangic), temizFiyat + birikmis);
+
+  let t = new Date(baslangic.getTime());
+  while (t.getTime() < bitis.getTime()) {
+    if (isGunuMu(t)) {
+      let sonraki = gunEkle(t, 1);
+      while (sonraki.getTime() < bitis.getTime() && !isGunuMu(sonraki)) sonraki = gunEkle(sonraki, 1);
+      const w = Math.round((sonraki.getTime() - t.getTime()) / 86_400_000);
+      const gunlukFaiz = (100 + birikmis) * (oranBul(t) / 365);
+      for (let k = 1; k <= w; k++) {
+        patika.set(isoStr(gunEkle(t, k)), temizFiyat + birikmis + gunlukFaiz * k);
+      }
+      birikmis += gunlukFaiz * w;
+      t = sonraki;
+    } else {
+      t = gunEkle(t, 1);
+      if (!patika.has(isoStr(t))) patika.set(isoStr(t), temizFiyat + birikmis);
+    }
+
+    // Kupon günü geldiyse: birikmiş (+ ek getiri) ödenir, sıfırlanır.
+    while (kuponlar.length > 0 && kuponlar[0].getTime() <= t.getTime()) {
+      const kuponGunu = kuponlar.shift()!;
+      odemeler.set(isoStr(kuponGunu), birikmis + ekGetiriDonemsel);
+      birikmis = 0;
+      patika.set(isoStr(kuponGunu), temizFiyat);
+    }
+  }
+  return { patika, odemeler };
+}

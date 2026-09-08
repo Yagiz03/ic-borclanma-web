@@ -30,6 +30,7 @@ import {
   nakitAkislariniOlustur,
 } from "@/lib/bond-math/tahvil-fiyatlama";
 import { OzetSerit, type OzetAlan } from "@/components/ozet-serit";
+import { TlrefSenaryoAnalizi } from "./tlref-senaryo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -149,12 +150,15 @@ export function TlrefFiyatlama({
   vade,
   valor,
   periyotGun,
+  ppkGunleri,
 }: {
   seri: TlrefSeri;
   ilkIhrac: Date;
   vade: Date;
   valor: Date;
   periyotGun: number;
+  /** Yaklaşan PPK karar günleri (ISO) -- senaryo analizinde kullanılıyor. */
+  ppkGunleri: string[];
 }) {
   const [fiyatStr, setFiyatStr] = useState("100.00");
   const [ekGetiriStr, setEkGetiriStr] = useState("0.00");
@@ -312,6 +316,24 @@ export function TlrefFiyatlama({
           </p>
           <KalanAkisTablosu akislar={kalanAkislar} valor={valor} />
         </div>
+      )}
+
+      {sonuc && birikmis && (
+        <TlrefSenaryoAnalizi
+          temizFiyat={temiz}
+          birikmisPct={birikmis.birikmisPct}
+          gozlemBas={birikmis.gozlemBas}
+          gozlemSimdi={birikmis.gozlemSimdi}
+          endeksBas={birikmis.endeksBas}
+          endeksSimdi={birikmis.endeksSimdi}
+          guncelTlrefPct={sonuc.guncelTlrefOraniPct}
+          ilkIhrac={ilkIhrac}
+          vade={vade}
+          valor={valor}
+          periyotGun={periyotGun}
+          ekGetiri={ekGetiri}
+          ppkGunleri={ppkGunleri}
+        />
       )}
 
       <p className="text-xs text-muted-foreground">
