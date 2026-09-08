@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine, Pie, PieChart, ComposedChart } from "recharts";
+import { BosDurum } from "@/components/bos-durum";
+import { ZamanAraligiSecici, zamanaGoreSuz, type ZamanAraligi } from "@/components/zaman-araligi";
 
 const RENKLER = [
   "var(--chart-1)",
@@ -74,24 +77,38 @@ export function CokluCizgiGrafigi({
   birim?: string;
   ondalik?: number;
 }) {
-  if (veri.length === 0) return <p className="text-sm text-muted-foreground">Veri yok.</p>;
+  // Bu grafikler tüm tarihçeyi (bazıları 2006/2009'dan beri) tek ekrana
+  // sıkıştırıyordu, son dönem okunmuyordu. Varsayılan artık YILBAŞINDAN
+  // bugüne; 1/3 yıl ya da tümüne genişletilebiliyor.
+  const [aralik, setAralik] = useState<ZamanAraligi>("ytd");
+
+  if (veri.length === 0) return <BosDurum baslik="Bu gösterge için veri yok" />;
+
+  const suzulmus = zamanaGoreSuz(veri as unknown as { tarih: string }[], aralik);
+  const gosterilecek = (suzulmus.length > 1 ? suzulmus : veri) as typeof veri;
+
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={veri} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
-        <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={56} domain={["auto", "auto"]} />
-        <Tooltip
-          contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-          labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
-          formatter={(v, isim) => [`${Number(v).toFixed(ondalik)}${birim}`, isim]}
-        />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        {seriler.map((s, i) => (
-          <Line key={s.anahtar} type="monotone" dataKey={s.anahtar} name={s.etiket} stroke={RENKLER[i % RENKLER.length]} strokeWidth={2} dot={false} connectNulls />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="space-y-2">
+      <div className="flex justify-end">
+        <ZamanAraligiSecici deger={aralik} onChange={setAralik} />
+      </div>
+      <ResponsiveContainer width="100%" height={320}>
+        <LineChart data={gosterilecek} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
+          <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={56} domain={["auto", "auto"]} />
+          <Tooltip
+            contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+            labelFormatter={(v) => (typeof v === "string" ? tarihFmt(v) : "")}
+            formatter={(v, isim) => [`${Number(v).toFixed(ondalik)}${birim}`, isim]}
+          />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {seriler.map((s, i) => (
+            <Line key={s.anahtar} type="monotone" dataKey={s.anahtar} name={s.etiket} stroke={RENKLER[i % RENKLER.length]} strokeWidth={2} dot={false} connectNulls />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
