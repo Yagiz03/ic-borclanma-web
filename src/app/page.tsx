@@ -23,7 +23,6 @@ const HEDEF = "/dashboard/ihale-detay";
 export default function Home() {
   const router = useRouter();
   const [cikisAnimasyonu, setCikisAnimasyonu] = useState(false);
-  const [hata, setHata] = useState(false);
 
   useEffect(() => {
     router.prefetch(HEDEF);
@@ -36,7 +35,6 @@ export default function Home() {
 
   const basla = useCallback(async () => {
     if (cikisAnimasyonu) return;
-    setHata(false);
     setCikisAnimasyonu(true);
     try {
       // Oturum hazırlığı takılırsa kullanıcı görünmez sayfada mahsur
@@ -46,12 +44,12 @@ export default function Home() {
         new Promise((c) => setTimeout(c, 4000)),
       ]);
     } catch {
-      // Oturum açılamadıysa panele girilemez; sayfayı geri görünür yapıp
-      // kullanıcıya tekrar deneme şansı veriyoruz (önce sayfa sonsuza
-      // kadar boş/görünmez kalıyordu).
-      setCikisAnimasyonu(false);
-      setHata(true);
-      return;
+      // Misafir oturumu AÇILAMADI (site verisi/çerez kapalı, kurumsal ağ
+      // Supabase auth'u engelliyor, anonim giriş limiti...). Yine de panele
+      // geçiyoruz: gösterilen verilerin tamamı herkese açık, sadece kişisel
+      // özellikler devre dışı kalıyor ve panelde bir uyarı şeridi çıkıyor.
+      // Eskiden burada durulup "bağlantı kurulamadı" deniyordu ve site o
+      // bilgisayarda tamamen kullanılamaz oluyordu.
     }
     // Bilinçli olarak TAM SAYFA gezinme (router.push değil): istemci taraflı
     // gezinme burada sessizce başarısız olabiliyordu ve sayfa çıkış
@@ -96,12 +94,6 @@ export default function Home() {
           Başla
           <ArrowRight className="size-4" />
         </span>
-
-        {hata && (
-          <p className="mt-4 text-sm text-white/90">
-            Bağlantı kurulamadı, panele girilemedi. Lütfen tekrar dene.
-          </p>
-        )}
 
         <ul className="animate-in fade-in mt-14 flex flex-col items-start gap-3 duration-1000 sm:flex-row sm:gap-8">
           {OZELLIKLER.map((o) => (

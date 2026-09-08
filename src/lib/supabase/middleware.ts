@@ -30,14 +30,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Oturumu olmayan ziyaretçi açılış ekranına düşer; orada "Başla"ya basınca
-  // sessizce misafir oturumu açılıp panele geçiliyor. (/giris ekranı kodda
-  // duruyor ama şu an devrede değil -- abonelik sistemiyle açılacak.)
-  if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
-  }
+  // Panel KASITLI OLARAK oturum istemiyor. Misafir oturumu sadece kişisel
+  // özellikler (izleme listesi / pozisyon / ihale emri -- hepsi auth.uid()'ye
+  // dayanıyor) için gerekiyor; gösterilen verilerin tamamı zaten herkese açık.
+  // Eskiden oturumsuz ziyaretçi açılış ekranına geri atılıyordu ve misafir
+  // oturumu AÇILAMAYAN bir tarayıcıda (site verisi/çerezi kapalı, kurumsal ağ
+  // Supabase auth'u engelliyor, anonim giriş limiti) site tamamen
+  // kullanılamaz hale geliyordu -- "bağlantı kurulamadı" ekranı buydu.
+  // Artık oturum kurulamasa da panel açılıyor, sadece kişisel özellikler
+  // devre dışı kalıyor.
+  void user;
 
   return supabaseResponse;
 }

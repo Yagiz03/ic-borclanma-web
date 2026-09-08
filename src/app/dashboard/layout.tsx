@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { trTarihAyristir } from "@/lib/tarih";
@@ -9,7 +8,9 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/");
+  // Oturum yoksa da panel açılır (bkz. lib/supabase/middleware.ts) -- sadece
+  // kişisel özellikler devre dışı kalır, o yüzden bir uyarı şeridi gösteriliyor.
+  const misafirOturumuYok = !user;
 
   // Üst bardaki global arama kutusunun kağıt indeksi (core/arama.py ile aynı
   // filtreler): itfa olmuşlar düşer, ikincil piyasada hiç işlem görmemiş Kamu
@@ -32,5 +33,16 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
     aramaKagitlari.push({ isin: r.isin, tanim });
   }
 
-  return <AppShell aramaKagitlari={aramaKagitlari}>{children}</AppShell>;
+  return (
+    <AppShell aramaKagitlari={aramaKagitlari}>
+      {misafirOturumuYok && (
+        <div className="mb-5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+          Misafir oturumu açılamadı — tüm veriler görünüyor, ancak izleme listesi,
+          pozisyonlar ve ihale emirleri bu tarayıcıda kaydedilemez. Tarayıcının site
+          verisi/çerez izni kapalıysa ya da ağ Supabase&apos;e erişimi engelliyorsa bu olur.
+        </div>
+      )}
+      {children}
+    </AppShell>
+  );
 }

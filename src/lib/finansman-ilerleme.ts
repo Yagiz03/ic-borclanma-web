@@ -229,12 +229,10 @@ export async function finansmanIlerlemeVerisiGetir(
     { kalem: "Piyasadan İhale (Piyasa Yapıcılar + Diğer)", plan: planIhale, gerceklesen, kalan, oran: oranTam },
     {
       kalem: "Doğrudan Satışlar",
-      aciklama: "Gerçekleşen: Kira Sertifikası + FX DİBS/Kira Sertifikası + Altın Tahvili/Kira Sertifikası (yaklaşıklık)",
       plan: planDogrudan, gerceklesen: dogrudanGerceklesen, kalan: kalanDogrudan, oran: oranDogrudan,
     },
     {
       kalem: "Kamuya Satışlar",
-      aciklama: "Gösterilen Gerçekleşen aslında ihale içi kamu ROT katılımıdır — AYNI KANAL DEĞİL, bilgi amaçlıdır.",
       plan: planKamu, gerceklesen: kamuToplam, kalan: kalanKamu, oran: oranKamu,
     },
   ];
