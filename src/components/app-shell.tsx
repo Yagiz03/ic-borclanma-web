@@ -54,13 +54,17 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
       href={item.href}
       onClick={onClick}
       className={cn(
-        "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all",
+        // Dolgu/boşluklar bilinçli olarak dar: 11 sekme + arama kutusunun
+        // tam ekranda TEK SATIRDA kalması için yer kazanmak gerekiyor.
+        "flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-all",
         aktif
           ? "bg-primary text-primary-foreground shadow-sm"
           : "text-foreground/70 hover:bg-foreground/[0.05] hover:text-foreground",
       )}
     >
-      <Icon className="size-4 shrink-0" />
+      {/* İkonlar 11 sekmede ~200px yer tutuyor; arama kutusuyla birlikte tek
+          satıra sığmak için sadece geniş ekranlarda (>=1536px) gösteriliyor. */}
+      <Icon className="hidden size-4 shrink-0 2xl:block" />
       {item.label}
     </Link>
   );
@@ -84,7 +88,7 @@ export function AppShell({
             flex-wrap ile sekmeler ikinci satıra iniyor — hiçbir sekme gizlenmiyor
             ve etiketler eski projeyle birebir aynı kalıyor. */}
         <div className="flex min-h-16 w-full flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2 lg:px-8">
-          <nav className="hidden min-w-0 flex-1 flex-wrap items-center gap-1 lg:flex">
+          <nav className="hidden min-w-0 flex-1 flex-wrap items-center gap-0.5 lg:flex">
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} />
             ))}

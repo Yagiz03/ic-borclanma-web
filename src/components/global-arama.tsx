@@ -139,7 +139,10 @@ export function GlobalArama({ kagitlar }: { kagitlar: AramaKagidi[] }) {
   );
 
   return (
-    <div ref={kokRef} className="relative ml-1 w-48 shrink-0 xl:w-56">
+    // Sabit genişlik yerine ESNEK: satırda kalan boşluğu alıyor, yer daralınca
+    // sabit genişlikli olsa alt satıra kayacakken burada küçülerek sekmelerle
+    // aynı satırda kalıyor.
+    <div ref={kokRef} className="relative ml-1 min-w-[7.5rem] max-w-72 flex-1 basis-32">
       <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
       <input
         ref={girdiRef}
@@ -166,7 +169,7 @@ export function GlobalArama({ kagitlar }: { kagitlar: AramaKagidi[] }) {
             girdiRef.current?.blur();
           }
         }}
-        placeholder="Ara — sayfa veya ISIN"
+        placeholder="Ara"
         aria-label="Sayfa veya kağıt ara"
         autoComplete="off"
         className="h-8 w-full rounded-full border border-input bg-background/60 pr-2.5 pl-8 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
