@@ -64,9 +64,34 @@ async function olaylariAraliktaGetir({
       .lte("tarih", bitis),
   ]);
 
+  return olaylariKur(tcmb ?? [], ihrac ?? [], { baslangic, bitis });
+}
+
+export type TcmbTakvimSatiri = { tarih: string; tur: string };
+export type IhracTakvimSatiri = {
+  tarih: string;
+  yontem: string;
+  senet_turu: string;
+  vade: string | null;
+};
+
+/**
+ * Ham satırlardan bildirim olaylarını kurar. Saf fonksiyon (veri erişimi yok)
+ * -- gerçek verilere karşı test ediliyor.
+ *
+ * TEKİLLEŞTİRME: ihrac_takvimi'nde aynı ihale birden çok satır olarak
+ * bulunabiliyor (aynı gün/senet/vade, ör. arka arkaya yayımlanan iki strateji
+ * belgesinden gelen kayıtlar). Bildirimde aynı satırı iki kez göstermek
+ * anlamsız olduğu için (tarih + etiket) çiftine göre tekilleştiriliyor.
+ */
+export function olaylariKur(
+  tcmb: TcmbTakvimSatiri[],
+  ihrac: IhracTakvimSatiri[],
+  { baslangic, bitis }: { baslangic: string; bitis: string },
+): HaftaOlayi[] {
   const olaylar: HaftaOlayi[] = [];
 
-  for (const t of tcmb ?? []) {
+  for (const t of tcmb) {
     olaylar.push({
       tarih: String(t.tarih).slice(0, 10),
       etiket: t.tur,
@@ -74,7 +99,7 @@ async function olaylariAraliktaGetir({
     });
   }
 
-  for (const i of ihrac ?? []) {
+  for (const i of ihrac) {
     const kisa = String(i.yontem).startsWith("İhale") ? "İhale" : "Doğrudan satış";
     olaylar.push({
       tarih: String(i.tarih).slice(0, 10),
@@ -85,11 +110,7 @@ async function olaylariAraliktaGetir({
 
   // Global olaylar ay bazlı geliyor; hafta iki aya taşabildiği için iki ay
   // birden taranıp aralığa göre süzülüyor.
-  const aylar = new Set<string>();
-  for (const g of [baslangic, bitis]) {
-    aylar.add(g.slice(0, 7));
-  }
-  for (const ayAnahtari of aylar) {
+  for (const ayAnahtari of new Set([baslangic.slice(0, 7), bitis.slice(0, 7)])) {
     const [yil, ay] = ayAnahtari.split("-").map(Number);
     for (const o of globalOlaylariAyIcinBul(yil, ay)) {
       const t = `${ayAnahtari}-${String(o.gun).padStart(2, "0")}`;
@@ -102,5 +123,13 @@ async function olaylariAraliktaGetir({
     }
   }
 
-  return olaylar.sort((a, b) => a.tarih.localeCompare(b.tarih) || a.etiket.localeCompare(b.etiket));
+  const gorulen = new Set<string>();
+  return olaylar
+    .filter((o) => {
+      const anahtar = `${o.tarih}|${o.etiket}`;
+      if (gorulen.has(anahtar)) return false;
+      gorulen.add(anahtar);
+      return true;
+    })
+    .sort((a, b) => a.tarih.localeCompare(b.tarih) || a.etiket.localeCompare(b.etiket));
 }

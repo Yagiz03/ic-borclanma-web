@@ -1,0 +1,74 @@
+{
+ "ihaleHaftasi": {
+  "baslangic": "2026-09-14",
+  "bitis": "2026-09-20",
+  "ihrac": [
+   {
+    "tarih": "2026-09-14",
+    "yontem": "İhale / İlk ihraç",
+    "senet_turu": "Sabit Kuponlu Devlet Tahvili",
+    "vade": "2 Yıl / 728 Gün"
+   },
+   {
+    "tarih": "2026-09-14",
+    "yontem": "İhale / İlk ihraç",
+    "senet_turu": "TLREF'e Endeksli Devlet Tahvili",
+    "vade": "4 Yıl / 1456 Gün"
+   },
+   {
+    "tarih": "2026-09-14",
+    "yontem": "İhale / İlk ihraç",
+    "senet_turu": "TLREF'e Endeksli Devlet Tahvili",
+    "vade": "4 Yıl / 1456 Gün"
+   },
+   {
+    "tarih": "2026-09-14",
+    "yontem": "İhale / İlk ihraç",
+    "senet_turu": "Sabit Kuponlu Devlet Tahvili",
+    "vade": "2 Yıl / 728 Gün"
+   },
+   {
+    "tarih": "2026-09-15",
+    "yontem": "Doğrudan Satış",
+    "senet_turu": "Kira Sertifikası",
+    "vade": "2 Yıl / 728 Gün"
+   },
+   {
+    "tarih": "2026-09-15",
+    "yontem": "İhale / Yeniden ihraç",
+    "senet_turu": "Sabit Kuponlu Devlet Tahvili",
+    "vade": "5 Yıl / 1673 Gün"
+   },
+   {
+    "tarih": "2026-09-15",
+    "yontem": "Doğrudan Satış",
+    "senet_turu": "Kira Sertifikası",
+    "vade": "2 Yıl / 728 Gün"
+   },
+   {
+    "tarih": "2026-09-15",
+    "yontem": "İhale / Yeniden ihraç",
+    "senet_turu": "Sabit Kuponlu Devlet Tahvili",
+    "vade": "5 Yıl / 1673 Gün"
+   },
+   {
+    "tarih": "2026-09-15",
+    "yontem": "İhale / Yeniden ihraç",
+    "senet_turu": "Sabit Kuponlu Devlet Tahvili",
+    "vade": "8 Yıl / 2933 Gün"
+   }
+  ],
+  "tcmb": []
+ },
+ "ppkHaftasi": {
+  "baslangic": "2026-09-08",
+  "bitis": "2026-09-13",
+  "ihrac": [],
+  "tcmb": [
+   {
+    "tarih": "2026-09-10",
+    "tur": "PPK Toplantı Kararı"
+   }
+  ]
+ }
+}
