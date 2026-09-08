@@ -19,6 +19,20 @@ const GH = "https://api.github.com";
  *  olduğu için kötüye kullanımı ve boşuna Actions dakikası harcanmasını
  *  engelliyor; ayrıca "zaten çalışıyor" durumunu kullanıcıya söylüyor. */
 const BEKLEME_DK = 5;
+/** Günlük veri penceresinin açıldığı an: 12:16 UTC = 15:16 TR (update-ost.yml
+ *  cron'uyla aynı; BIST'in 14:00 ara bülteni ~15:15 TR'de yayımlanıyor).
+ *  Bu saatten SONRA başarılı bir çalışma olduysa günün verisi alınmış
+ *  demektir -- tekrar tetiklemek gereksiz. */
+const PENCERE_UTC_SAAT = 12;
+const PENCERE_UTC_DAKIKA = 16;
+
+/** Bugünkü veri penceresinin başlangıcı (UTC). Henüz o saate gelinmediyse
+ *  null döner -- o zaman "bugün güncellendi" kuralı işletilmez. */
+function bugunkuPencereBaslangici(simdi: Date): Date | null {
+  const pencere = new Date(simdi);
+  pencere.setUTCHours(PENCERE_UTC_SAAT, PENCERE_UTC_DAKIKA, 0, 0);
+  return simdi >= pencere ? pencere : null;
+}
 
 function baslıklar(token: string) {
   return {
@@ -44,7 +58,12 @@ export async function POST() {
   );
   if (sonlar.ok) {
     const { workflow_runs: kosular } = (await sonlar.json()) as {
-      workflow_runs: { status: string; created_at: string; html_url: string }[];
+      workflow_runs: {
+        status: string;
+        conclusion: string | null;
+        created_at: string;
+        html_url: string;
+      }[];
     };
     const son = kosular?.[0];
     if (son) {
@@ -54,7 +73,22 @@ export async function POST() {
           { status: 409 },
         );
       }
-      const gecenDk = (Date.now() - new Date(son.created_at).getTime()) / 60_000;
+      // Günün verisi zaten alınmışsa (15:16 TR'den sonra başarıyla çalışmış)
+      // tekrar tetiklemeye gerek yok.
+      const simdi = new Date();
+      const pencere = bugunkuPencereBaslangici(simdi);
+      if (pencere && son.conclusion === "success" && new Date(son.created_at) >= pencere) {
+        return Response.json(
+          {
+            durum: "bugun_guncellendi",
+            mesaj: "Bugün güncellendi, basma.",
+            url: son.html_url,
+          },
+          { status: 409 },
+        );
+      }
+
+      const gecenDk = (simdi.getTime() - new Date(son.created_at).getTime()) / 60_000;
       if (gecenDk < BEKLEME_DK) {
         return Response.json(
           {
