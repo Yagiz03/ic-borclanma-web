@@ -330,7 +330,7 @@ export function TahminTab({
             <div className="rounded-lg border border-border p-3">
               <p className="text-xs text-muted-foreground">Kabul edilen aralık (ort.)</p>
               <p className="font-figures font-semibold">
-                %{ortalama(sonBenzer.map((r) => r.en_dusuk_bilesik_gerceklesme))?.toFixed(2) ?? "–"} --{" "}
+                %{ortalama(sonBenzer.map((r) => r.en_dusuk_bilesik_gerceklesme))?.toFixed(2) ?? "–"} —{" "}
                 %{ortalama(sonBenzer.map((r) => r.en_yuksek_bilesik_gerceklesme))?.toFixed(2) ?? "–"}
               </p>
             </div>
@@ -374,36 +374,50 @@ export function TahminTab({
                 data={[...sonBenzer]
                   .sort((a, b) => a.ihaleTarihiD.getTime() - b.ihaleTarihiD.getTime())
                   .map((r) => ({
-                    etiket: `${r.ihaleTarihiD.toLocaleDateString("tr-TR")} ${r.isin}`,
-                    taban: r.en_dusuk_bilesik_gerceklesme,
+                    // ISIN etikete sığmıyordu (döndürülmüş uzun yazılar);
+                    // eksende sadece tarih var, ISIN tooltip'te.
+                    etiket: r.ihaleTarihiD.toLocaleDateString("tr-TR"),
+                    isin: r.isin,
+                    // Recharts'ın DİZİ değerli (floating) çubuğu: [alt, üst].
+                    // Önce "görünmez taban + fark" yığını vardı; yığılmış çubuk
+                    // Y eksenini zorla 0'dan başlattığı için domain ayarı yok
+                    // sayılıyor, %33-40'lık veri tepeye eziliyordu.
                     aralik:
                       r.en_dusuk_bilesik_gerceklesme != null && r.en_yuksek_bilesik_gerceklesme != null
-                        ? r.en_yuksek_bilesik_gerceklesme - r.en_dusuk_bilesik_gerceklesme
+                        ? [r.en_dusuk_bilesik_gerceklesme, r.en_yuksek_bilesik_gerceklesme]
                         : null,
                     ortalama: r.ort_yillik_bilesik_gerceklesme,
                     enDusuk: r.en_dusuk_bilesik_gerceklesme,
                     enYuksek: r.en_yuksek_bilesik_gerceklesme,
                   }))}
-                margin={{ top: 8, right: 16, left: 0, bottom: 40 }}
+                margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="etiket" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} angle={-35} textAnchor="end" interval={0} height={70} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} unit="%" domain={["dataMin - 0.2", "dataMax + 0.2"]} />
+                <XAxis dataKey="etiket" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} interval={0} height={28} />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  width={56}
+                  domain={["dataMin - 0.3", "dataMax + 0.3"]}
+                  tickFormatter={(v) => `%${Number(v).toFixed(1)}`}
+                />
                 <Tooltip
                   contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  labelFormatter={(etiket, yuk) => {
+                    const p = yuk?.[0]?.payload as { isin?: string } | undefined;
+                    return p?.isin ? `${etiket} — ${p.isin}` : String(etiket);
+                  }}
                   formatter={(v, name, item) => {
                     if (name === "aralik") {
                       const p = item.payload as { enDusuk: number | null; enYuksek: number | null };
-                      return [`${p.enDusuk?.toFixed(2)}% — ${p.enYuksek?.toFixed(2)}%`, "Kabul aralığı"];
+                      return [`%${p.enDusuk?.toFixed(2)} — %${p.enYuksek?.toFixed(2)}`, "Kabul aralığı"];
                     }
-                    if (name === "ortalama") return [`${Number(v).toFixed(2)}%`, "Ortalama kabul"];
+                    if (name === "ortalama") return [`%${Number(v).toFixed(2)}`, "Ortalama kabul"];
                     return [v, name];
                   }}
                 />
-                <Bar dataKey="taban" stackId="a" fill="transparent" isAnimationActive={false} legendType="none" />
-                <Bar dataKey="aralik" stackId="a" fill="var(--chart-1)" fillOpacity={0.35} radius={[3, 3, 3, 3]} name="Kabul aralığı (en düşük — en yüksek)" />
+                <Legend wrapperStyle={{ fontSize: 12 }} verticalAlign="top" height={28} />
+                <Bar dataKey="aralik" fill="var(--chart-1)" fillOpacity={0.35} radius={[3, 3, 3, 3]} name="Kabul aralığı (en düşük — en yüksek)" />
                 <Scatter dataKey="ortalama" fill="var(--chart-1)" name="Ortalama kabul" />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
