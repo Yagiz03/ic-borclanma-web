@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { trTarihAyristir } from "@/lib/tarih";
 import type { AramaKagidi } from "@/components/global-arama";
+import { HaftaBildirimi } from "@/components/hafta-bildirimi";
+import { haftalikOlaylariGetir } from "@/lib/haftalik-olaylar";
 
 export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   const supabase = await createClient();
@@ -16,9 +18,11 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
   // filtreler): itfa olmuşlar düşer, ikincil piyasada hiç işlem görmemiş Kamu
   // Kira Sertifikaları dışlanır -- yoksa arama, DİBS Detay'ın seçim kutusunda
   // bulunmayan bir ISIN önerebilirdi.
-  const { data: ozetHam } = await supabase
-    .from("isin_ozet")
-    .select("isin, senet_tanimi, vade_tarihi, bist_son_tarih");
+  const [{ data: ozetHam }, haftaOlaylari] = await Promise.all([
+    supabase.from("isin_ozet").select("isin, senet_tanimi, vade_tarihi, bist_son_tarih"),
+    // Panele girişte sağ üstte çıkan "Bu hafta" bildirimi.
+    haftalikOlaylariGetir(),
+  ]);
 
   const bugun = new Date().getTime();
   const gorulen = new Set<string>();
@@ -35,6 +39,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
 
   return (
     <AppShell aramaKagitlari={aramaKagitlari}>
+      <HaftaBildirimi olaylar={haftaOlaylari} />
       {misafirOturumuYok && (
         <div className="mb-5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           Misafir oturumu açılamadı — tüm veriler görünüyor, ancak izleme listesi,
