@@ -70,3 +70,24 @@ export function globalOlaylariAyIcinBul(yil: number, ay: number): GlobalOlay[] {
   }
   return olaylar.sort((a, b) => a.gun - b.gun || a.etiket.localeCompare(b.etiket));
 }
+
+/**
+ * Statik takvimlerden hangileri bu yılı kapsamıyorsa uyarı metni döner.
+ * (Türkiye enflasyonu kuralla türetildiği için her yıl mevcut.)
+ * core/global_takvim.py::kapsam_notu'nun karşılığı.
+ */
+export function kapsamNotu(yil: number): string | null {
+  const eksik = (
+    [
+      ["Fed", FED_KARAR],
+      ["ECB", ECB_KARAR],
+      ["BOJ", BOJ_KARAR],
+      ["BOE", BOE_KARAR],
+      ["ABD CPI/PPI", ABD_CPI],
+    ] as const
+  )
+    .filter(([, kaynak]) => !(yil in kaynak))
+    .map(([ad]) => ad);
+  if (eksik.length === 0) return null;
+  return `${eksik.join(", ")} takvim(ler)i ${yil} için henüz yayımlanmadı — bu kaynaklardan olay gösterilemiyor.`;
+}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
-import { globalOlaylariAyIcinBul, trEnflasyonGunu } from "@/lib/global-takvim";
+import { globalOlaylariAyIcinBul, kapsamNotu, trEnflasyonGunu } from "@/lib/global-takvim";
 
 const AY_ADLARI = [
   "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -102,6 +102,36 @@ export default async function TakvimPage({
       (gunler[o.gun] ??= []).push({ etiket: `🌐 ${o.etiket}`, renk: "bg-slate-500", detay: o.detay });
     }
   }
+
+  // "Bu ayın olayları" listesi: ızgaradaki yerli olaylar + globaller,
+  // gün sırasına göre düz bir liste hâlinde.
+  const listeSatirlari: { tarih: string; etiket: string; detay: string }[] = [];
+  const gunEtiketi = (g: number) =>
+    `${String(g).padStart(2, "0")}.${String(ay).padStart(2, "0")}.${yil}`;
+  const listeGunleri = new Map<number, { etiket: string; detay: string }[]>();
+  for (const [g, olaylar] of Object.entries(gunler)) {
+    for (const o of olaylar) {
+      const gun = Number(g);
+      listeGunleri.set(gun, [
+        ...(listeGunleri.get(gun) ?? []),
+        { etiket: o.etiket, detay: o.detay ?? "" },
+      ]);
+    }
+  }
+  for (const o of globalOlaylar) {
+    // Izgaraya zaten işlendiyse iki kez yazma.
+    if (globalIzgarada) continue;
+    listeGunleri.set(o.gun, [
+      ...(listeGunleri.get(o.gun) ?? []),
+      { etiket: `🌐 ${o.etiket}`, detay: o.detay },
+    ]);
+  }
+  for (const gun of [...listeGunleri.keys()].sort((a, b) => a - b)) {
+    for (const o of listeGunleri.get(gun)!) {
+      listeSatirlari.push({ tarih: gunEtiketi(gun), etiket: o.etiket, detay: o.detay });
+    }
+  }
+  const kapsamUyarisi = kapsamNotu(yil);
 
   const ilkGun = new Date(Date.UTC(yil, ay - 1, 1));
   const ilkGunHaftaIcinde = (ilkGun.getUTCDay() + 6) % 7; // 0=Pzt
@@ -214,22 +244,32 @@ export default async function TakvimPage({
             ))}
           </div>
 
-          {globalOlaylar.length > 0 && (
-            <div className="mt-4 border-t border-border pt-4">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">🌐 Global olaylar (bu ay)</p>
+          {/* Bu ayın olayları (liste): ızgaradaki YERLİ olaylar (ihale, PPK,
+              doğrudan satış, TR enflasyonu) + global olaylar. Globaller,
+              "🌐 Takvimde göster" düğmesinden BAĞIMSIZ olarak her zaman
+              listede -- ızgaraya işlenmeseler bile. */}
+          <div className="mt-4 border-t border-border pt-4">
+            <h3 className="mb-2 text-sm font-semibold">Bu ayın olayları (liste)</h3>
+            {listeSatirlari.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Bu ay için bilinen bir olay yok — ihraç takvimi genelde sadece HMB&apos;nin güncel
+                İç Borçlanma Stratejisi belgesinin kapsadığı ~3 aylık dönem için mevcut.
+              </p>
+            ) : (
               <div className="space-y-1">
-                {globalOlaylar.map((o, i) => (
+                {listeSatirlari.map((r, i) => (
                   <div key={i} className="flex flex-wrap items-baseline gap-x-2 text-xs">
-                    <span className="font-figures font-semibold text-foreground">
-                      {String(o.gun).padStart(2, "0")}.{String(ay).padStart(2, "0")}.{yil}
-                    </span>
-                    <span className="text-foreground">{o.etiket}</span>
-                    <span className="text-muted-foreground">-- {o.detay}</span>
+                    <span className="font-figures font-semibold text-foreground">{r.tarih}</span>
+                    <span className="text-foreground">{r.etiket}</span>
+                    {r.detay && <span className="text-muted-foreground">— {r.detay}</span>}
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+            {kapsamUyarisi && (
+              <p className="mt-2 text-xs text-amber-600 dark:text-amber-500">⚠️ {kapsamUyarisi}</p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
