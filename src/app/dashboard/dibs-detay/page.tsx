@@ -56,13 +56,24 @@ export default async function DibsDetayPage({
   const siraliOzet = trTarihSirala(ozetHam, (r) => r.vade_tarihi);
   const secilen = siraliOzet.find((r) => r.isin === secilenParam) ?? siraliOzet[0];
 
-  const [{ data: ihaleler }, { data: bistFiyatlar }] = await Promise.all([
+  const [{ data: ihaleler }, { data: bistFiyatlar }, { data: duyurular }, { data: tcmbAlimlar }] =
+    await Promise.all([
     supabase.from("ihale_sonuclari").select("*").eq("isin", secilen.isin),
     supabase
       .from("bist_bap_fiyatlar")
       .select("tarih, temiz_fiyat, kapanis_bilesik_getiri_pct, islem_hacmi_tl")
       .eq("isin", secilen.isin)
       .order("tarih", { ascending: true }),
+    // HMB'nin ihale ÖNCESİ duyurusu -- resmi kupon oranı/ek getiri burada
+    // ilan edilir, ihale sonrası sonuç duyurusundan farklı bir belgedir.
+    supabase
+      .from("ihale_duyurulari")
+      .select("ihale_tarihi, valor_tarihi, itfa_tarihi, vade_aciklama, ihrac_tipi, resmi_kupon_orani_pct, ek_getiri_bp, kaynak_url")
+      .eq("isin", secilen.isin),
+    supabase
+      .from("tcmb_dogrudan_alim")
+      .select("ihale_tarihi, kazanan_tutar_nominal_bin_tl")
+      .eq("isin", secilen.isin),
   ]);
 
   const { data: izlemeSatiri } = await supabase
@@ -72,6 +83,22 @@ export default async function DibsDetayPage({
     .maybeSingle();
 
   const siraliIhale = ihaleler ? trTarihSirala(ihaleler, (r) => r.ihale_tarihi) : [];
+  const siraliDuyuru = duyurular ? trTarihSirala(duyurular, (r) => r.ihale_tarihi) : [];
+
+  // TCMB doğrudan alımları: tarihe göre artan sırada kümülatif toplam
+  // çıkarılıp tabloda tersten (en yeni üstte) gösteriliyor.
+  const alimlarArtan = tcmbAlimlar ? trTarihSirala(tcmbAlimlar, (r) => r.ihale_tarihi) : [];
+  const tcmbAlimSatirlari = alimlarArtan.reduce<{ tarih: string; tutar: number; kumulatif: number }[]>(
+    (birikim, r) => {
+      const tutar = r.kazanan_tutar_nominal_bin_tl != null ? Number(r.kazanan_tutar_nominal_bin_tl) : 0;
+      const oncekiKumulatif = birikim.length ? birikim[birikim.length - 1].kumulatif : 0;
+      return [...birikim, { tarih: r.ihale_tarihi as string, tutar, kumulatif: oncekiKumulatif + tutar }];
+    },
+    [],
+  );
+  const tcmbToplamAlim = tcmbAlimSatirlari.length
+    ? tcmbAlimSatirlari[tcmbAlimSatirlari.length - 1].kumulatif
+    : 0;
   const sonBist = bistFiyatlar && bistFiyatlar.length > 0 ? bistFiyatlar[bistFiyatlar.length - 1] : null;
 
   const alanlar: { etiket: string; deger: string; yardim?: string }[] = [
@@ -212,6 +239,51 @@ export default async function DibsDetayPage({
         </>
       )}
 
+      {siraliDuyuru.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Gerçekleştirilecek İhalelere İlişkin Basın Duyurusu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-muted-foreground">
+              HMB&apos;nin ihale ÖNCESİ (genelde bir gün önce) yayımladığı duyuru — resmi kupon oranı
+              ve ek getiri burada ilan edilir. İhale sonrası sonuç duyurusundan (aşağıdaki
+              &quot;İhale geçmişi&quot; tablosu) farklı bir belgedir.
+            </p>
+            <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+              <Table>
+                <TableHeader className="sticky top-0 z-10 bg-card">
+                  <TableRow>
+                    <TableHead>İhale Tarihi</TableHead>
+                    <TableHead>Valör</TableHead>
+                    <TableHead>İtfa Tarihi</TableHead>
+                    <TableHead>Vade</TableHead>
+                    <TableHead>İhraç Tipi</TableHead>
+                    <TableHead className="text-right">Resmi Kupon Oranı</TableHead>
+                    <TableHead className="text-right">Ek Getiri (bp)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {siraliDuyuru.map((d, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-figures whitespace-nowrap">{d.ihale_tarihi}</TableCell>
+                      <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(d.valor_tarihi)}</TableCell>
+                      <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(d.itfa_tarihi)}</TableCell>
+                      <TableCell>{d.vade_aciklama ?? "–"}</TableCell>
+                      <TableCell>{d.ihrac_tipi ?? "–"}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(d.resmi_kupon_orani_pct)}</TableCell>
+                      <TableCell className="font-figures text-right">
+                        {d.ek_getiri_bp == null ? "–" : Number(d.ek_getiri_bp).toFixed(0)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>İhale geçmişi</CardTitle>
@@ -251,6 +323,55 @@ export default async function DibsDetayPage({
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>TCMB doğrudan alım geçmişi</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tcmbAlimSatirlari.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              TCMB bu ISIN&apos;i doğrudan alım yoluyla satın almamış (kayıtlarımızda yok).
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <OzetSerit
+                alanlar={[
+                  {
+                    etiket: "Toplam alım",
+                    deger: `${tcmbToplamAlim.toLocaleString("tr-TR", { maximumFractionDigits: 0 })} Bin TL`,
+                  },
+                  { etiket: "Doğrudan alım ihalesi", deger: String(tcmbAlimSatirlari.length) },
+                ]}
+              />
+              <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-card">
+                    <TableRow>
+                      <TableHead>Tarih</TableHead>
+                      <TableHead className="text-right">Alınan tutar (Bin TL)</TableHead>
+                      <TableHead className="text-right">Kümülatif (Bin TL)</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...tcmbAlimSatirlari].reverse().map((r, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(r.tarih)}</TableCell>
+                        <TableCell className="font-figures text-right">
+                          {r.tutar.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}
+                        </TableCell>
+                        <TableCell className="font-figures text-right">
+                          {r.kumulatif.toLocaleString("tr-TR", { maximumFractionDigits: 0 })}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </CardContent>
