@@ -518,7 +518,7 @@ export function GetiriEgrisiClient({
                         kategori değil SAYISAL -- çubuklar gerçek vade konumunda
                         durup üstteki eğri grafiğiyle aynı hizaya geliyor. */}
                     {spreadSerileri.map((s) => (
-                      <Bar key={s.etiket} dataKey={s.etiket} name={`Δ ${s.etiket}`} fill={s.renk} maxBarSize={13} />
+                      <Bar key={s.etiket} dataKey={s.etiket} name={`Δ ${s.etiket}`} fill={s.renk} barSize={13} />
                     ))}
                   </ComposedChart>
                 </ResponsiveContainer>
