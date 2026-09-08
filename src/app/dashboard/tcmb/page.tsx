@@ -9,6 +9,7 @@ import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
 import { DisDengeBolumu } from "./dis-denge";
 import { NetRezervBolumu } from "./net-rezerv";
 import { PiyasaBeklentileriBolumu } from "./piyasa-beklentileri";
+import { TlrefBolumu, type TlrefNoktasi } from "./tlref-bolumu";
 
 function pivotla(rows: { seri_adi: string; tarih: string; deger: number | null }[]): Record<string, string | number>[] {
   const gunler = new Map<string, Record<string, string | number>>();
@@ -65,7 +66,9 @@ export default async function TcmbPage({
     koridorRes, politikaRes, enflasyonRaporuRes,
   ] = await Promise.all([
     Promise.all(dibsSeriler.map(evdsSeri)),
-    evdsSeri("tlref_kapanis"),
+    tumSatirlariGetir<{ tarih: string; oran_pct: number }>((from, to) =>
+      supabase.from("bist_tlref_orani").select("tarih, oran_pct").order("tarih").range(from, to),
+    ),
     evdsSeri("repo_gecelik_bist"),
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih"),
     supabase.from("tcmb_politika_faizi").select("tarih, politika_faizi").order("tarih"),
@@ -85,7 +88,10 @@ export default async function TcmbPage({
   }
 
   const dibsVeri = pivotla(dibsSonuclari.flatMap((r) => r.data ?? []));
-  const tlrefVeri = pivotla(tlrefRes.data ?? []);
+  const tlrefSeri: TlrefNoktasi[] = (tlrefRes.data ?? []).map((r) => ({
+    tarih: r.tarih,
+    oran_pct: Number(r.oran_pct),
+  }));
 
   const koridorVeri = (koridorRes.data ?? []).map((r) => ({ tarih: r.tarih, "Alt bant": Number(r.borc_alma), "Üst bant": Number(r.borc_verme) }));
   const politikaVeri = (politikaRes.data ?? []).map((r) => ({ tarih: r.tarih, "Politika faizi": Number(r.politika_faizi) }));
@@ -194,8 +200,7 @@ export default async function TcmbPage({
         </TabsContent>
 
         <TabsContent value="tlref">
-          <p className="mb-3 text-sm text-muted-foreground">TLREF endeksi kapanış değeri (günlük).</p>
-          <CokluCizgiGrafigi veri={tlrefVeri} seriler={[{ anahtar: "tlref_kapanis", etiket: "TLREF Kapanış" }]} ondalik={2} />
+          <TlrefBolumu seri={tlrefSeri} />
         </TabsContent>
 
         <TabsContent value="disdenge">
