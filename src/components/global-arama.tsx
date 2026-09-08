@@ -76,7 +76,17 @@ function kucult(s: string): string {
   return s.toLocaleLowerCase("tr");
 }
 
-export function GlobalArama({ kagitlar }: { kagitlar: AramaKagidi[] }) {
+export function GlobalArama({
+  kagitlar,
+  sinif,
+  onGezindi,
+}: {
+  kagitlar: AramaKagidi[];
+  /** Sarmalayıcı sınıfı override -- mobil menüde tam genişlik gerekiyor. */
+  sinif?: string;
+  /** Bir sonuca gidilince çağrılır (mobil menüyü kapatmak için). */
+  onGezindi?: () => void;
+}) {
   const router = useRouter();
   const [acik, setAcik] = React.useState(false);
   const [sorgu, setSorgu] = React.useState("");
@@ -134,15 +144,16 @@ export function GlobalArama({ kagitlar }: { kagitlar: AramaKagidi[] }) {
       setSorgu("");
       setAcik(false);
       router.push(s.hedef);
+      onGezindi?.();
     },
-    [router],
+    [router, onGezindi],
   );
 
   return (
     // Sabit genişlik yerine ESNEK: satırda kalan boşluğu alıyor, yer daralınca
     // sabit genişlikli olsa alt satıra kayacakken burada küçülerek sekmelerle
     // aynı satırda kalıyor.
-    <div ref={kokRef} className="relative ml-1 min-w-[7.5rem] max-w-72 flex-1 basis-32">
+    <div ref={kokRef} className={sinif ?? "relative ml-1 min-w-[7.5rem] max-w-72 flex-1 basis-32"}>
       <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
       <input
         ref={girdiRef}

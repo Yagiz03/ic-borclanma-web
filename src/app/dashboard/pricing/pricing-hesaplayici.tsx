@@ -123,7 +123,7 @@ export function PricingHesaplayici({
       <Card>
         <CardContent className="space-y-4 pt-6">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2 sm:col-span-2">
+            <div className="min-w-0 space-y-2 sm:col-span-2">
               <Label>Kağıt</Label>
               <Combobox
                 value={isin}

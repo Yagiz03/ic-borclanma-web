@@ -114,6 +114,14 @@ export function AppShell({
 
         {mobilAcik && (
           <nav className="flex flex-col gap-1 border-t border-black/[0.06] p-3 lg:hidden">
+            {/* Arama mobilde de olmalı: masaüstünde nav'ın içindeydi ama mobil
+                menüye hiç eklenmemişti, yani ISIN araması telefonda tamamen
+                erişilemezdi. Bir sonuca gidilince menü kendiliğinden kapanıyor. */}
+            <GlobalArama
+              kagitlar={aramaKagitlari}
+              sinif="relative mb-2 w-full"
+              onGezindi={() => setMobilAcik(false)}
+            />
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} onClick={() => setMobilAcik(false)} />
             ))}

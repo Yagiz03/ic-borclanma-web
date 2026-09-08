@@ -78,7 +78,7 @@ async function FinansmanIlerlemeBolumu() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-5">
-          <div className="md:col-span-3">
+          <div className="min-w-0 md:col-span-3">
             <h3 className="mb-2 text-sm font-semibold">Bu ay hangi kağıttan ne kadar geldi</h3>
             {/* Ay içinde henüz ihale olmadığında da tablo (başlıklarıyla)
                 gösteriliyor; sadece gövdesi boş kalıyor. Önce tablo tamamen
@@ -125,7 +125,7 @@ async function FinansmanIlerlemeBolumu() {
             </div>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="min-w-0 md:col-span-2">
             <h3 className="mb-2 text-sm font-semibold">{veri.kalanBaslik}</h3>
             {veri.kalanIhaleler.length === 0 ? (
               <p className="text-sm text-muted-foreground">Bu ay için planlanmış başka ihale kalmadı.</p>
