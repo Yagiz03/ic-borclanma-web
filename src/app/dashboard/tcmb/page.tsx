@@ -105,8 +105,31 @@ export default async function TcmbPage({
     ...(repoRes.data ?? []).map((r) => ({ seri_adi: "BIST gecelik repo", tarih: r.tarih, deger: r.deger })),
   ]);
 
+  // TCMB'nin ilan ettiği oranlar BASAMAK FONKSİYONUDUR: PPK değiştirene kadar
+  // yürürlükte kalır, dolayısıyla ilan tarihleri arasında "veri yok" değildir.
+  // Ham haliyle çizilince koridor çizgileri son PPK kararında (uzun bir
+  // değişmeme döneminde aylar önce) bitiyor, BIST gecelik repo ise bugüne
+  // kadar devam ediyor -- grafik veri kopmuş gibi görünüyordu. Bu yüzden
+  // koridor/politika serileri son gözleme kadar ileri taşınıyor.
+  const BASAMAK_SERILER = ["Alt bant", "Üst bant", "Politika faizi"] as const;
+  let tasinan: Partial<Record<(typeof BASAMAK_SERILER)[number], number>> = {};
+  for (const satir of koridorBirlesik) {
+    for (const ad of BASAMAK_SERILER) {
+      if (satir[ad] != null) tasinan = { ...tasinan, [ad]: satir[ad] as number };
+      else if (tasinan[ad] != null) satir[ad] = tasinan[ad]!;
+    }
+  }
+
   const sonKoridor = koridorVeri[koridorVeri.length - 1];
   const sonPolitika = politikaVeri[politikaVeri.length - 1];
+  // Kartlarda "ne zamandır yürürlükte" bilgisi -- oranın güncel olduğunu
+  // ama tarihin eski olmasının normal olduğunu göstermek için.
+  const koridorTarihi = sonKoridor?.tarih
+    ? new Date(`${String(sonKoridor.tarih).slice(0, 10)}T00:00:00Z`).toLocaleDateString("tr-TR", { timeZone: "UTC" })
+    : null;
+  const politikaTarihi = sonPolitika?.tarih
+    ? new Date(`${String(sonPolitika.tarih).slice(0, 10)}T00:00:00Z`).toLocaleDateString("tr-TR", { timeZone: "UTC" })
+    : null;
 
   const enflasyonRaporu = enflasyonRaporuRes.data;
 
@@ -165,7 +188,8 @@ export default async function TcmbPage({
           <p className="mb-3 text-sm text-muted-foreground">
             TCMB&apos;nin ilan ettiği &quot;faiz koridoru&quot; — gecelik borç alma (alt bant) ve borç verme (üst
             bant) faizleri ile 1 hafta vadeli repo (politika faizi); BIST gecelik repo piyasada fiilen oluşan
-            oranı gösteriyor.
+            oranı gösteriyor. İlan edilen oranlar PPK değiştirene kadar yürürlükte kaldığı için grafikte
+            basamak şeklinde, son karardan bugüne düz devam ediyor.
           </p>
           {koridorVeri.length === 0 ? (
             <p className="text-sm text-muted-foreground">Veri yok.</p>
@@ -175,14 +199,23 @@ export default async function TcmbPage({
                 <div className="rounded-lg border border-border p-3">
                   <p className="text-xs text-muted-foreground">Üst bant (gecelik borç verme)</p>
                   <p className="font-figures font-semibold">{pct1(sonKoridor?.["Üst bant"] as number)}</p>
+                  {koridorTarihi && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">{koridorTarihi}&apos;dan beri yürürlükte</p>
+                  )}
                 </div>
                 <div className="rounded-lg border border-border p-3">
                   <p className="text-xs text-muted-foreground">Politika faizi (1 hafta repo)</p>
                   <p className="font-figures font-semibold">{pct1(sonPolitika?.["Politika faizi"] as number)}</p>
+                  {politikaTarihi && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">{politikaTarihi}&apos;dan beri yürürlükte</p>
+                  )}
                 </div>
                 <div className="rounded-lg border border-border p-3">
                   <p className="text-xs text-muted-foreground">Alt bant (gecelik borç alma)</p>
                   <p className="font-figures font-semibold">{pct1(sonKoridor?.["Alt bant"] as number)}</p>
+                  {koridorTarihi && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">{koridorTarihi}&apos;dan beri yürürlükte</p>
+                  )}
                 </div>
               </div>
               <CokluCizgiGrafigi
