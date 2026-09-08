@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { KaynakSatiri } from "@/components/kaynak-satiri";
 import { SenetBadge } from "@/components/senet-badge";
 import { IlerlemeRozeti } from "@/components/ilerleme-rozeti";
 import { trTarihSirala, isoTarihGoster, utcTarihe } from "@/lib/tarih";
@@ -79,7 +80,10 @@ async function FinansmanIlerlemeBolumu() {
 
         <div className="grid gap-6 md:grid-cols-5">
           <div className="min-w-0 md:col-span-3">
-            <h3 className="mb-2 text-sm font-semibold">Bu ay hangi kağıttan ne kadar geldi</h3>
+            <h3 className="text-sm font-semibold">Bu ay hangi kağıttan ne kadar geldi</h3>
+            <p className="mb-2 text-xs text-muted-foreground">
+              Satıra tıklayınca o ihalenin HMB basın duyurusu (PDF) yeni sekmede açılır.
+            </p>
             {/* Ay içinde henüz ihale olmadığında da tablo (başlıklarıyla)
                 gösteriliyor; sadece gövdesi boş kalıyor. Önce tablo tamamen
                 gizlenip yerine tek satır yazı çıkıyordu. */}
@@ -103,21 +107,12 @@ async function FinansmanIlerlemeBolumu() {
                     </TableRow>
                   ) : (
                     veri.kagitlar.map((k, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-figures whitespace-nowrap">{k.ihale_tarihi}</TableCell>
-                        <TableCell className="font-figures">
-                          {k.kaynak_url ? (
-                            <a href={k.kaynak_url} target="_blank" rel="noreferrer" className="hover:underline">
-                              {k.isin}
-                            </a>
-                          ) : (
-                            k.isin
-                          )}
-                        </TableCell>
+                      <KaynakSatiri key={i} url={k.kaynak_url} ilkHucre={k.ihale_tarihi}>
+                        <TableCell className="font-figures">{k.isin}</TableCell>
                         <TableCell><SenetBadge tanim={k.senet_tanimi} /></TableCell>
                         <TableCell className="font-figures text-right">{milyarTl(k.kamu_kurumlari_mn)}</TableCell>
                         <TableCell className="font-figures text-right">{milyarTl(k.piyasa_yapicilar_mn)}</TableCell>
-                      </TableRow>
+                      </KaynakSatiri>
                     ))
                   )}
                 </TableBody>

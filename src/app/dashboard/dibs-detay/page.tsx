@@ -17,11 +17,19 @@ import { IzlemeButonu } from "./izleme-butonu";
 import { OzetSerit } from "@/components/ozet-serit";
 import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolumu";
 import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
+import { KaynakSatiri } from "@/components/kaynak-satiri";
+import { IhaleSeyriGrafigi } from "./ihale-seyri-grafigi";
 
 function yuzde(v: number | string | null | undefined, ondalik = 2): string {
   if (v == null) return "–";
   const n = typeof v === "string" ? Number(v) : v;
   return Number.isFinite(n) ? `%${n.toFixed(ondalik)}` : "–";
+}
+
+function sayi(v: number | string | null | undefined, ondalik = 2): string {
+  if (v == null) return "–";
+  const n = typeof v === "string" ? Number(v) : v;
+  return Number.isFinite(n) ? n.toLocaleString("tr-TR", { minimumFractionDigits: ondalik, maximumFractionDigits: ondalik }) : "–";
 }
 
 function milyon(v: number | string | null | undefined): string {
@@ -84,6 +92,16 @@ export default async function DibsDetayPage({
 
   const siraliIhale = ihaleler ? trTarihSirala(ihaleler, (r) => r.ihale_tarihi) : [];
   const siraliDuyuru = duyurular ? trTarihSirala(duyurular, (r) => r.ihale_tarihi) : [];
+
+  // İhale geçmişinin iki grafiği: gerçekleşen faizin seyri ve yeniden
+  // ihraçlarla büyüyen toplam stok.
+  const ihaleSeyri = siraliIhale
+    .filter((h) => h.ort_yillik_bilesik_gerceklesme != null)
+    .map((h) => ({
+      tarih: h.ihale_tarihi as string,
+      faiz: Number(h.ort_yillik_bilesik_gerceklesme),
+      stokMlr: h.ihrac_sonrasi_stok_mn != null ? Number(h.ihrac_sonrasi_stok_mn) / 1000 : null,
+    }));
 
   // TCMB doğrudan alımları: tarihe göre artan sırada kümülatif toplam
   // çıkarılıp tabloda tersten (en yeni üstte) gösteriliyor.
@@ -289,40 +307,81 @@ export default async function DibsDetayPage({
           <CardTitle>İhale geçmişi</CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="mb-3 text-sm text-muted-foreground">
+            HMB&apos;nin ihale SONRASI yayımladığı &quot;Gerçekleştirilen İhalelere Ait Basın
+            Duyurusu&quot; verileri — bu kağıdın <b>tüm</b> ihaleleri. Tarihe tıklayınca kaynak
+            duyuru (PDF) yeni sekmede açılır.
+          </p>
           {siraliIhale.length === 0 ? (
             <p className="text-sm text-muted-foreground">Bu ISIN için ihale kaydı bulunamadı.</p>
           ) : (
-            <div className="max-h-[340px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+            <div className="max-h-[420px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
                 <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>İhraç Tipi</TableHead>
+                    <TableHead className="text-right">Toplam Teklif (Mn TL)</TableHead>
+                    <TableHead className="text-right">Toplam Gerçekleşme (Mn TL)</TableHead>
+                    <TableHead className="text-right">İhraç Sonrası Stok (Mn TL)</TableHead>
                     <TableHead className="text-right">Ort. Faiz (Bileşik)</TableHead>
-                    <TableHead className="text-right">En Düşük</TableHead>
-                    <TableHead className="text-right">En Yüksek</TableHead>
+                    <TableHead className="text-right">En Düşük Faiz</TableHead>
+                    <TableHead className="text-right">En Yüksek Faiz</TableHead>
+                    <TableHead className="text-right">Ort. Fiyat</TableHead>
                     <TableHead className="text-right">Talep Karşılama</TableHead>
+                    <TableHead className="text-right">Tail (bps)</TableHead>
+                    <TableHead className="text-right">ROT Payı</TableHead>
+                    <TableHead className="text-right">İlk 3 Katılımcı</TableHead>
+                    <TableHead className="text-right">İlk 5 Katılımcı</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {siraliIhale.map((h, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-figures">{h.ihale_tarihi}</TableCell>
-                      <TableCell>{h.ihrac_tipi ?? "–"}</TableCell>
-                      <TableCell className="font-figures text-right">
-                        {yuzde(h.ort_yillik_bilesik_gerceklesme)}
-                      </TableCell>
-                      <TableCell className="font-figures text-right">
-                        {yuzde(h.en_dusuk_bilesik_gerceklesme)}
-                      </TableCell>
-                      <TableCell className="font-figures text-right">
-                        {yuzde(h.en_yuksek_bilesik_gerceklesme)}
-                      </TableCell>
+                    <KaynakSatiri key={i} url={h.kaynak_url} ilkHucre={h.ihale_tarihi}>
+                      <TableCell className="whitespace-nowrap">{h.ihrac_tipi ?? "–"}</TableCell>
+                      <TableCell className="font-figures text-right">{sayi(h.toplam_teklif_mn, 1)}</TableCell>
+                      <TableCell className="font-figures text-right">{sayi(h.toplam_gerceklesme_mn, 1)}</TableCell>
+                      <TableCell className="font-figures text-right">{sayi(h.ihrac_sonrasi_stok_mn, 1)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.ort_yillik_bilesik_gerceklesme)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.en_dusuk_bilesik_gerceklesme)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.en_yuksek_bilesik_gerceklesme)}</TableCell>
+                      <TableCell className="font-figures text-right">{sayi(h.ort_fiyat_gerceklesme, 3)}</TableCell>
                       <TableCell className="font-figures text-right">{yuzde(h.toplam_oran_pct, 0)}</TableCell>
-                    </TableRow>
+                      <TableCell className="font-figures text-right">{sayi(h.tail_bps, 1)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.rot_pay_toplam_pct, 1)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.top3_katilimci_pay_pct, 1)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(h.top5_katilimci_pay_pct, 1)}</TableCell>
+                    </KaynakSatiri>
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {ihaleSeyri.length > 1 && (
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div className="min-w-0">
+                <h3 className="mb-2 text-sm font-semibold">Gerçekleşen faizin zaman içindeki seyri</h3>
+                <IhaleSeyriGrafigi
+                  veri={ihaleSeyri}
+                  dataKey="faiz"
+                  birim="%"
+                  ondalik={2}
+                  renk="var(--chart-1)"
+                />
+              </div>
+              <div className="min-w-0">
+                <h3 className="mb-2 text-sm font-semibold">
+                  Toplam ihraç stoku (yeniden ihraçlarla büyüme)
+                </h3>
+                <IhaleSeyriGrafigi
+                  veri={ihaleSeyri.filter((r) => r.stokMlr != null)}
+                  dataKey="stokMlr"
+                  birim=" mlr TL"
+                  ondalik={1}
+                  renk="var(--chart-2)"
+                />
+              </div>
             </div>
           )}
         </CardContent>
