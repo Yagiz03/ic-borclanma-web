@@ -53,10 +53,6 @@ export function Combobox({
   }, [])
 
   React.useEffect(() => {
-    setHighlight(0)
-  }, [query, open])
-
-  React.useEffect(() => {
     if (open) {
       listRef.current?.querySelector(`[data-index="${highlight}"]`)?.scrollIntoView({ block: "nearest" })
     }
@@ -76,11 +72,15 @@ export function Combobox({
           value={open ? query : (selected?.label ?? "")}
           onChange={(e) => {
             setQuery(e.target.value)
+            // Vurguyu efekt içinde sıfırlamak zincirleme render tetikliyordu;
+            // sorgu/odak değişiminin kaynağında sıfırlıyoruz.
+            setHighlight(0)
             if (!open) setOpen(true)
           }}
           onFocus={() => {
             setOpen(true)
             setQuery("")
+            setHighlight(0)
           }}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {

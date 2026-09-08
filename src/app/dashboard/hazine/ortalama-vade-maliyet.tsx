@@ -1,3 +1,4 @@
+import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -35,7 +36,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
     return <p className="text-sm text-destructive">{error.message}</p>;
   }
   if (!data || data.length === 0) {
-    return <p className="text-sm text-muted-foreground">ortalama_vade_maliyet tablosu boş.</p>;
+    return <BosDurum baslik="Ortalama vade / maliyet verisi yok" aciklama="HMB'nin aylık ortalama vade ve maliyet yayını henüz aktarılmadı." />;
   }
 
   const son = data[data.length - 1];

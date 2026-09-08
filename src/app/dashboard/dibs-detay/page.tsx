@@ -47,7 +47,7 @@ export default async function DibsDetayPage({
       <div className="w-full">
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
         <p className="mt-4 text-sm text-destructive">
-          {ozetHata?.message ?? "isin_ozet tablosu boş."}
+          {ozetHata?.message ?? "Kağıt listesi yüklenemedi."}
         </p>
       </div>
     );

@@ -1,3 +1,4 @@
+import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
 import { OzetSerit } from "@/components/ozet-serit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -123,7 +124,7 @@ async function IcBorcCevirmeOraniBolumu() {
   const cevirmeSon12Ay = [...cevirmeAylik].slice(-12).reverse();
 
   if (!sonCevirme) {
-    return <p className="text-sm text-muted-foreground">ic_borc_cevirme_orani tablosu boş.</p>;
+    return <BosDurum baslik="İç borç çevirme oranı verisi yok" aciklama="HMB'nin aylık çevirme oranı yayını henüz aktarılmadı." />;
   }
 
   return (

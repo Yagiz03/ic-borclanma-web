@@ -1,3 +1,4 @@
+import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -44,7 +45,7 @@ export async function DuzenliIslemGorenBolumu() {
   ]);
 
   if (!bist || bist.length === 0) {
-    return <p className="text-sm text-muted-foreground">bist_bap_fiyatlar tablosunda son {VARSAYILAN_PENCERE_GUN} günde veri yok.</p>;
+    return <BosDurum baslik="Bu dönemde işlem verisi yok" aciklama={`Son ${VARSAYILAN_PENCERE_GUN} günde BIST ikincil piyasa işlemi kaydedilmemiş.`} />;
   }
 
   const ozetHarita = new Map((ozetHam ?? []).map((r) => [r.isin, r]));

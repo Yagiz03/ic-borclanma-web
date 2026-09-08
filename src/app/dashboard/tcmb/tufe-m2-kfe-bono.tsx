@@ -83,7 +83,7 @@ export async function TufeM2KfeBonoBolumu() {
   if (data.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        TÜFE/M2/KFE verisi bulunamadı — evds_seriler tablosu boş.
+        TÜFE / M2 / KFE verisi bulunamadı.
       </p>
     );
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { BosDurum } from "@/components/bos-durum";
 import { Fragment, useMemo, useState } from "react";
 import {
   Bar,
@@ -217,7 +218,7 @@ export function TahminTab({
   const sonBenzer = useMemo(() => (yeterli ? ozetPenceresiSec(benzer) : []), [benzer, yeterli]);
 
   if (ihale.length === 0) {
-    return <p className="text-sm text-muted-foreground">ihale_sonuclari tablosu boş.</p>;
+    return <BosDurum baslik="İhale sonucu bulunamadı" aciklama="Tahmin için geçmiş ihale sonuçları gerekiyor; veri aktarımı tamamlandığında burada görünecek." />;
   }
 
   return (

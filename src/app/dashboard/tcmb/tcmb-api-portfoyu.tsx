@@ -1,3 +1,4 @@
+import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
 import {
   Table,
@@ -59,7 +60,7 @@ export async function TcmbApiPortfoyuBolumu() {
     return <p className="text-sm text-destructive">{error}</p>;
   }
   if (!alim || alim.length === 0) {
-    return <p className="text-sm text-muted-foreground">tcmb_dogrudan_alim tablosu boş.</p>;
+    return <BosDurum baslik="TCMB doğrudan alım kaydı yok" aciklama="TCMB'nin ikincil piyasadan doğrudan DİBS alımları burada listelenir." />;
   }
 
   const adSozluk = new Map((isinOzet ?? []).map((o) => [o.isin, o.senet_tanimi]));

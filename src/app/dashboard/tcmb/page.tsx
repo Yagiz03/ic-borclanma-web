@@ -1,3 +1,4 @@
+import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi } from "./coklu-cizgi-grafigi";
@@ -211,7 +212,7 @@ export default async function TcmbPage() {
 
         <TabsContent value="enflasyonraporu">
           {!enflasyonRaporu ? (
-            <p className="text-sm text-muted-foreground">tcmb_enflasyon_raporu tablosu boş.</p>
+            <BosDurum baslik="Enflasyon Raporu kaydı yok" aciklama="TCMB'nin yayımladığı Enflasyon Raporu özetleri burada listelenir." />
           ) : (
             <div className="space-y-3">
               <h3 className="text-base font-semibold">{enflasyonRaporu.rapor_baslik}</h3>

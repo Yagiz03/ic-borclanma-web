@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { BosDurum } from "@/components/bos-durum";
 import { OzetSerit } from "@/components/ozet-serit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -92,7 +93,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
 
       <TabsContent value="on">
         {!son ? (
-          <p className="text-sm text-muted-foreground">takasbank_tpp verisi henüz yüklenmedi.</p>
+          <BosDurum baslik="TPP verisi yok" aciklama="Takasbank para piyasası işlem ortalamaları henüz aktarılmadı." />
         ) : (
           <div className="space-y-6">
             <OzetSerit
@@ -158,7 +159,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
 
       <TabsContent value="egri">
         {tarihler.length === 0 ? (
-          <p className="text-sm text-muted-foreground">takasbank_tpp verisi henüz yüklenmedi.</p>
+          <BosDurum baslik="TPP verisi yok" aciklama="Takasbank para piyasası işlem ortalamaları henüz aktarılmadı." />
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -235,7 +236,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
 
       <TabsContent value="tablo">
         {veri.length === 0 ? (
-          <p className="text-sm text-muted-foreground">takasbank_tpp verisi henüz yüklenmedi.</p>
+          <BosDurum baslik="TPP verisi yok" aciklama="Takasbank para piyasası işlem ortalamaları henüz aktarılmadı." />
         ) : (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
