@@ -480,9 +480,9 @@ export function GetiriEgrisiClient({
                     labelFormatter={(v) => (typeof v === "number" ? `Kalan vade: ${v.toFixed(2)} yıl` : String(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line data={gunluk} type="monotone" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="var(--chart-1)" strokeWidth={3} dot={{ r: 3 }} />
+                  <Line data={gunluk} type="linear" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="var(--chart-1)" strokeWidth={3} dot={{ r: 3 }} />
                   {egriler.map((e) => (
-                    <Line key={e.etiket} data={e.veri} type="monotone" dataKey="getiri" name={e.etiket} stroke={e.renk} strokeDasharray="4 3" dot={{ r: 2 }} />
+                    <Line key={e.etiket} data={e.veri} type="linear" dataKey="getiri" name={e.etiket} stroke={e.renk} strokeDasharray="4 3" dot={{ r: 2 }} />
                   ))}
                 </ComposedChart>
               </ResponsiveContainer>
@@ -500,7 +500,7 @@ export function GetiriEgrisiClient({
                 <ResponsiveContainer width="100%" height={240}>
                   <ComposedChart data={spreadVerisi} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} interval={0} />
+                    <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
                     <YAxis type="number" unit=" bp" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} domain={["dataMin - 5", "dataMax + 5"]} tickFormatter={(v) => Number(v).toFixed(0)} />
                     <Tooltip
                       contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
@@ -514,10 +514,11 @@ export function GetiriEgrisiClient({
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                     <ReferenceLine y={0} stroke="var(--muted-foreground)" />
                     {/* Bloomberg terminalindeki gibi spread ÇUBUK olarak: sıfır
-                        çizgisinden yukarı/aşağı uzayan çubuklar, kağıt bazındaki
-                        farkı çizgiden çok daha okunaklı gösteriyor. */}
+                        çizgisinden yukarı/aşağı uzayan İNCE çubuklar. X ekseni
+                        kategori değil SAYISAL -- çubuklar gerçek vade konumunda
+                        durup üstteki eğri grafiğiyle aynı hizaya geliyor. */}
                     {spreadSerileri.map((s) => (
-                      <Bar key={s.etiket} dataKey={s.etiket} name={`Δ ${s.etiket}`} fill={s.renk} radius={[2, 2, 0, 0]} />
+                      <Bar key={s.etiket} dataKey={s.etiket} name={`Δ ${s.etiket}`} fill={s.renk} maxBarSize={9} />
                     ))}
                   </ComposedChart>
                 </ResponsiveContainer>
