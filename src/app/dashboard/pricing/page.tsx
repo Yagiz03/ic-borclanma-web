@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PricingHesaplayici, type FiyatlanabilirKagit } from "./pricing-hesaplayici";
 import { TakasMevduatHesaplayici } from "./takas-mevduat-hesaplayici";
 import { PnlBolumu } from "@/app/dashboard/pnl/pnl-bolumu";
+import { IzlemeListesiBolumu } from "@/app/dashboard/pnl/izleme-listesi-bolumu";
 
 export default async function PricingPage({
   searchParams,
@@ -83,8 +84,21 @@ export default async function PricingPage({
           <TakasMevduatHesaplayici koridor={koridor} politikaFaizi={politikaFaizi} ppkGunleri={ppkGunleri} />
         </TabsContent>
 
+        {/* Python'da pnl.py'nin kendi iki alt sekmesi var (Pozisyonlarım /
+            İzleme listesi) -- burada da aynı yapı korunuyor. */}
         <TabsContent value="pnl">
-          <PnlBolumu />
+          <Tabs defaultValue="pozisyonlar">
+            <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+              <TabsTrigger value="pozisyonlar" className="shrink-0">Pozisyonlarım</TabsTrigger>
+              <TabsTrigger value="izleme" className="shrink-0">İzleme listesi</TabsTrigger>
+            </TabsList>
+            <TabsContent value="pozisyonlar">
+              <PnlBolumu />
+            </TabsContent>
+            <TabsContent value="izleme">
+              <IzlemeListesiBolumu />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>
