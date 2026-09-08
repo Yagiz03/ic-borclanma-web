@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, X } from "lucide-react";
-import type { HaftaOlayi } from "@/lib/haftalik-olaylar";
+import type { HaftaOlayi, HaftaOzeti } from "@/lib/haftalik-olaylar";
 
 /** Bildirim ekranda kalma süresi. */
 const SURE_MS = 15_000;
@@ -32,7 +32,8 @@ const NOKTA: Record<HaftaOlayi["tur"], string> = {
  */
 type Asama = "gizli" | "acik" | "kapaniyor";
 
-export function HaftaBildirimi({ olaylar }: { olaylar: HaftaOlayi[] }) {
+export function HaftaBildirimi({ ozet }: { ozet: HaftaOzeti }) {
+  const { olaylar, ileriBakis } = ozet;
   const [asama, setAsama] = useState<Asama>("gizli");
 
   const kapat = useCallback(() => {
@@ -84,7 +85,7 @@ export function HaftaBildirimi({ olaylar }: { olaylar: HaftaOlayi[] }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <CalendarDays className="size-4 text-primary" />
-          <p className="text-sm font-semibold">Bu hafta</p>
+          <p className="text-sm font-semibold">{ileriBakis ? "Önümüzdeki 7 gün" : "Bu hafta"}</p>
         </div>
         <button
           type="button"
@@ -98,14 +99,15 @@ export function HaftaBildirimi({ olaylar }: { olaylar: HaftaOlayi[] }) {
 
       <div className="mt-2.5 space-y-2">
         {[...gunler.entries()].map(([tarih, gunOlaylari]) => {
-          const d = new Date(`${tarih}T00:00:00Z`);
-          const gunAdi = GUN_ADLARI[d.getUTCDay()];
+          const gunAdi = GUN_ADLARI[new Date(`${tarih}T00:00:00Z`).getUTCDay()];
           return (
             <div key={tarih} className="text-xs">
               <p className="font-medium text-foreground">
                 {tarih === bugunIso ? "Bugün" : gunAdi}
+                {/* Biçim elle kuruluyor: tarayıcı yereli tr-TR değilse
+                    toLocaleDateString "10/09" gibi eğik çizgili basıyordu. */}
                 <span className="font-figures ml-1.5 font-normal text-muted-foreground">
-                  {d.toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", timeZone: "UTC" })}
+                  {tarih.slice(8, 10)}.{tarih.slice(5, 7)}
                 </span>
               </p>
               <ul className="mt-1 space-y-0.5">

@@ -39,7 +39,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
 
   return (
     <AppShell aramaKagitlari={aramaKagitlari}>
-      <HaftaBildirimi olaylar={haftaOlaylari} />
+      <HaftaBildirimi ozet={haftaOlaylari} />
       {misafirOturumuYok && (
         <div className="mb-5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
           Misafir oturumu açılamadı — tüm veriler görünüyor, ancak izleme listesi,

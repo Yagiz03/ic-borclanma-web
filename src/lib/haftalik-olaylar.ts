@@ -7,6 +7,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { globalOlaylariAyIcinBul, trEnflasyonGunu } from "@/lib/global-takvim";
 
+export type HaftaOzeti = { olaylar: HaftaOlayi[]; ileriBakis: boolean };
+
 export type HaftaOlayi = {
   /** ISO gün (YYYY-MM-DD) -- istemci tarafında gün adına çevriliyor. */
   tarih: string;
@@ -27,8 +29,30 @@ export function haftaAraligi(bugun: Date): { baslangic: string; bitis: string } 
   return { baslangic: iso(b), bitis: iso(pazar) };
 }
 
-export async function haftalikOlaylariGetir(bugun = new Date()): Promise<HaftaOlayi[]> {
-  const { baslangic, bitis } = haftaAraligi(bugun);
+/**
+ * Bu haftanın kalan günlerindeki olaylar. Hafta sonuna doğru bu aralık
+ * boşalacağı için (ör. Cuma akşamı) hiç olay yoksa önümüzdeki 7 güne bakılıyor
+ * -- bildirimin sessizce kaybolması yerine "önümüzdeki 7 gün" olarak çıkması
+ * daha faydalı.
+ */
+export async function haftalikOlaylariGetir(bugun = new Date()): Promise<HaftaOzeti> {
+  const buHafta = await olaylariAraliktaGetir(haftaAraligi(bugun));
+  if (buHafta.length > 0) return { olaylar: buHafta, ileriBakis: false };
+
+  const b = new Date(Date.UTC(bugun.getUTCFullYear(), bugun.getUTCMonth(), bugun.getUTCDate()));
+  const yediGunSonra = new Date(b);
+  yediGunSonra.setUTCDate(yediGunSonra.getUTCDate() + 7);
+  const ileri = await olaylariAraliktaGetir({ baslangic: iso(b), bitis: iso(yediGunSonra) });
+  return { olaylar: ileri, ileriBakis: ileri.length > 0 };
+}
+
+async function olaylariAraliktaGetir({
+  baslangic,
+  bitis,
+}: {
+  baslangic: string;
+  bitis: string;
+}): Promise<HaftaOlayi[]> {
   const supabase = await createClient();
 
   const [{ data: tcmb }, { data: ihrac }] = await Promise.all([
