@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { OzetSerit } from "@/components/ozet-serit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { YiginliAlanGrafigi, RenkliBarGrafik } from "@/app/dashboard/tcmb/coklu-cizgi-grafigi";
 import { OrtalamaVadeMaliyetBolumu } from "./ortalama-vade-maliyet";
@@ -46,27 +47,22 @@ async function BorcStokuNakitBolumu() {
           <h3 className="text-base font-semibold">
             {sonBorcStoku.ay_etiketi} — Merkezi Yönetim Borç Stoku
           </h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Toplam Borç Stoku</p>
-              <p className="font-figures font-semibold">{milyar(sonBorcStoku.toplam_stok_milyon_tl)} Mlr TL</p>
-              <p className="text-xs text-muted-foreground">
-                {delta(
-                  sonBorcStoku.toplam_stok_milyon_tl / 1000,
-                  oncekiBorcStoku ? oncekiBorcStoku.toplam_stok_milyon_tl / 1000 : null,
-                  "Mlr TL",
-                )}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">TL Stok</p>
-              <p className="font-figures font-semibold">{milyar(sonBorcStoku.tl_stok_toplam)} Mlr TL</p>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Döviz Stok</p>
-              <p className="font-figures font-semibold">{milyar(sonBorcStoku.doviz_stok_toplam)} Mlr TL</p>
-            </div>
-          </div>
+          <OzetSerit
+            alanlar={[
+              {
+                etiket: "Toplam Borç Stoku",
+                deger: `${milyar(sonBorcStoku.toplam_stok_milyon_tl)} Mlr TL`,
+                altBilgi:
+                  delta(
+                    sonBorcStoku.toplam_stok_milyon_tl / 1000,
+                    oncekiBorcStoku ? oncekiBorcStoku.toplam_stok_milyon_tl / 1000 : null,
+                    "Mlr TL",
+                  ) ?? undefined,
+              },
+              { etiket: "TL Stok", deger: `${milyar(sonBorcStoku.tl_stok_toplam)} Mlr TL` },
+              { etiket: "Döviz Stok", deger: `${milyar(sonBorcStoku.doviz_stok_toplam)} Mlr TL` },
+            ]}
+          />
           <p className="text-sm text-muted-foreground">
             İç borç: {milyar(sonBorcStoku.ic_borc_toplam)} Mlr TL — Dış borç: {milyar(sonBorcStoku.dis_borc_toplam)} Mlr
             TL (Kaynak: HMB Merkezi Yönetim Borç Stoku Döviz-Faiz Yapısı)
@@ -89,20 +85,13 @@ async function BorcStokuNakitBolumu() {
           <h3 className="text-base font-semibold">
             {sonNakit.ay_etiketi} — Hazine Nakit Gerçekleşmeleri
           </h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Gelirler</p>
-              <p className="font-figures font-semibold">{milyar(sonNakit.gelirler)} Mlr TL</p>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Giderler</p>
-              <p className="font-figures font-semibold">{milyar(sonNakit.giderler)} Mlr TL</p>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Nakit Dengesi</p>
-              <p className="font-figures font-semibold">{milyar(sonNakit.nakit_dengesi)} Mlr TL</p>
-            </div>
-          </div>
+          <OzetSerit
+            alanlar={[
+              { etiket: "Gelirler", deger: `${milyar(sonNakit.gelirler)} Mlr TL` },
+              { etiket: "Giderler", deger: `${milyar(sonNakit.giderler)} Mlr TL` },
+              { etiket: "Nakit Dengesi", deger: `${milyar(sonNakit.nakit_dengesi)} Mlr TL` },
+            ]}
+          />
           {sonNakit.ic_borclanma_net != null && sonNakit.dis_borclanma_net != null && (
             <p className="text-sm text-muted-foreground">
               Net borçlanma: {milyar(sonNakit.borclanma_net)} Mlr TL (İç: {milyar(sonNakit.ic_borclanma_net)}, Dış:{" "}
@@ -145,26 +134,26 @@ async function IcBorcCevirmeOraniBolumu() {
         %100&apos;ün üstü, o ay yapılan yeni iç borçlanmanın toplam iç borç servisini karşılayıp fazlasını
         da finanse ettiğini gösterir.
       </p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">Çevirme Oranı</p>
-          <p className="font-figures font-semibold">{pct1(sonCevirme.cevirme_orani_pct)}</p>
-          <p className="text-xs text-muted-foreground">
-            {delta(sonCevirme.cevirme_orani_pct, oncekiCevirme?.cevirme_orani_pct ?? null, "puan")}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">İç Borçlanma</p>
-          <p className="font-figures font-semibold">{milyar(sonCevirme.ic_borclanma_mlr_tl, "milyar")} Mlr TL</p>
-        </div>
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-xs text-muted-foreground">İç Borç Servisi (Anapara+Faiz)</p>
-          <p className="font-figures font-semibold">{milyar(sonCevirme.ic_borc_servisi_mlr_tl, "milyar")} Mlr TL</p>
-          <p className="text-xs text-muted-foreground">
-            Anapara: {milyar(sonCevirme.anapara_mlr_tl, "milyar")} — Faiz: {milyar(sonCevirme.faiz_mlr_tl, "milyar")}
-          </p>
-        </div>
-      </div>
+      <OzetSerit
+        alanlar={[
+          {
+            etiket: "Çevirme Oranı",
+            deger: pct1(sonCevirme.cevirme_orani_pct),
+            altBilgi:
+              delta(sonCevirme.cevirme_orani_pct, oncekiCevirme?.cevirme_orani_pct ?? null, "puan") ??
+              undefined,
+          },
+          {
+            etiket: "İç Borçlanma",
+            deger: `${milyar(sonCevirme.ic_borclanma_mlr_tl, "milyar")} Mlr TL`,
+          },
+          {
+            etiket: "İç Borç Servisi (Anapara+Faiz)",
+            deger: `${milyar(sonCevirme.ic_borc_servisi_mlr_tl, "milyar")} Mlr TL`,
+            altBilgi: `Anapara: ${milyar(sonCevirme.anapara_mlr_tl, "milyar")} — Faiz: ${milyar(sonCevirme.faiz_mlr_tl, "milyar")}`,
+          },
+        ]}
+      />
       {sonCevirme.dipnot && (
         <p className="text-xs text-muted-foreground">
           Not {sonCevirme.dipnot}: bu ay HMB&apos;nin dipnotuna göre döviz cinsi ihraç ve/veya Altın
