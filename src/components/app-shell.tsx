@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { GlobalArama, type AramaKagidi } from "@/components/global-arama";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -65,7 +66,13 @@ function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string;
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  aramaKagitlari = [],
+}: {
+  children: React.ReactNode;
+  aramaKagitlari?: AramaKagidi[];
+}) {
   const pathname = usePathname();
   const [mobilAcik, setMobilAcik] = useState(false);
 
@@ -81,12 +88,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {anaSayfalar.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} />
             ))}
+            {/* Arama kutusu son sekmenin (Takvim) hemen yanında ve sekmelerle
+                aynı yükseklikte/hizada duruyor; nav akışının içinde olduğu için
+                sekmeler alt satıra sardığında onunla birlikte sarıyor. */}
+            <GlobalArama kagitlar={aramaKagitlari} />
           </nav>
 
           {/* Giriş sistemi şu an devrede olmadığı (herkes misafir oturumu) için
               "Çıkış yap" burada yok: çıkılacak bir hesap yokken tek etkisi
               misafirin izleme listesini/pozisyonlarını silmek olurdu. */}
-          <div className="ml-auto flex items-center gap-3 lg:ml-0">
+          <div className="ml-auto flex items-center gap-3">
             <button
               className="rounded-full p-2 hover:bg-foreground/[0.05] lg:hidden"
               onClick={() => setMobilAcik((v) => !v)}
