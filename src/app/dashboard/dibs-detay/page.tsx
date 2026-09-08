@@ -44,7 +44,7 @@ export default async function DibsDetayPage({
 
   if (ozetHata || !ozetHam || ozetHam.length === 0) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
         <p className="mt-4 text-sm text-destructive">
           {ozetHata?.message ?? "isin_ozet tablosu boş."}
@@ -106,7 +106,7 @@ export default async function DibsDetayPage({
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">DİBS Detay</h1>
       </div>
@@ -116,7 +116,7 @@ export default async function DibsDetayPage({
           tab === "karsilastir" ? "karsilastir" : tab === "duzenli" ? "duzenli" : "detay"
         }
       >
-        <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+        <TabsList variant="line" className="mb-5 overflow-x-auto">
           <TabsTrigger value="detay" className="shrink-0">DİBS Detay</TabsTrigger>
           <TabsTrigger value="duzenli" className="shrink-0">Düzenli İşlem Gören</TabsTrigger>
           <TabsTrigger value="karsilastir" className="shrink-0">Karşılaştır</TabsTrigger>

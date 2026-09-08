@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CokluCizgiGrafigi, YiginliAlanGrafigi, RenkliBarGrafik } from "./coklu-cizgi-grafigi";
+import { CokluCizgiGrafigi, YiginliAlanGrafigi } from "./coklu-cizgi-grafigi";
 import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
 import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
 import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
@@ -53,7 +52,7 @@ export default async function TcmbPage() {
   const ilkHata = [...dibsSonuclari, tlrefRes, repoRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold">TCMB</h1>
         <p className="mt-4 text-sm text-destructive">{ilkHata.message}</p>
       </div>
@@ -81,7 +80,7 @@ export default async function TcmbPage() {
   const enflasyonRaporu = enflasyonRaporuRes.data;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">TCMB</h1>
         <p className="text-sm text-muted-foreground">
@@ -89,152 +88,148 @@ export default async function TcmbPage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="dibs">
-            <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
-              <TabsTrigger value="dibs" className="shrink-0">DİBS Piyasa Değeri</TabsTrigger>
-              <TabsTrigger value="apiportfoyu" className="shrink-0">TCMB APİ Portföyü</TabsTrigger>
-              <TabsTrigger value="tufem2kfebono" className="shrink-0">TÜFE, M2, KFE ve Bono</TabsTrigger>
-              <TabsTrigger value="koridor" className="shrink-0">Repo Faiz Koridoru</TabsTrigger>
-              <TabsTrigger value="tlref" className="shrink-0">TLREF</TabsTrigger>
-              <TabsTrigger value="disdenge" className="shrink-0">Dış Denge</TabsTrigger>
-              <TabsTrigger value="rezerv" className="shrink-0">Net Rezerv</TabsTrigger>
-              <TabsTrigger value="beklenti" className="shrink-0">Piyasa Beklentileri</TabsTrigger>
-              <TabsTrigger value="ppkfarki" className="shrink-0">PPK Karar Farkı</TabsTrigger>
-              <TabsTrigger value="enflasyonraporu" className="shrink-0">Enflasyon Raporu</TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="dibs">
+        <TabsList variant="line" className="mb-5 overflow-x-auto">
+          <TabsTrigger value="dibs" className="shrink-0">DİBS Piyasa Değeri</TabsTrigger>
+          <TabsTrigger value="apiportfoyu" className="shrink-0">TCMB APİ Portföyü</TabsTrigger>
+          <TabsTrigger value="tufem2kfebono" className="shrink-0">TÜFE, M2, KFE ve Bono</TabsTrigger>
+          <TabsTrigger value="koridor" className="shrink-0">Repo Faiz Koridoru</TabsTrigger>
+          <TabsTrigger value="tlref" className="shrink-0">TLREF</TabsTrigger>
+          <TabsTrigger value="disdenge" className="shrink-0">Dış Denge</TabsTrigger>
+          <TabsTrigger value="rezerv" className="shrink-0">Net Rezerv</TabsTrigger>
+          <TabsTrigger value="beklenti" className="shrink-0">Piyasa Beklentileri</TabsTrigger>
+          <TabsTrigger value="ppkfarki" className="shrink-0">PPK Karar Farkı</TabsTrigger>
+          <TabsTrigger value="enflasyonraporu" className="shrink-0">Enflasyon Raporu</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="dibs" className="space-y-8">
-              <KagitTipiDagilimiBolumu />
+        <TabsContent value="dibs" className="space-y-8">
+          <KagitTipiDagilimiBolumu />
 
-              <div>
-              <p className="mb-3 text-sm text-muted-foreground">
-                DİBS'lerin sahiplik kesimine (sektöre) göre piyasa değeri dağılımı (Milyon TL, haftalık).
-              </p>
-              <YiginliAlanGrafigi
-                veri={dibsVeri}
-                seriler={[
-                  { anahtar: "dibs_piy_deg_bankalar", etiket: "Bankalar" },
-                  { anahtar: "dibs_piy_deg_tcmb", etiket: "TCMB" },
-                  { anahtar: "dibs_piy_deg_emeklilik_fonlari", etiket: "Emeklilik Fonları" },
-                  { anahtar: "dibs_piy_deg_yatirim_fonlari", etiket: "Yatırım Fonları" },
-                  { anahtar: "dibs_piy_deg_dunya_geri_kalani", etiket: "Dünyanın Geri Kalanı" },
-                ]}
-              />
-              </div>
-            </TabsContent>
+          <div>
+          <p className="mb-3 text-sm text-muted-foreground">
+            DİBS&apos;lerin sahiplik kesimine (sektöre) göre piyasa değeri dağılımı (Milyon TL, haftalık).
+          </p>
+          <YiginliAlanGrafigi
+            veri={dibsVeri}
+            seriler={[
+              { anahtar: "dibs_piy_deg_bankalar", etiket: "Bankalar" },
+              { anahtar: "dibs_piy_deg_tcmb", etiket: "TCMB" },
+              { anahtar: "dibs_piy_deg_emeklilik_fonlari", etiket: "Emeklilik Fonları" },
+              { anahtar: "dibs_piy_deg_yatirim_fonlari", etiket: "Yatırım Fonları" },
+              { anahtar: "dibs_piy_deg_dunya_geri_kalani", etiket: "Dünyanın Geri Kalanı" },
+            ]}
+          />
+          </div>
+        </TabsContent>
 
-            <TabsContent value="apiportfoyu">
-              <TcmbApiPortfoyuBolumu />
-            </TabsContent>
+        <TabsContent value="apiportfoyu">
+          <TcmbApiPortfoyuBolumu />
+        </TabsContent>
 
-            <TabsContent value="tufem2kfebono">
-              <TufeM2KfeBonoBolumu />
-            </TabsContent>
+        <TabsContent value="tufem2kfebono">
+          <TufeM2KfeBonoBolumu />
+        </TabsContent>
 
-            <TabsContent value="koridor">
-              <p className="mb-3 text-sm text-muted-foreground">
-                TCMB&apos;nin ilan ettiği &quot;faiz koridoru&quot; — gecelik borç alma (alt bant) ve borç verme (üst
-                bant) faizleri ile 1 hafta vadeli repo (politika faizi); BIST gecelik repo piyasada fiilen oluşan
-                oranı gösteriyor.
-              </p>
-              {koridorVeri.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Veri yok.</p>
-              ) : (
-                <>
-                  <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
-                    <div className="rounded-lg border border-border p-3">
-                      <p className="text-xs text-muted-foreground">Üst bant (gecelik borç verme)</p>
-                      <p className="font-figures font-semibold">{pct1(sonKoridor?.["Üst bant"] as number)}</p>
-                    </div>
-                    <div className="rounded-lg border border-border p-3">
-                      <p className="text-xs text-muted-foreground">Politika faizi (1 hafta repo)</p>
-                      <p className="font-figures font-semibold">{pct1(sonPolitika?.["Politika faizi"] as number)}</p>
-                    </div>
-                    <div className="rounded-lg border border-border p-3">
-                      <p className="text-xs text-muted-foreground">Alt bant (gecelik borç alma)</p>
-                      <p className="font-figures font-semibold">{pct1(sonKoridor?.["Alt bant"] as number)}</p>
-                    </div>
-                  </div>
-                  <CokluCizgiGrafigi
-                    veri={koridorBirlesik}
-                    seriler={[
-                      { anahtar: "Üst bant", etiket: "Üst bant (borç verme)" },
-                      { anahtar: "Politika faizi", etiket: "Politika faizi" },
-                      { anahtar: "Alt bant", etiket: "Alt bant (borç alma)" },
-                      { anahtar: "BIST gecelik repo", etiket: "BIST gecelik repo (piyasa)" },
-                    ]}
-                    ondalik={2}
-                  />
-                </>
-              )}
-            </TabsContent>
-
-            <TabsContent value="tlref">
-              <p className="mb-3 text-sm text-muted-foreground">TLREF endeksi kapanış değeri (günlük).</p>
-              <CokluCizgiGrafigi veri={tlrefVeri} seriler={[{ anahtar: "tlref_kapanis", etiket: "TLREF Kapanış" }]} ondalik={2} />
-            </TabsContent>
-
-            <TabsContent value="disdenge">
-              <DisDengeBolumu />
-            </TabsContent>
-
-            <TabsContent value="rezerv">
-              <NetRezervBolumu />
-            </TabsContent>
-
-            <TabsContent value="beklenti">
-              <PiyasaBeklentileriBolumu />
-            </TabsContent>
-
-            <TabsContent value="ppkfarki">
-              <p className="mb-3 text-sm text-muted-foreground">
-                PPK&apos;nın son iki &quot;Faiz Oranlarına İlişkin Basın Duyurusu&quot; metni arasındaki fark,
-                Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde — kırmızı üstü çizili kısımlar önceki
-                karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
-              </p>
-              <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
-                <h3 className="text-base font-semibold">Fark raporu (PDF)</h3>
-                <a
-                  href="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
-                >
-                  📄 PDF&apos;i indir / yeni sekmede aç
-                </a>
-              </div>
-              <iframe
-                src="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
-                title="PPK Karar Farkı"
-                className="mt-3 h-[80vh] w-full rounded-lg border border-border"
-              />
-            </TabsContent>
-
-            <TabsContent value="enflasyonraporu">
-              {!enflasyonRaporu ? (
-                <p className="text-sm text-muted-foreground">tcmb_enflasyon_raporu tablosu boş.</p>
-              ) : (
-                <div className="space-y-3">
-                  <h3 className="text-base font-semibold">{enflasyonRaporu.rapor_baslik}</h3>
-                  <a
-                    href={enflasyonRaporu.tam_metin_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
-                  >
-                    📄 Tam metni indir (PDF)
-                  </a>
-                  <p className="text-xs text-muted-foreground">
-                    Bu bilgiler {enflasyonRaporu.indirilme_tarihi} tarihinde TCMB&apos;nin sitesinden çekildi.
-                  </p>
+        <TabsContent value="koridor">
+          <p className="mb-3 text-sm text-muted-foreground">
+            TCMB&apos;nin ilan ettiği &quot;faiz koridoru&quot; — gecelik borç alma (alt bant) ve borç verme (üst
+            bant) faizleri ile 1 hafta vadeli repo (politika faizi); BIST gecelik repo piyasada fiilen oluşan
+            oranı gösteriyor.
+          </p>
+          {koridorVeri.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Veri yok.</p>
+          ) : (
+            <>
+              <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs text-muted-foreground">Üst bant (gecelik borç verme)</p>
+                  <p className="font-figures font-semibold">{pct1(sonKoridor?.["Üst bant"] as number)}</p>
                 </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs text-muted-foreground">Politika faizi (1 hafta repo)</p>
+                  <p className="font-figures font-semibold">{pct1(sonPolitika?.["Politika faizi"] as number)}</p>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-xs text-muted-foreground">Alt bant (gecelik borç alma)</p>
+                  <p className="font-figures font-semibold">{pct1(sonKoridor?.["Alt bant"] as number)}</p>
+                </div>
+              </div>
+              <CokluCizgiGrafigi
+                veri={koridorBirlesik}
+                seriler={[
+                  { anahtar: "Üst bant", etiket: "Üst bant (borç verme)" },
+                  { anahtar: "Politika faizi", etiket: "Politika faizi" },
+                  { anahtar: "Alt bant", etiket: "Alt bant (borç alma)" },
+                  { anahtar: "BIST gecelik repo", etiket: "BIST gecelik repo (piyasa)" },
+                ]}
+                ondalik={2}
+              />
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="tlref">
+          <p className="mb-3 text-sm text-muted-foreground">TLREF endeksi kapanış değeri (günlük).</p>
+          <CokluCizgiGrafigi veri={tlrefVeri} seriler={[{ anahtar: "tlref_kapanis", etiket: "TLREF Kapanış" }]} ondalik={2} />
+        </TabsContent>
+
+        <TabsContent value="disdenge">
+          <DisDengeBolumu />
+        </TabsContent>
+
+        <TabsContent value="rezerv">
+          <NetRezervBolumu />
+        </TabsContent>
+
+        <TabsContent value="beklenti">
+          <PiyasaBeklentileriBolumu />
+        </TabsContent>
+
+        <TabsContent value="ppkfarki">
+          <p className="mb-3 text-sm text-muted-foreground">
+            PPK&apos;nın son iki &quot;Faiz Oranlarına İlişkin Basın Duyurusu&quot; metni arasındaki fark,
+            Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde — kırmızı üstü çizili kısımlar önceki
+            karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
+          </p>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
+            <h3 className="text-base font-semibold">Fark raporu (PDF)</h3>
+            <a
+              href="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
+            >
+              📄 PDF&apos;i indir / yeni sekmede aç
+            </a>
+          </div>
+          <iframe
+            src="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
+            title="PPK Karar Farkı"
+            className="mt-3 h-[80vh] w-full rounded-lg border border-border"
+          />
+        </TabsContent>
+
+        <TabsContent value="enflasyonraporu">
+          {!enflasyonRaporu ? (
+            <p className="text-sm text-muted-foreground">tcmb_enflasyon_raporu tablosu boş.</p>
+          ) : (
+            <div className="space-y-3">
+              <h3 className="text-base font-semibold">{enflasyonRaporu.rapor_baslik}</h3>
+              <a
+                href={enflasyonRaporu.tam_metin_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
+              >
+                📄 Tam metni indir (PDF)
+              </a>
+              <p className="text-xs text-muted-foreground">
+                Bu bilgiler {enflasyonRaporu.indirilme_tarihi} tarihinde TCMB&apos;nin sitesinden çekildi.
+              </p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

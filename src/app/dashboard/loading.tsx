@@ -4,7 +4,7 @@
 // uygulama donmuş gibi görünüyordu.
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-[1400px] animate-pulse space-y-6" aria-busy="true" aria-live="polite">
+    <div className="animate-pulse space-y-6" aria-busy="true" aria-live="polite">
       <span className="sr-only">Yükleniyor…</span>
 
       <div className="space-y-2">

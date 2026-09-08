@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trTarihAyristir } from "@/lib/tarih";
 import { TahminTab } from "./tahmin-tab";
@@ -56,7 +55,7 @@ export default async function IhaleGunuPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">İhale günü</h1>
         <p className="text-sm text-muted-foreground">
@@ -66,26 +65,22 @@ export default async function IhaleGunuPage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="tahmin">
-            <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
-              <TabsTrigger value="tahmin" className="shrink-0">Tahmin</TabsTrigger>
-              <TabsTrigger value="emirlerim" className="shrink-0">Emirlerim</TabsTrigger>
-              <TabsTrigger value="performans" className="shrink-0">İhale sonrası performans</TabsTrigger>
-            </TabsList>
-            <TabsContent value="tahmin">
-              <TahminTab ihaleHam={ihaleHam ?? []} takvim={takvimHam ?? []} planlar={planlarHam ?? []} />
-            </TabsContent>
-            <TabsContent value="emirlerim">
-              <EmirlerimTab takipler={takipler} kesmeOnerileri={kesmeOnerileri} />
-            </TabsContent>
-            <TabsContent value="performans">
-              <PerformansTab ihale={ihaleHam ?? []} bist={bistHam ?? []} isinler={isinler} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="tahmin">
+        <TabsList variant="line" className="mb-5 overflow-x-auto">
+          <TabsTrigger value="tahmin" className="shrink-0">Tahmin</TabsTrigger>
+          <TabsTrigger value="emirlerim" className="shrink-0">Emirlerim</TabsTrigger>
+          <TabsTrigger value="performans" className="shrink-0">İhale sonrası performans</TabsTrigger>
+        </TabsList>
+        <TabsContent value="tahmin">
+          <TahminTab ihaleHam={ihaleHam ?? []} takvim={takvimHam ?? []} planlar={planlarHam ?? []} />
+        </TabsContent>
+        <TabsContent value="emirlerim">
+          <EmirlerimTab takipler={takipler} kesmeOnerileri={kesmeOnerileri} />
+        </TabsContent>
+        <TabsContent value="performans">
+          <PerformansTab ihale={ihaleHam ?? []} bist={bistHam ?? []} isinler={isinler} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

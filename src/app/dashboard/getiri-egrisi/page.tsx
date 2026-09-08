@@ -14,7 +14,7 @@ export default async function GetiriEgrisiPage() {
 
   if (error || !ozetHam) {
     return (
-      <div className="mx-auto max-w-[1400px]">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold">Getiri eğrisi</h1>
         <p className="mt-4 text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>
       </div>
@@ -47,7 +47,7 @@ export default async function GetiriEgrisiPage() {
   const tlrefSonPct = tlrefHam?.[0]?.oran_pct != null ? Number(tlrefHam[0].oran_pct) : null;
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Getiri eğrisi</h1>
         <p className="text-sm text-muted-foreground">

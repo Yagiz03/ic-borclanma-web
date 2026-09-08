@@ -23,7 +23,7 @@ export default async function PricingPage({
 
   if (error || !ozetHam) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold">Pricing</h1>
         <p className="mt-4 text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>
       </div>
@@ -57,7 +57,7 @@ export default async function PricingPage({
   const ppkGunleri = (ppkHam ?? []).map((r) => r.tarih).sort();
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Bono ve Getiri Hesaplayıcı</h1>
         <p className="text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ export default async function PricingPage({
       </div>
 
       <Tabs defaultValue={gecerliTab}>
-        <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+        <TabsList variant="line" className="mb-5 overflow-x-auto">
           <TabsTrigger value="hesaplayici" className="shrink-0">ISIN Hesaplayıcı</TabsTrigger>
           <TabsTrigger value="takas" className="shrink-0">Takas / Mevduat → O/N</TabsTrigger>
           <TabsTrigger value="pnl" className="shrink-0">P&L</TabsTrigger>
@@ -88,7 +88,7 @@ export default async function PricingPage({
             İzleme listesi) — burada da aynı yapı korunuyor. */}
         <TabsContent value="pnl">
           <Tabs defaultValue="pozisyonlar">
-            <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+            <TabsList variant="line" className="mb-5 overflow-x-auto">
               <TabsTrigger value="pozisyonlar" className="shrink-0">Pozisyonlarım</TabsTrigger>
               <TabsTrigger value="izleme" className="shrink-0">İzleme listesi</TabsTrigger>
             </TabsList>

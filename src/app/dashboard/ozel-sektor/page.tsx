@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OstGunlukIslemler } from "./ost-gunluk-islemler";
 import { OstIhracciProfili } from "./ost-ihracci-profili";
@@ -55,7 +54,7 @@ export default async function OzelSektorPage() {
   const bist = [...(bap ?? []), ...sadeceOst];
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Özel sektör tahvilleri</h1>
         <p className="text-sm text-muted-foreground">
@@ -65,23 +64,19 @@ export default async function OzelSektorPage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          {error && <p className="text-sm text-destructive">{error.message}</p>}
-          <Tabs defaultValue="gunluk">
-            <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
-              <TabsTrigger value="gunluk" className="shrink-0">Günlük işlemler</TabsTrigger>
-              <TabsTrigger value="ihracci" className="shrink-0">İhraççı profili</TabsTrigger>
-            </TabsList>
-            <TabsContent value="gunluk">
-              <OstGunlukIslemler bist={bist} mkb={mkb} />
-            </TabsContent>
-            <TabsContent value="ihracci">
-              <OstIhracciProfili kagitlar={mkb} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      {error && <p className="text-sm text-destructive">{error.message}</p>}
+      <Tabs defaultValue="gunluk">
+        <TabsList variant="line" className="mb-5 overflow-x-auto">
+          <TabsTrigger value="gunluk" className="shrink-0">Günlük işlemler</TabsTrigger>
+          <TabsTrigger value="ihracci" className="shrink-0">İhraççı profili</TabsTrigger>
+        </TabsList>
+        <TabsContent value="gunluk">
+          <OstGunlukIslemler bist={bist} mkb={mkb} />
+        </TabsContent>
+        <TabsContent value="ihracci">
+          <OstIhracciProfili kagitlar={mkb} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

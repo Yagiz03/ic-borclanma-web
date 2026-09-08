@@ -84,7 +84,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
 
   return (
     <Tabs defaultValue="on">
-      <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
+      <TabsList variant="line" className="mb-5 overflow-x-auto">
         <TabsTrigger value="on" className="shrink-0">Gecelik (O/N)</TabsTrigger>
         <TabsTrigger value="egri" className="shrink-0">Vade Yapısı</TabsTrigger>
         <TabsTrigger value="tablo" className="shrink-0">Tüm Veri</TabsTrigger>

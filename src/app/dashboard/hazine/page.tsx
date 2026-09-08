@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { YiginliAlanGrafigi, RenkliBarGrafik } from "@/app/dashboard/tcmb/coklu-cizgi-grafigi";
 import { OrtalamaVadeMaliyetBolumu } from "./ortalama-vade-maliyet";
@@ -210,7 +209,7 @@ async function IcBorcCevirmeOraniBolumu() {
 
 export default function HazinePage() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Hazine</h1>
         <p className="text-sm text-muted-foreground">
@@ -220,26 +219,22 @@ export default function HazinePage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <Tabs defaultValue="borcnakit">
-            <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">
-              <TabsTrigger value="borcnakit" className="shrink-0">Borç Stoku / Nakit</TabsTrigger>
-              <TabsTrigger value="cevirme" className="shrink-0">İç Borç Çevirme Oranı</TabsTrigger>
-              <TabsTrigger value="vade" className="shrink-0">Ortalama Vade / Maliyet</TabsTrigger>
-            </TabsList>
-            <TabsContent value="borcnakit">
-              <BorcStokuNakitBolumu />
-            </TabsContent>
-            <TabsContent value="cevirme">
-              <IcBorcCevirmeOraniBolumu />
-            </TabsContent>
-            <TabsContent value="vade">
-              <OrtalamaVadeMaliyetBolumu />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="borcnakit">
+        <TabsList variant="line" className="mb-5 overflow-x-auto">
+          <TabsTrigger value="borcnakit" className="shrink-0">Borç Stoku / Nakit</TabsTrigger>
+          <TabsTrigger value="cevirme" className="shrink-0">İç Borç Çevirme Oranı</TabsTrigger>
+          <TabsTrigger value="vade" className="shrink-0">Ortalama Vade / Maliyet</TabsTrigger>
+        </TabsList>
+        <TabsContent value="borcnakit">
+          <BorcStokuNakitBolumu />
+        </TabsContent>
+        <TabsContent value="cevirme">
+          <IcBorcCevirmeOraniBolumu />
+        </TabsContent>
+        <TabsContent value="vade">
+          <OrtalamaVadeMaliyetBolumu />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
