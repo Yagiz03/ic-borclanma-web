@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, X } from "lucide-react";
 import type { HaftaOlayi, HaftaOzeti } from "@/lib/haftalik-olaylar";
@@ -35,6 +35,12 @@ type Asama = "gizli" | "acik" | "kapaniyor";
 export function HaftaBildirimi({ ozet }: { ozet: HaftaOzeti }) {
   const { olaylar, ileriBakis } = ozet;
   const [asama, setAsama] = useState<Asama>("gizli");
+  // "Bu oturumda gösterilsin mi?" kararı BİR KEZ verilip saklanıyor. React
+  // StrictMode (geliştirmede) efekti iki kez çalıştırıyor: ilk çalıştırma
+  // bayrağı yazıyor, ikincisi onu görüp erken dönüyordu ve bildirim hiç
+  // görünmüyordu. Karar ref'te tutulunca ikinci çalıştırma da aynı kararı
+  // kullanıyor.
+  const kararRef = useRef<boolean | null>(null);
 
   const kapat = useCallback(() => {
     setAsama("kapaniyor");
@@ -44,13 +50,18 @@ export function HaftaBildirimi({ ozet }: { ozet: HaftaOzeti }) {
 
   useEffect(() => {
     if (olaylar.length === 0) return;
-    try {
-      if (sessionStorage.getItem(OTURUM_ANAHTARI)) return;
-      sessionStorage.setItem(OTURUM_ANAHTARI, "1");
-    } catch {
-      // Depolama kapalıysa (gizli sekme, katı gizlilik ayarı) bildirim yine
-      // gösterilir -- sadece "oturumda bir kez" güvencesi kalkar.
+    if (kararRef.current === null) {
+      let gosterilsin = true;
+      try {
+        if (sessionStorage.getItem(OTURUM_ANAHTARI)) gosterilsin = false;
+        else sessionStorage.setItem(OTURUM_ANAHTARI, "1");
+      } catch {
+        // Depolama kapalıysa (gizli sekme, katı gizlilik ayarı) bildirim yine
+        // gösterilir -- sadece "oturumda bir kez" güvencesi kalkar.
+      }
+      kararRef.current = gosterilsin;
     }
+    if (!kararRef.current) return;
     // setState EFEKT GÖVDESİNDE ÇAĞRILMIYOR (React Compiler kuralı): giriş de
     // zamanlayıcı üzerinden, sayfa boyandıktan sonra tetikleniyor.
     const zamanlayicilar: ReturnType<typeof setTimeout>[] = [];
