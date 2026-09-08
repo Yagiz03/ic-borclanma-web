@@ -9,6 +9,10 @@
 
 import { useMemo, useState } from "react";
 import {
+  donemselKuponAkislari,
+  kuponDonemleri,
+  kuponDonemleriGeriye,
+  degiskenFaizliDonemKuponu,
   degiskenFaizliYaklasikGetiri,
   gecmisIhalelereEndeksliGetiri,
   referansTufeEndeksi,
@@ -55,6 +59,58 @@ export function useFloaterSeriler(veri: FloaterVeri) {
       ),
     }),
     [veri],
+  );
+}
+
+/** Kalan nakit akışları tablosu -- floater bölümlerinin ortak parçası
+ *  (pages/pricing.py'deki "Kupon ödeme takvimi (kalan nakit akışları)"). */
+function KalanAkisTablosu({
+  akislar,
+  valor,
+  reelMi = false,
+  endeksOrani,
+}: {
+  akislar: { tarih: Date; tutar: number }[];
+  valor: Date;
+  /** TÜFE'ye endekslide tutarlar REEL; nominal karşılığı endeks oranıyla bulunur. */
+  reelMi?: boolean;
+  endeksOrani?: number | null;
+}) {
+  const kalanlar = akislar.filter((a) => a.tarih > valor && a.tutar > 0);
+  if (kalanlar.length === 0) {
+    return <p className="text-sm text-muted-foreground">Kalan nakit akışı yok.</p>;
+  }
+  return (
+    <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 z-10 bg-card">
+          <tr className="border-b border-border text-xs text-muted-foreground">
+            <th className="px-3 py-2 text-left font-medium">Tarih</th>
+            <th className="px-3 py-2 text-right font-medium">
+              {reelMi ? "Reel nakit akışı (100 nominal)" : "Nakit akışı (100 nominal)"}
+            </th>
+            {reelMi && <th className="px-3 py-2 text-right font-medium">Nominal (TL) tutar</th>}
+            <th className="px-3 py-2 text-right font-medium">Kalan gün</th>
+          </tr>
+        </thead>
+        <tbody>
+          {kalanlar.map((a, i) => (
+            <tr key={i} className="border-b border-border/50 last:border-0">
+              <td className="font-figures px-3 py-1.5">{trTarih(a.tarih)}</td>
+              <td className="font-figures px-3 py-1.5 text-right">{a.tutar.toFixed(3)}</td>
+              {reelMi && (
+                <td className="font-figures px-3 py-1.5 text-right">
+                  {endeksOrani == null ? "–" : (a.tutar * endeksOrani).toFixed(3)}
+                </td>
+              )}
+              <td className="font-figures px-3 py-1.5 text-right">
+                {Math.round((a.tarih.getTime() - valor.getTime()) / 86_400_000)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -110,6 +166,28 @@ export function TlrefFiyatlama({
     if (!Number.isFinite(temiz) || !Number.isFinite(ekGetiri)) return null;
     return degiskenFaizliYaklasikGetiri(seri, ilkIhrac, vade, valor, temiz, ekGetiri, periyotGun);
   }, [seri, ilkIhrac, vade, valor, temiz, ekGetiri, periyotGun]);
+
+  // Kalan nakit akışları: mevcut dönemin kuponu her dönemin kendi uzunluğuna
+  // günlük bileşikle ölçeklenerek ilerletiliyor (getirinin çözüldüğü varsayımın
+  // ta kendisi -- tabloda da aynısı gösteriliyor ki sayılar tutarlı olsun).
+  const kalanAkislar = useMemo(() => {
+    if (!sonuc) return [];
+    const donemler = kuponDonemleri(ilkIhrac, vade, periyotGun);
+    const idx = donemler.findIndex(
+      (d, i) => i < donemler.length - 1 && d <= sonuc.donemBasi && sonuc.donemBasi <= d,
+    );
+    const baslangic = idx >= 0 ? idx : donemler.findIndex((d) => d.getTime() === sonuc.donemBasi.getTime());
+    if (baslangic < 0) return [];
+    const n1 = Math.round((sonuc.donemSonu.getTime() - sonuc.donemBasi.getTime()) / 86_400_000);
+    const gunlukKupon = Math.pow(1 + (sonuc.donemKuponPct - ekGetiri) / 100, 1 / n1) - 1;
+    const dilim = donemler.slice(baslangic);
+    const kuponlar = [sonuc.donemKuponPct];
+    for (let i = 1; i < dilim.length - 1; i++) {
+      const nI = Math.round((dilim[i + 1].getTime() - dilim[i].getTime()) / 86_400_000);
+      kuponlar.push((Math.pow(1 + gunlukKupon, nI) - 1) * 100 + ekGetiri);
+    }
+    return donemselKuponAkislari(dilim, kuponlar);
+  }, [sonuc, ilkIhrac, vade, periyotGun, ekGetiri]);
 
   const birikmis = useMemo(() => {
     if (!sonuc) return null;
@@ -225,6 +303,17 @@ export function TlrefFiyatlama({
         </>
       )}
 
+      {sonuc && kalanAkislar.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold">Kupon ödeme takvimi (kalan nakit akışları)</h3>
+          <p className="text-xs text-muted-foreground">
+            Mevcut dönemin kuponu, sonraki her dönemin kendi uzunluğuna günlük bileşikle
+            ölçeklenerek ilerletildi — bileşik getirinin çözüldüğü varsayımın aynısı.
+          </p>
+          <KalanAkisTablosu akislar={kalanAkislar} valor={valor} />
+        </div>
+      )}
+
       <p className="text-xs text-muted-foreground">
         Dönem kuponu HMB&apos;nin &quot;TLREF&apos;e Endeksli DİBS Yatırımcı Kılavuzu&quot;ndaki
         resmi formülle kurulur: dönemin geçmiş kısmı gerçekleşen TLREF endeksinden kesin, dönem
@@ -259,6 +348,23 @@ export function FrnFiyatlama({
     if (!Number.isFinite(temiz)) return null;
     return gecmisIhalelereEndeksliGetiri(ilkIhrac, vade, valor, temiz, referansIhaleler, periyotGun);
   }, [ilkIhrac, vade, valor, temiz, referansIhaleler, periyotGun]);
+
+  // Kalan nakit akışları: mevcut dönemin kuponu KESİN; henüz başlamamış
+  // dönemler için mevcut AOF'nin sabit kaldığı varsayılıyor (getirinin
+  // çözüldüğü varsayımla aynı).
+  const kalanAkislar = useMemo(() => {
+    if (!sonuc) return [];
+    const donemler = kuponDonemleriGeriye(ilkIhrac, vade, periyotGun);
+    const idx = donemler.findIndex((d) => d.getTime() === sonuc.donemBasi.getTime());
+    if (idx < 0) return [];
+    const dilim = donemler.slice(idx);
+    const kuponlar = dilim.slice(0, -1).map((d, i) => {
+      if (i === 0) return sonuc.donemKuponPct;
+      return degiskenFaizliDonemKuponu(d, referansIhaleler, periyotGun)?.donemselKuponPct
+        ?? sonuc.donemKuponPct;
+    });
+    return donemselKuponAkislari(dilim, kuponlar);
+  }, [sonuc, ilkIhrac, vade, periyotGun, referansIhaleler]);
 
   return (
     <div className="space-y-5">
@@ -298,6 +404,17 @@ export function FrnFiyatlama({
             },
           ]}
         />
+      )}
+
+      {sonuc && kalanAkislar.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold">Kupon ödeme takvimi (kalan nakit akışları)</h3>
+          <p className="text-xs text-muted-foreground">
+            Mevcut dönemin kuponu kesin; henüz başlamamış dönemler için referans ihaleler daha
+            gerçekleşmediğinden mevcut AOF&apos;nin sabit kaldığı varsayıldı.
+          </p>
+          <KalanAkisTablosu akislar={kalanAkislar} valor={valor} />
+        </div>
       )}
 
       <p className="text-xs text-muted-foreground">
@@ -346,7 +463,7 @@ export function TufeFiyatlama({
     const dv01 = dv01Hesapla(akislar, valor, reelGetiri);
     const endeksOrani = tufeEndeksOrani(valor, ihracTarihi, tufeSeri);
     const refEndeks = referansTufeEndeksi(valor, tufeSeri);
-    return { reelGetiri, kirli, birikmis, temiz, modified, dv01, endeksOrani, refEndeks };
+    return { reelGetiri, kirli, birikmis, temiz, modified, dv01, endeksOrani, refEndeks, akislar };
   }, [girdi, mod, reelKuponPct, vade, anchor, valor, ihracTarihi, tufeSeri]);
 
   return (
@@ -416,6 +533,23 @@ export function TufeFiyatlama({
             ]}
           />
         </>
+      )}
+
+      {sonuc && (
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold">Kupon ödeme takvimi (kalan nakit akışları)</h3>
+          <p className="text-xs text-muted-foreground">
+            &quot;Nominal (TL) tutar&quot; sütunu, ödeme tarihinin Referans TÜFE Endeksi henüz
+            yayımlanmadığı için VALÖR günündeki endeks oranıyla çarpılmış hâlidir — gerçek TL
+            tutarı ödeme tarihine kadarki enflasyonla birlikte daha yüksek olacaktır.
+          </p>
+          <KalanAkisTablosu
+            akislar={sonuc.akislar}
+            valor={valor}
+            reelMi
+            endeksOrani={sonuc.endeksOrani}
+          />
+        </div>
       )}
 
       <p className="text-xs text-muted-foreground">
