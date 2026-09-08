@@ -52,12 +52,12 @@ function KagitGecmisi({ isin, ihale }: { isin: string; ihale: IhalePrep[] }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="text-left text-muted-foreground">
-            <th className="px-2 py-1 font-medium">Tarih</th>
-            <th className="px-2 py-1 font-medium">En Düşük</th>
-            <th className="px-2 py-1 font-medium">Ortalama</th>
-            <th className="px-2 py-1 font-medium">En Yüksek</th>
-            <th className="px-2 py-1 font-medium">Tail (bps)</th>
-            <th className="px-2 py-1 font-medium">Piyasadan İhale (Mn TL)</th>
+            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Tarih</th>
+            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">En Düşük</th>
+            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Ortalama</th>
+            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">En Yüksek</th>
+            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Tail (bps)</th>
+            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Piyasadan İhale (Mn TL)</th>
           </tr>
         </thead>
         <tbody>
@@ -84,12 +84,12 @@ function DagilimTablosu({ dagilim, ihale }: { dagilim: DagilimSatiri[]; ihale: I
       <table className="w-full text-sm">
         <thead className="sticky top-0 bg-card">
           <tr className="border-b border-border text-left text-muted-foreground">
-            <th className="px-3 py-2 font-medium">İhale tarihi</th>
-            <th className="px-3 py-2 font-medium">ISIN</th>
-            <th className="px-3 py-2 font-medium">Senet</th>
-            <th className="px-3 py-2 text-right font-medium">Miktar (Mn TL)</th>
-            <th className="px-3 py-2 text-right font-medium">Yüzdelik</th>
-            <th className="px-3 py-2 text-right font-medium">Tail (bps)</th>
+            <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">İhale tarihi</th>
+            <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">ISIN</th>
+            <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Senet</th>
+            <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Miktar (Mn TL)</th>
+            <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Yüzdelik</th>
+            <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Tail (bps)</th>
           </tr>
         </thead>
         <tbody>
@@ -340,14 +340,14 @@ export function TahminTab({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="px-3 py-2 font-medium">Tarih</th>
-                  <th className="px-3 py-2 font-medium">ISIN</th>
-                  <th className="px-3 py-2 text-right font-medium">Vade (yıl)</th>
-                  <th className="px-3 py-2 text-right font-medium">En Düşük Kabul</th>
-                  <th className="px-3 py-2 text-right font-medium">Ortalama Kabul</th>
-                  <th className="px-3 py-2 text-right font-medium">En Yüksek Kabul</th>
-                  <th className="px-3 py-2 text-right font-medium">Tail (bps)</th>
-                  <th className="px-3 py-2 text-right font-medium">Piyasadan İhale (Mn TL)</th>
+                  <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Tarih</th>
+                  <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">ISIN</th>
+                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Vade (yıl)</th>
+                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">En Düşük Kabul</th>
+                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Ortalama Kabul</th>
+                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">En Yüksek Kabul</th>
+                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Tail (bps)</th>
+                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Piyasadan İhale (Mn TL)</th>
                 </tr>
               </thead>
               <tbody>

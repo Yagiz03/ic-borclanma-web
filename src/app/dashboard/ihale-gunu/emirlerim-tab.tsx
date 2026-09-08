@@ -199,10 +199,10 @@ function TakipKarti({ takip, oneri }: { takip: Track; oneri: number | null }) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="px-3 py-2 font-medium">Fiyat</th>
-                    <th className="px-3 py-2 font-medium">Nominal</th>
-                    <th className="px-3 py-2 font-medium">Durum</th>
-                    <th className="px-3 py-2" />
+                    <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Fiyat</th>
+                    <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Nominal</th>
+                    <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Durum</th>
+                    <th className="px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground" />
                   </tr>
                 </thead>
                 <tbody>

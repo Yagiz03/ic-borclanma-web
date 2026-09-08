@@ -208,15 +208,15 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="whitespace-nowrap px-2 py-1.5">Ay</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">M2 Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">M2 Reel Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">M2 Yıllık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">M2 Reel Yıllık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">KFE Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">KFE Reel Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">KFE Yıllık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right">KFE Reel Yıllık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Ay</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Aylık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Reel Aylık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Yıllık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Reel Yıllık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Aylık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Reel Aylık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Yıllık %</th>
+                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Reel Yıllık %</th>
                 </tr>
               </thead>
               <tbody>
@@ -245,10 +245,10 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="px-3 py-2 font-medium">Seri</th>
-                <th className="px-3 py-2 text-right font-medium">Son</th>
-                <th className="px-3 py-2 text-right font-medium">3 Ay Önce</th>
-                <th className="px-3 py-2 text-right font-medium">1 Yıl Önce</th>
+                <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Seri</th>
+                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Son</th>
+                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">3 Ay Önce</th>
+                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">1 Yıl Önce</th>
               </tr>
             </thead>
             <tbody>

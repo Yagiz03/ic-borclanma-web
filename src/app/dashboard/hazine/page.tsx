@@ -182,12 +182,12 @@ async function IcBorcCevirmeOraniBolumu() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="px-3 py-2 font-medium">Ay</th>
-              <th className="px-3 py-2 text-right font-medium">İç Borçlanma</th>
-              <th className="px-3 py-2 text-right font-medium">İç Borç Servisi</th>
-              <th className="px-3 py-2 text-right font-medium">Anapara</th>
-              <th className="px-3 py-2 text-right font-medium">Faiz</th>
-              <th className="px-3 py-2 text-right font-medium">Çevirme Oranı</th>
+              <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Ay</th>
+              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">İç Borçlanma</th>
+              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">İç Borç Servisi</th>
+              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Anapara</th>
+              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Faiz</th>
+              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Çevirme Oranı</th>
             </tr>
           </thead>
           <tbody>

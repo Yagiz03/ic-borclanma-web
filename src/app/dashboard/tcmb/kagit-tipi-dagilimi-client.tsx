@@ -89,7 +89,7 @@ export function KagitTipiDagilimiClient({
           <table className="w-full border-collapse text-xs">
             <thead className="sticky top-0 z-10 bg-card">
               <tr>
-                <th className="whitespace-nowrap px-2 py-1.5 text-left font-medium text-muted-foreground">Ay</th>
+                <th className="whitespace-nowrap px-2 py-1.5 text-left font-medium text-muted-foreground text-xs uppercase tracking-wide">Ay</th>
                 {tipler.map((t) => (
                   <th key={t} className="whitespace-nowrap px-2 py-1.5 text-right font-medium text-muted-foreground">
                     {TIP_KISA[t] ?? t}
