@@ -14,7 +14,7 @@ import { SenetBadge } from "@/components/senet-badge";
 import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
 import { IzlemeButonu } from "./izleme-butonu";
-import { OzetSerit } from "./ozet-serit";
+import { OzetSerit } from "@/components/ozet-serit";
 import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolumu";
 import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 

@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
+import { OzetSerit } from "@/components/ozet-serit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -95,37 +95,24 @@ export function TppClient({ veri }: { veri: Satir[] }) {
           <p className="text-sm text-muted-foreground">takasbank_tpp verisi henüz yüklenmedi.</p>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-xs text-muted-foreground">Son Ortalama Oran (O/N)</div>
-                  <div className="font-figures mt-1 text-xl font-semibold">{yuzde(son.ort_oran)}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{tarihFmt(son.tarih)}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-xs text-muted-foreground">Gün İçi Min-Maks</div>
-                  <div className="font-figures mt-1 text-xl font-semibold">
-                    {yuzde(son.min_oran)} - {yuzde(son.maks_oran)}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-xs text-muted-foreground">İşlem Hacmi (Milyar TL)</div>
-                  <div className="font-figures mt-1 text-xl font-semibold">
-                    {son.islem_hacmi_tl != null ? sayi(son.islem_hacmi_tl / 1e9, 1) : "–"}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-xs text-muted-foreground">İşlem Sayısı</div>
-                  <div className="font-figures mt-1 text-xl font-semibold">{sayi(son.islem_sayisi)}</div>
-                </CardContent>
-              </Card>
-            </div>
+            <OzetSerit
+              alanlar={[
+                {
+                  etiket: "Son Ortalama Oran (O/N)",
+                  deger: yuzde(son.ort_oran),
+                  altBilgi: tarihFmt(son.tarih),
+                },
+                {
+                  etiket: "Gün İçi Min-Maks",
+                  deger: `${yuzde(son.min_oran)} - ${yuzde(son.maks_oran)}`,
+                },
+                {
+                  etiket: "İşlem Hacmi (Milyar TL)",
+                  deger: son.islem_hacmi_tl != null ? sayi(son.islem_hacmi_tl / 1e9, 1) : "–",
+                },
+                { etiket: "İşlem Sayısı", deger: sayi(son.islem_sayisi) },
+              ]}
+            />
 
             <ResponsiveContainer width="100%" height={340}>
               <AreaChart data={onSerisi} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>

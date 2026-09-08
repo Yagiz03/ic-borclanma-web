@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { OzetSerit } from "@/components/ozet-serit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { isoTarihGoster } from "@/lib/tarih";
 
@@ -211,11 +211,13 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
         </details>
       )}
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <Card><CardContent className="pt-6"><div className="text-xs text-muted-foreground">İşlem gören ÖST sayısı</div><div className="font-figures mt-1 text-xl font-semibold">{gunluk.length}</div></CardContent></Card>
-        <Card><CardContent className="pt-6"><div className="text-xs text-muted-foreground">Toplam işlem hacmi</div><div className="font-figures mt-1 text-xl font-semibold">{sayi(toplamHacim)} TL</div></CardContent></Card>
-        <Card><CardContent className="pt-6"><div className="text-xs text-muted-foreground">Toplam nominal işlem hacmi</div><div className="font-figures mt-1 text-xl font-semibold">{sayi(toplamNominal)}</div></CardContent></Card>
-      </div>
+      <OzetSerit
+        alanlar={[
+          { etiket: "İşlem gören ÖST sayısı", deger: String(gunluk.length) },
+          { etiket: "Toplam işlem hacmi", deger: `${sayi(toplamHacim)} TL` },
+          { etiket: "Toplam nominal işlem hacmi", deger: sayi(toplamNominal) },
+        ]}
+      />
 
       <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
         <Table>
