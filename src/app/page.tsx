@@ -18,12 +18,15 @@ const OZELLIKLER = [
 // yerine) basınca arka planda sessizce misafir oturumu açılıp panele geçiliyor.
 // Misafir oturumu, izleme listesi / pozisyon / ihale emri gibi kişisel
 // özelliklerin dayandığı auth.uid()'yi sağlıyor.
+const HEDEF = "/dashboard/ihale-detay";
+
 export default function Home() {
   const router = useRouter();
   const [cikisAnimasyonu, setCikisAnimasyonu] = useState(false);
+  const [hata, setHata] = useState(false);
 
   useEffect(() => {
-    router.prefetch("/dashboard");
+    router.prefetch(HEDEF);
   }, [router]);
 
   // Oturumu kullanıcı daha tıklamadan hazırla ki geçiş anında olsun.
@@ -33,11 +36,31 @@ export default function Home() {
 
   const basla = useCallback(async () => {
     if (cikisAnimasyonu) return;
+    setHata(false);
     setCikisAnimasyonu(true);
-    await oturumuHazirla();
-    // Çıkış animasyonunun bitmesini bekle, sonra panele geç.
-    setTimeout(() => router.push("/dashboard"), 480);
-  }, [cikisAnimasyonu, router]);
+    try {
+      // Oturum hazırlığı takılırsa kullanıcı görünmez sayfada mahsur
+      // kalmasın diye zaman aşımı: 4 sn sonra yine de devam ediyoruz.
+      await Promise.race([
+        oturumuHazirla(),
+        new Promise((c) => setTimeout(c, 4000)),
+      ]);
+    } catch {
+      // Oturum açılamadıysa panele girilemez; sayfayı geri görünür yapıp
+      // kullanıcıya tekrar deneme şansı veriyoruz (önce sayfa sonsuza
+      // kadar boş/görünmez kalıyordu).
+      setCikisAnimasyonu(false);
+      setHata(true);
+      return;
+    }
+    // Bilinçli olarak TAM SAYFA gezinme (router.push değil): istemci taraflı
+    // gezinme burada sessizce başarısız olabiliyordu ve sayfa çıkış
+    // animasyonu yüzünden görünmez kaldığı için kullanıcı BOŞ EKRANDA
+    // kalıyordu (Edge'de doğrulandı). Tam yükleme, middleware'in az önce
+    // yazılan oturum çerezini görmesini de garantiler.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign(HEDEF);
+  }, [cikisAnimasyonu]);
 
   return (
     <main
@@ -74,6 +97,12 @@ export default function Home() {
           <ArrowRight className="size-4" />
         </span>
 
+        {hata && (
+          <p className="mt-4 text-sm text-white/90">
+            Bağlantı kurulamadı, panele girilemedi. Lütfen tekrar dene.
+          </p>
+        )}
+
         <ul className="animate-in fade-in mt-14 flex flex-col items-start gap-3 duration-1000 sm:flex-row sm:gap-8">
           {OZELLIKLER.map((o) => (
             <li key={o.metin} className="flex items-center gap-2.5 text-sm text-white/85">
@@ -93,9 +122,17 @@ export default function Home() {
   );
 }
 
-/** Oturum yoksa sessizce misafir (anonim) oturumu açar. */
+/** Oturum yoksa sessizce misafir (anonim) oturumu açar.
+ *  Oturum kurulamazsa HATA FIRLATIR: çağıran taraf bunu yakalayıp kullanıcıyı
+ *  bilgilendiriyor (önce sessizce yutuluyordu ve kullanıcı panele giremeden
+ *  boş bir sayfada kalıyordu). */
 async function oturumuHazirla() {
   const supabase = createClient();
   const { data } = await supabase.auth.getSession();
-  if (!data.session) await supabase.auth.signInAnonymously();
+  if (data.session) return;
+
+  const { data: yeni, error } = await supabase.auth.signInAnonymously();
+  if (error || !yeni.session) {
+    throw new Error(error?.message ?? "Misafir oturumu açılamadı.");
+  }
 }
