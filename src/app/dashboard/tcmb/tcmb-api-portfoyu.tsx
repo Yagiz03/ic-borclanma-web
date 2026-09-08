@@ -12,6 +12,8 @@ import { SenetBadge } from "@/components/senet-badge";
 import { isoTarihGoster, utcTarihe } from "@/lib/tarih";
 import { isinTipSozlugunuGetir, isinTipTahminEt, TIP_KISA } from "@/lib/isin-tip";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
+import { OrtKalanVadeGrafigi } from "./ort-kalan-vade-grafigi";
+import { VADE_KOVALARI, agirlikliOrtalamaKalanVade, vadeKovasiBul, type AlimKaydi } from "@/lib/api-portfoy-vade";
 import { PastaGrafigi } from "./coklu-cizgi-grafigi";
 
 const TCMB_450MR_KAYNAK_URL =
@@ -129,6 +131,34 @@ export async function TcmbApiPortfoyuBolumu() {
     .map(([etiket, deger]) => ({ etiket: TIP_KISA[etiket] ?? etiket, deger }))
     .sort((a, b) => b.deger - a.deger);
 
+  // Kalan vadeye göre kova dağılımı (Python'daki _VADE_BUCKET_SIRA tablosu).
+  const kovaAgg = new Map<string, { nominalMn: number; adet: number }>();
+  for (const r of outstanding) {
+    const vadeMs = utcTarihe(r.vadeTarihi)?.getTime();
+    if (vadeMs == null) continue;
+    const kova = vadeKovasiBul((vadeMs - bugunUtc) / 86_400_000);
+    const g = kovaAgg.get(kova) ?? { nominalMn: 0, adet: 0 };
+    g.nominalMn += r.nominalMn;
+    g.adet += 1;
+    kovaAgg.set(kova, g);
+  }
+  const vadeDagilimi = VADE_KOVALARI.filter((k) => kovaAgg.has(k)).map((kova) => {
+    const g = kovaAgg.get(kova)!;
+    return { kova, ...g, yuzde: (g.nominalMn / toplamNominal) * 100 };
+  });
+
+  // Son 5 yılın gün gün ağırlıklı ortalama kalan vadesi.
+  const alimKayitlari: AlimKaydi[] = [];
+  for (const r of alim) {
+    if (r.kazanan_tutar_nominal_bin_tl == null) continue;
+    const ih = utcTarihe(r.ihale_tarihi)?.getTime();
+    const vd = utcTarihe(r.vade_tarihi)?.getTime();
+    if (ih == null || vd == null) continue;
+    alimKayitlari.push({ ihaleMs: ih, vadeMs: vd, nominalMn: Number(r.kazanan_tutar_nominal_bin_tl) / 1000 });
+  }
+  const besYilOnce = Date.UTC(bugun.getUTCFullYear() - 5, bugun.getUTCMonth(), bugun.getUTCDate());
+  const ortKalanVade = agirlikliOrtalamaKalanVade(alimKayitlari, besYilOnce, bugunUtc);
+
   const ufuklar: { etiket: string; gunSayisi: number }[] = [
     { etiket: "1 ay", gunSayisi: 30 },
     { etiket: "3 ay", gunSayisi: 91 },
@@ -209,6 +239,36 @@ export async function TcmbApiPortfoyuBolumu() {
       </div>
 
       <div>
+        <h3 className="mb-2 text-base font-semibold">Vade dağılımı (kalan vadeye göre)</h3>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Vade</TableHead>
+                <TableHead className="text-right">Nominal (Milyon TL)</TableHead>
+                <TableHead className="text-right">Pay (%)</TableHead>
+                <TableHead className="text-right">Kağıt sayısı</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {vadeDagilimi.map((r) => (
+                <TableRow key={r.kova}>
+                  <TableCell className="font-medium">{r.kova}</TableCell>
+                  <TableCell className="font-figures text-right">{milyon(r.nominalMn)}</TableCell>
+                  <TableCell className="font-figures text-right">{r.yuzde.toFixed(2)}</TableCell>
+                  <TableCell className="font-figures text-right">{r.adet}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Yukarıdaki ISIN bazlı gerçek portföyün KALAN vadeye (bugünden itfaya kalan süre, orijinal
+          ihraç vadesine değil) göre dağılımı.
+        </p>
+      </div>
+
+      <div>
         <h3 className="mb-2 text-base font-semibold">Kağıt tipine göre dağılım</h3>
         <PastaGrafigi veri={tipVeri} />
         <p className="mt-2 text-xs text-muted-foreground">
@@ -256,6 +316,19 @@ export async function TcmbApiPortfoyuBolumu() {
           Ufuklar KÜMÜLATİF: &quot;3 ay&quot; listesi &quot;1 ay&quot;dakileri de içerir, &quot;1 yıl&quot; listesi
           hepsini içerir — aynı kağıt birden fazla listede görünebilir.
         </p>
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-base font-semibold">
+          Ağırlıklı ortalama kalan vade — son 5 yıl (gün gün)
+        </h3>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Portföyün hangi vadeye kaydığını (kısa mı uzun mu kağıt biriktiriliyor) gün gün gösterir.
+          Her doğrudan alım kendi ihale tarihinde deftere girer, o ISIN&apos;in tüm birikmiş nominali
+          vade tarihinde tamamen düşer; her gün için portföyde hâlâ aktif olan kağıtların nominal
+          ağırlıklı ortalama kalan vadesi hesaplanır.
+        </p>
+        <OrtKalanVadeGrafigi veri={ortKalanVade} />
       </div>
     </div>
   );

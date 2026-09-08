@@ -4,6 +4,8 @@ import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi } from "./coklu-cizgi-grafigi";
 import { TcmbApiPortfoyuBolumu } from "./tcmb-api-portfoyu";
+import { SahiplikOranlari } from "./sahiplik-oranlari";
+import { RepoHacimGrafigi } from "./repo-hacim-grafigi";
 import { KagitTipiDagilimiBolumu } from "./kagit-tipi-dagilimi";
 import { TufeM2KfeBonoBolumu } from "./tufe-m2-kfe-bono";
 import { DisDengeBolumu } from "./dis-denge";
@@ -44,6 +46,7 @@ export default async function TcmbPage({
   const supabase = await createClient();
 
   const dibsSeriler = [
+    "dibs_piy_deg_toplam",
     "dibs_piy_deg_bankalar",
     "dibs_piy_deg_tcmb",
     "dibs_piy_deg_emeklilik_fonlari",
@@ -62,7 +65,7 @@ export default async function TcmbPage({
     );
 
   const [
-    dibsSonuclari, tlrefRes, repoRes,
+    dibsSonuclari, tlrefRes, repoRes, repoHacimRes,
     koridorRes, politikaRes, enflasyonRaporuRes,
   ] = await Promise.all([
     Promise.all(dibsSeriler.map(evdsSeri)),
@@ -70,6 +73,7 @@ export default async function TcmbPage({
       supabase.from("bist_tlref_orani").select("tarih, oran_pct").order("tarih").range(from, to),
     ),
     evdsSeri("repo_gecelik_bist"),
+    evdsSeri("repo_gecelik_bist_hacim"),
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih"),
     supabase.from("tcmb_politika_faizi").select("tarih, politika_faizi").order("tarih"),
     supabase.from("tcmb_enflasyon_raporu").select("*").limit(1).maybeSingle(),
@@ -77,7 +81,7 @@ export default async function TcmbPage({
 
   // tumSatirlariGetir hatayı düz string olarak döndürüyor (Supabase'in kendi
   // sorgusundaki gibi { message } nesnesi değil).
-  const ilkHata = [...dibsSonuclari, tlrefRes, repoRes].find((r) => r.error)?.error;
+  const ilkHata = [...dibsSonuclari, tlrefRes, repoRes, repoHacimRes].find((r) => r.error)?.error;
   if (ilkHata) {
     return (
       <div className="w-full">
@@ -120,6 +124,10 @@ export default async function TcmbPage({
     }
   }
 
+  const repoHacimVerisi = (repoHacimRes.data ?? [])
+    .filter((r) => r.deger != null)
+    .map((r) => ({ tarih: String(r.tarih).slice(0, 10), deger: Number(r.deger) }));
+
   const sonKoridor = koridorVeri[koridorVeri.length - 1];
   const sonPolitika = politikaVeri[politikaVeri.length - 1];
   // Kartlarda "ne zamandır yürürlükte" bilgisi -- oranın güncel olduğunu
@@ -158,6 +166,8 @@ export default async function TcmbPage({
 
         <TabsContent value="dibs" className="space-y-8">
           <KagitTipiDagilimiBolumu />
+
+          <SahiplikOranlari veri={dibsVeri} />
 
           <div>
           <p className="mb-3 text-sm text-muted-foreground">
@@ -228,6 +238,18 @@ export default async function TcmbPage({
                 ]}
                 ondalik={2}
               />
+
+              {repoHacimVerisi.length > 0 && (
+                <div className="mt-8 space-y-2">
+                  <h3 className="text-base font-semibold">BIST gecelik repo işlem hacmi (TL)</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Aynı BIST Repo-Ters Repo Pazarı&apos;ndaki gecelik işlemlerin toplam hacmi —
+                    yukarıdaki faiz oranının kaç TL&apos;lik işlem üzerinden oluştuğunu gösteriyor.
+                    Hacim düştüğünde oluşan faiz daha az güvenilir/temsili olabilir.
+                  </p>
+                  <RepoHacimGrafigi veri={repoHacimVerisi} />
+                </div>
+              )}
             </>
           )}
         </TabsContent>
