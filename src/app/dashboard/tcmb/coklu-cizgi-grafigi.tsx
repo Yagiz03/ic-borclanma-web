@@ -3,11 +3,11 @@
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend, Area, AreaChart, Bar, BarChart, Cell, ReferenceLine, Pie, PieChart, ComposedChart } from "recharts";
 
 const RENKLER = [
-  "oklch(0.55 0.21 264)",
-  "oklch(0.6 0.19 35)",
-  "oklch(0.6 0.18 155)",
-  "oklch(0.58 0.2 300)",
-  "oklch(0.72 0.18 85)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
   "oklch(0.55 0.18 200)",
   "oklch(0.62 0.2 15)",
   "oklch(0.5 0.05 260)",
@@ -118,11 +118,11 @@ export function RenkliBarGrafik({
           formatter={(v) => [`${Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 1 })}${birim}`, etiket]}
         />
         {esikDeger != null && (
-          <ReferenceLine y={esikDeger} stroke="oklch(0.6 0.19 35)" strokeDasharray="4 4" />
+          <ReferenceLine y={esikDeger} stroke="var(--chart-2)" strokeDasharray="4 4" />
         )}
         <Bar dataKey={dataKey} name={etiket}>
           {veri.map((v, i) => (
-            <Cell key={i} fill={Number(v[dataKey]) < (esikDeger ?? 0) ? "oklch(0.6 0.19 35)" : "oklch(0.55 0.21 264)"} />
+            <Cell key={i} fill={Number(v[dataKey]) < (esikDeger ?? 0) ? "var(--chart-2)" : "var(--chart-1)"} />
           ))}
         </Bar>
       </BarChart>
@@ -249,10 +249,10 @@ export function BarCizgiGrafigi({
         <ReferenceLine y={0} stroke="var(--border)" />
         <Bar dataKey={barDataKey} name={barEtiket}>
           {veri.map((v, i) => (
-            <Cell key={i} fill={Number(v[barDataKey]) < 0 ? "oklch(0.6 0.19 35)" : "oklch(0.65 0.16 155)"} />
+            <Cell key={i} fill={Number(v[barDataKey]) < 0 ? "var(--chart-2)" : "oklch(0.65 0.16 155)"} />
           ))}
         </Bar>
-        <Line type="monotone" dataKey={cizgiDataKey} name={cizgiEtiket} stroke="oklch(0.6 0.19 35)" strokeWidth={2} dot={false} connectNulls />
+        <Line type="monotone" dataKey={cizgiDataKey} name={cizgiEtiket} stroke="var(--chart-2)" strokeWidth={2} dot={false} connectNulls />
       </ComposedChart>
     </ResponsiveContainer>
   );

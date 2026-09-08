@@ -156,10 +156,10 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
         </Table>
       </div>
       <p className="text-xs text-muted-foreground">
-        &quot;İlk Getiri (Basit) / Spread&quot; alanı BIST&apos;in kendi metnidir -- TLREF&apos;e endeksli kağıtlarda
+        &quot;İlk Getiri (Basit) / Spread&quot; alanı BIST&apos;in kendi metnidir — TLREF&apos;e endeksli kağıtlarda
         genelde &quot;TLREF + %X Ek Getiri&quot; gibi serbest metin, sabit getirili kağıtlarda ise doğrudan yıllık
         basit getiri yüzdesi olarak gelir. &quot;Ek Getiri (%)&quot; sütunu BIST tarafından çoğu özel sektör
-        kağıdında ayrı bir sayı olarak doldurulmuyor -- bu yüzden asıl spread bilgisi genelde soldaki serbest metin
+        kağıdında ayrı bir sayı olarak doldurulmuyor — bu yüzden asıl spread bilgisi genelde soldaki serbest metin
         sütununda.
       </p>
     </div>

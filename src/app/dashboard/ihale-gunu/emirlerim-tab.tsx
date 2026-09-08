@@ -61,7 +61,7 @@ function YeniTakipFormu() {
       <CardContent className="pt-6">
         <p className="mb-3 text-sm text-muted-foreground">
           İhaleye verdiğin fiyat/nominal emirlerini gir; sonuç açıklandıktan sonra &apos;en düşük gerçekleşen
-          fiyatı&apos; (kesme fiyatı) girince -- çoklu fiyat ihalesi kuralıyla (fiyatı kesme fiyatına eşit/üstünde
+          fiyatı&apos; (kesme fiyatı) girince — çoklu fiyat ihalesi kuralıyla (fiyatı kesme fiyatına eşit/üstünde
           olan emirler kendi fiyatından gerçekleşir) hangi emrinin geldiğini ve gerçekleşenlerin ortalama fiyatını
           otomatik hesaplar.
         </p>
@@ -186,7 +186,7 @@ function TakipKarti({ takip, oneri }: { takip: Track; oneri: number | null }) {
         {oneri != null && oneri !== takip.en_dusuk_gerceklesen_fiyat && (
           <p className="text-xs text-muted-foreground">
             İhale sonuçlarında bu ISIN için resmi &quot;en düşük gerçekleşen fiyat&quot;{" "}
-            <b className="text-foreground">{oneri.toFixed(3)}</b> olarak bulundu -- yukarıya yazıp
+            <b className="text-foreground">{oneri.toFixed(3)}</b> olarak bulundu — yukarıya yazıp
             &quot;Kaydet&quot;e basabilirsin.
           </p>
         )}

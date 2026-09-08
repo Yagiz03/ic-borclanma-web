@@ -102,7 +102,7 @@ export async function DuzenliIslemGorenBolumu() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        DİBS piyasası hisse gibi her gün fiyatlanmıyor -- çoğu ISIN son 3 ayda birkaç günde bir işlem
+        DİBS piyasası hisse gibi her gün fiyatlanmıyor — çoğu ISIN son 3 ayda birkaç günde bir işlem
         görüyor. Bu tablo her kağıdın son {VARSAYILAN_PENCERE_GUN} günde fiilen kaç iş günü BIST BAP&apos;ta
         fiyatlandığını gösterir.
       </p>

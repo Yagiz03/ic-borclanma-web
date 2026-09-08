@@ -45,7 +45,7 @@ async function BorcStokuNakitBolumu() {
       {sonBorcStoku && (
         <div className="space-y-3">
           <h3 className="text-base font-semibold">
-            {sonBorcStoku.ay_etiketi} -- Merkezi Yönetim Borç Stoku
+            {sonBorcStoku.ay_etiketi} — Merkezi Yönetim Borç Stoku
           </h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border border-border p-3">
@@ -69,7 +69,7 @@ async function BorcStokuNakitBolumu() {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            İç borç: {milyar(sonBorcStoku.ic_borc_toplam)} Mlr TL -- Dış borç: {milyar(sonBorcStoku.dis_borc_toplam)} Mlr
+            İç borç: {milyar(sonBorcStoku.ic_borc_toplam)} Mlr TL — Dış borç: {milyar(sonBorcStoku.dis_borc_toplam)} Mlr
             TL (Kaynak: HMB Merkezi Yönetim Borç Stoku Döviz-Faiz Yapısı)
           </p>
           <YiginliAlanGrafigi
@@ -88,7 +88,7 @@ async function BorcStokuNakitBolumu() {
       {sonNakit && (
         <div className="space-y-3">
           <h3 className="text-base font-semibold">
-            {sonNakit.ay_etiketi} -- Hazine Nakit Gerçekleşmeleri
+            {sonNakit.ay_etiketi} — Hazine Nakit Gerçekleşmeleri
           </h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border border-border p-3">
@@ -140,9 +140,9 @@ async function IcBorcCevirmeOraniBolumu() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-semibold">{sonCevirme.ay_etiketi} -- Toplam İç Borç Çevirme Oranı</h3>
+      <h3 className="text-base font-semibold">{sonCevirme.ay_etiketi} — Toplam İç Borç Çevirme Oranı</h3>
       <p className="text-sm text-muted-foreground">
-        İç Borçlanma / İç Borç Servisi (Anapara+Faiz TOPLAMI) -- HMB&apos;nin kendi resmi hesaplaması.
+        İç Borçlanma / İç Borç Servisi (Anapara+Faiz TOPLAMI) — HMB&apos;nin kendi resmi hesaplaması.
         %100&apos;ün üstü, o ay yapılan yeni iç borçlanmanın toplam iç borç servisini karşılayıp fazlasını
         da finanse ettiğini gösterir.
       </p>
@@ -162,7 +162,7 @@ async function IcBorcCevirmeOraniBolumu() {
           <p className="text-xs text-muted-foreground">İç Borç Servisi (Anapara+Faiz)</p>
           <p className="font-figures font-semibold">{milyar(sonCevirme.ic_borc_servisi_mlr_tl, "milyar")} Mlr TL</p>
           <p className="text-xs text-muted-foreground">
-            Anapara: {milyar(sonCevirme.anapara_mlr_tl, "milyar")} -- Faiz: {milyar(sonCevirme.faiz_mlr_tl, "milyar")}
+            Anapara: {milyar(sonCevirme.anapara_mlr_tl, "milyar")} — Faiz: {milyar(sonCevirme.faiz_mlr_tl, "milyar")}
           </p>
         </div>
       </div>
@@ -214,7 +214,7 @@ export default function HazinePage() {
       <div>
         <h1 className="text-2xl font-semibold">Hazine</h1>
         <p className="text-sm text-muted-foreground">
-          HMB&apos;nin (Hazine ve Maliye Bakanlığı) kendi yayımladığı makro göstergeler -- borç stoku, nakit
+          HMB&apos;nin (Hazine ve Maliye Bakanlığı) kendi yayımladığı makro göstergeler — borç stoku, nakit
           gerçekleşmeleri, iç borç çevirme oranı, ortalama vade/maliyet. TCMB (Merkez Bankası) verisi için
           &quot;TCMB&quot; sayfasına bakın.
         </p>

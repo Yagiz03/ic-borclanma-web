@@ -126,7 +126,7 @@ export async function NetRezervBolumu() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          Son veri: {son.tarih} -- swap çıpası: {son.cipaKaynak}. Brüt = (Dış Varlıklar − Döviz Yükümlülükleri) / kur;
+          Son veri: {son.tarih} — swap çıpası: {son.cipaKaynak}. Brüt = (Dış Varlıklar − Döviz Yükümlülükleri) / kur;
           Net = Brüt − Toplam Swap Stok. Toplam swap, haftalık URDL tablosundan (II.2 + II.3); ara günlerde yabancı
           bacak sabit taşınıp günlük TCMB taraflı (lokal) swap stoku eklenir.
         </p>

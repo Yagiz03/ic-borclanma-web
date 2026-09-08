@@ -69,7 +69,10 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        // Başlıklar gövdeyle aynı boyuttaydı ve tablo "kalabalık" duruyordu.
+        // Küçük + silik + harf aralıklı başlık, sayıların öne çıkmasını sağlar
+        // (finansal veri tablolarının standart görünümü).
+        "h-9 px-2 text-left align-middle text-xs font-medium tracking-wide whitespace-nowrap text-muted-foreground uppercase [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

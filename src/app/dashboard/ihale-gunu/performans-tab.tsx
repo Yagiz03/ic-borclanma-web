@@ -66,7 +66,7 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
   if (bist.length === 0 || ihale.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        BIST fiyat verisi veya ihale sonuçları boş -- veri henüz yeterince göç etmedi.
+        BIST fiyat verisi veya ihale sonuçları boş — veri henüz yeterince göç etmedi.
       </p>
     );
   }
@@ -75,7 +75,7 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
         Bir ISIN ihalede çıktıktan sonra, ihale ortalama fiyatına göre ikincil piyasada (BIST Kesin Alım Satım
-        Pazarı) T+1/T+5/T+10/T+20 işlem gününde ne kadar değiştiğini gösterir -- pozitif değer, ihale fiyatının
+        Pazarı) T+1/T+5/T+10/T+20 işlem gününde ne kadar değiştiğini gösterir — pozitif değer, ihale fiyatının
         ucuz kaldığını (concession) düşündürür.
       </p>
 
@@ -92,7 +92,7 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
 
       {satirlar.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Bu ISIN için ihale fiyatı veya BIST verisi eksik -- ikincil piyasa verisi (bist_bap_fiyatlar) henüz
+          Bu ISIN için ihale fiyatı veya BIST verisi eksik — ikincil piyasa verisi (bist_bap_fiyatlar) henüz
           sınırlı, gece senkronizasyonu ilerledikçe daha çok ISIN için sonuç görünecek.
         </p>
       ) : (

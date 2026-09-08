@@ -43,7 +43,7 @@ export async function KagitTipiDagilimiBolumu() {
       const sonSatir = ledger.find((r) => r.ay === sonAy)!;
       const icBorcToplam = stokAylari.get(sonAy)!;
       const kapsamOrani = (sonSatir.ayToplam / icBorcToplam) * 100;
-      kapsamNotu = `Son ay için tahmini toplam, HMB'nin resmi İç Borç Stoku toplamının ~%${kapsamOrani.toFixed(0)}'ini kapsıyor -- `;
+      kapsamNotu = `Son ay için tahmini toplam, HMB'nin resmi İç Borç Stoku toplamının ~%${kapsamOrani.toFixed(0)}'ini kapsıyor — `;
     }
   }
 

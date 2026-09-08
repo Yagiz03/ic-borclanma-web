@@ -20,7 +20,7 @@ export default async function TakasbankTppPage() {
       <div>
         <h1 className="text-2xl font-semibold">Takasbank Para Piyasası (TPP)</h1>
         <p className="text-sm text-muted-foreground">
-          Takasbank TPP İşlem Ortalamaları Raporu -- her gün O/N (gecelik) ile 183 güne kadar vadeli TPP
+          Takasbank TPP İşlem Ortalamaları Raporu — her gün O/N (gecelik) ile 183 güne kadar vadeli TPP
           işlemlerinin gün içi min/maks/ortalama oranı ve hacmi. TL fonlama piyasasının kısa vade faiz eğrisi
           olarak okunabilir.
         </p>

@@ -179,7 +179,7 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
       )}
 
       <p className="text-xs text-muted-foreground">
-        Hesap tarayıcıda anlık çalışır (sunucu round-trip'i yok) -- Actual/365 bileşik iskonto, 182 günlük
+        Hesap tarayıcıda anlık çalışır (sunucu round-trip'i yok) — Actual/365 bileşik iskonto, 182 günlük
         (6 aylık) kupon periyodu varsayımıyla. Sadece sabit kuponlu / kuponsuz kağıtlar için geçerli --
         TLREF/TÜFE/Değişken Faizli kağıtların floater formülleri henüz portlanmadı.
       </p>
@@ -194,7 +194,7 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
           ) : (
             <>
               <p className="mb-3 text-sm text-muted-foreground">
-                {kagit.isin} -- {kagit.senetTanimi} kağıdının tüm kupon takvimi (geçmiş ödenenler dahil).
+                {kagit.isin} — {kagit.senetTanimi} kağıdının tüm kupon takvimi (geçmiş ödenenler dahil).
               </p>
               <div className="max-h-[340px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
                 <Table>

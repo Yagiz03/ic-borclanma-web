@@ -49,8 +49,8 @@ export async function PiyasaBeklentileriBolumu() {
     .map((r) => ({
       tarih: r.tarih,
       Gerçekleşen: r.tufe_fe25_yillik_yuzde ?? undefined,
-      "Beklenti -- yıl sonu": r.beklenti_tufe_yilsonu ?? undefined,
-      "Beklenti -- 12 ay sonrası": r.beklenti_tufe_12ay ?? undefined,
+      "Beklenti — yıl sonu": r.beklenti_tufe_yilsonu ?? undefined,
+      "Beklenti — 12 ay sonrası": r.beklenti_tufe_12ay ?? undefined,
     }));
 
   const enfbekGrafik = df
@@ -64,9 +64,9 @@ export async function PiyasaBeklentileriBolumu() {
     .map((r) => ({
       tarih: r.tarih,
       "Piyasa Katılımcıları Anketi": r.beklenti_tufe_12ay ?? undefined,
-      "Sektörel -- Piyasa katılımcıları": r.enfbek_piyasa_12ay ?? undefined,
-      "Sektörel -- Reel sektör": r.enfbek_reel_sektor_12ay ?? undefined,
-      "Sektörel -- Hanehalkı": r.enfbek_hanehalki_12ay ?? undefined,
+      "Sektörel — Piyasa katılımcıları": r.enfbek_piyasa_12ay ?? undefined,
+      "Sektörel — Reel sektör": r.enfbek_reel_sektor_12ay ?? undefined,
+      "Sektörel — Hanehalkı": r.enfbek_hanehalki_12ay ?? undefined,
     }));
 
   const faizBeklenti = df.filter((r) => r.beklenti_politika_faizi_yilsonu != null);
@@ -81,8 +81,8 @@ export async function PiyasaBeklentileriBolumu() {
     .filter((r) => r.beklenti_politika_faizi_yilsonu != null || r.beklenti_politika_faizi_ilk_toplanti != null)
     .map((r) => ({
       tarih: r.tarih,
-      "Beklenti -- yıl sonu": r.beklenti_politika_faizi_yilsonu ?? undefined,
-      "Beklenti -- ilk PPK toplantısı": r.beklenti_politika_faizi_ilk_toplanti ?? undefined,
+      "Beklenti — yıl sonu": r.beklenti_politika_faizi_yilsonu ?? undefined,
+      "Beklenti — ilk PPK toplantısı": r.beklenti_politika_faizi_ilk_toplanti ?? undefined,
     }));
   const faizBirlesikMap = new Map<string, Record<string, string | number>>();
   for (const r of [...politikaGrafik, ...faizGrafikVeri]) {
@@ -96,7 +96,7 @@ export async function PiyasaBeklentileriBolumu() {
     <div className="space-y-8">
       <p className="text-sm text-muted-foreground">
         TCMB&apos;nin &quot;Piyasa Katılımcıları Anketi&quot;nde (ayda iki kez, banka/aracı kurum ekonomistlerine
-        sorularak) topladığı enflasyon ve politika faizi beklentileri -- gerçekleşenle karşılaştırmak, piyasanın ne
+        sorularak) topladığı enflasyon ve politika faizi beklentileri — gerçekleşenle karşılaştırmak, piyasanın ne
         kadar &quot;sürprizlendiğini&quot; gösteriyor.
       </p>
 
@@ -104,21 +104,21 @@ export async function PiyasaBeklentileriBolumu() {
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Beklenti -- cari yıl sonu TÜFE</p>
+              <p className="text-xs text-muted-foreground">Beklenti — cari yıl sonu TÜFE</p>
               <p className="font-figures font-semibold">{pct2(sonTufeBeklenti.beklenti_tufe_yilsonu as number)}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Beklenti -- 12 ay sonrası TÜFE</p>
+              <p className="text-xs text-muted-foreground">Beklenti — 12 ay sonrası TÜFE</p>
               <p className="font-figures font-semibold">{pct2(sonTufeBeklenti.beklenti_tufe_12ay as number)}</p>
             </div>
           </div>
-          <h3 className="text-base font-semibold">TÜFE -- piyasa beklentisi vs. gerçekleşen (yıllık %)</h3>
+          <h3 className="text-base font-semibold">TÜFE — piyasa beklentisi vs. gerçekleşen (yıllık %)</h3>
           <CokluCizgiGrafigi
             veri={tufeGrafik}
             seriler={[
               { anahtar: "Gerçekleşen", etiket: "Gerçekleşen (yıllık %)" },
-              { anahtar: "Beklenti -- yıl sonu", etiket: "Beklenti -- cari yıl sonu" },
-              { anahtar: "Beklenti -- 12 ay sonrası", etiket: "Beklenti -- 12 ay sonrası" },
+              { anahtar: "Beklenti — yıl sonu", etiket: "Beklenti — cari yıl sonu" },
+              { anahtar: "Beklenti — 12 ay sonrası", etiket: "Beklenti — 12 ay sonrası" },
             ]}
             birim="%"
           />
@@ -129,16 +129,16 @@ export async function PiyasaBeklentileriBolumu() {
         <div className="space-y-3">
           <h3 className="text-base font-semibold">Sektörel Enflasyon Beklentileri vs. Piyasa Katılımcıları Anketi (12 ay sonrası, %)</h3>
           <p className="text-xs text-muted-foreground">
-            TCMB&apos;nin Piyasa Katılımcıları Anketi&apos;nden AYRI bir anket -- &quot;Sektörel Enflasyon
+            TCMB&apos;nin Piyasa Katılımcıları Anketi&apos;nden AYRI bir anket — &quot;Sektörel Enflasyon
             Beklentileri&quot;, piyasa katılımcıları, reel sektör ve hanehalkı gruplarına ayrı ayrı soruyor.
           </p>
           <CokluCizgiGrafigi
             veri={enfbekGrafik}
             seriler={[
-              { anahtar: "Piyasa Katılımcıları Anketi", etiket: "Piyasa Katılımcıları Anketi -- 12 ay sonrası" },
-              { anahtar: "Sektörel -- Piyasa katılımcıları", etiket: "Sektörel -- Piyasa katılımcıları" },
-              { anahtar: "Sektörel -- Reel sektör", etiket: "Sektörel -- Reel sektör" },
-              { anahtar: "Sektörel -- Hanehalkı", etiket: "Sektörel -- Hanehalkı" },
+              { anahtar: "Piyasa Katılımcıları Anketi", etiket: "Piyasa Katılımcıları Anketi — 12 ay sonrası" },
+              { anahtar: "Sektörel — Piyasa katılımcıları", etiket: "Sektörel — Piyasa katılımcıları" },
+              { anahtar: "Sektörel — Reel sektör", etiket: "Sektörel — Reel sektör" },
+              { anahtar: "Sektörel — Hanehalkı", etiket: "Sektörel — Hanehalkı" },
             ]}
             birim="%"
           />
@@ -149,23 +149,23 @@ export async function PiyasaBeklentileriBolumu() {
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Beklenti -- cari yıl sonu politika faizi</p>
+              <p className="text-xs text-muted-foreground">Beklenti — cari yıl sonu politika faizi</p>
               <p className="font-figures font-semibold">{pct2(sonFaizBeklenti.beklenti_politika_faizi_yilsonu as number)}</p>
             </div>
             {sonIlkToplanti && (
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">Beklenti -- ilk PPK toplantısı</p>
+                <p className="text-xs text-muted-foreground">Beklenti — ilk PPK toplantısı</p>
                 <p className="font-figures font-semibold">{pct2(sonIlkToplanti.beklenti_politika_faizi_ilk_toplanti as number)}</p>
               </div>
             )}
           </div>
-          <h3 className="text-base font-semibold">Politika faizi -- piyasa beklentisi vs. gerçekleşen (%)</h3>
+          <h3 className="text-base font-semibold">Politika faizi — piyasa beklentisi vs. gerçekleşen (%)</h3>
           <CokluCizgiGrafigi
             veri={faizBirlesik}
             seriler={[
               { anahtar: "Gerçekleşen (1 hafta repo)", etiket: "Gerçekleşen (1 hafta repo)" },
-              { anahtar: "Beklenti -- yıl sonu", etiket: "Beklenti -- cari yıl sonu" },
-              { anahtar: "Beklenti -- ilk PPK toplantısı", etiket: "Beklenti -- ilk PPK toplantısı" },
+              { anahtar: "Beklenti — yıl sonu", etiket: "Beklenti — cari yıl sonu" },
+              { anahtar: "Beklenti — ilk PPK toplantısı", etiket: "Beklenti — ilk PPK toplantısı" },
             ]}
             birim="%"
           />

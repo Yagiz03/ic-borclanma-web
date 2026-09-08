@@ -200,7 +200,7 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
           </summary>
           <p className="mt-2 text-xs text-muted-foreground">
             Fiyat, önceki ya da bugünkü işlemde pariye (100.00) yakınken, o kağıdın hesaplanan bir kira/kupon ödeme
-            tarihine denk gelen bir aralıkta değişmiş -- kesin bir resmi ÖST kupon takvimi kaynağı olmadığından bu
+            tarihine denk gelen bir aralıkta değişmiş — kesin bir resmi ÖST kupon takvimi kaynağı olmadığından bu
             YAKLAŞIK bir tahmindir.
           </p>
           <ul className="mt-2 list-inside list-disc space-y-0.5 text-muted-foreground">

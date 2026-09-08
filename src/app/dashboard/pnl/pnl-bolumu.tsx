@@ -117,7 +117,7 @@ export async function PnlBolumu() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        Elle girdiğin pozisyonların güncel BIST fiyatına göre kâr/zararı -- mümkün olduğunda kirli fiyat
+        Elle girdiğin pozisyonların güncel BIST fiyatına göre kâr/zararı — mümkün olduğunda kirli fiyat
         (temiz + birikmiş faiz) farkı üzerinden, işlemiş faiz dahil.
       </p>
 
@@ -130,10 +130,10 @@ export async function PnlBolumu() {
       ) : (
         <>
           <HeroBant
-            ustBaslik="PORTFÖY -- TOPLAM KÂR / ZARAR"
+            ustBaslik="PORTFÖY — TOPLAM KÂR / ZARAR"
             deger={`${toplamKz >= 0 ? "+" : ""}${paraFmt(toplamKz)}`}
             birim="TL"
-            aciklama={toplamPct != null ? `Maliyete göre %${toplamPct.toFixed(2)} -- ${satirlar.length} açık pozisyon` : `${satirlar.length} açık pozisyon`}
+            aciklama={toplamPct != null ? `Maliyete göre %${toplamPct.toFixed(2)} — ${satirlar.length} açık pozisyon` : `${satirlar.length} açık pozisyon`}
             yanKartlar={[
               { etiket: "Pozisyon sayısı", deger: String(satirlar.length) },
               { etiket: "Portföy DV01", deger: `${toplamDv01.toFixed(2)} TL/1bp` },
@@ -196,7 +196,7 @@ export async function PnlBolumu() {
                   )}
                   {!s.kirliKullanildi && s.guncelFiyat != null && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Bu kağıt için resmi kupon oranı/birikmiş faiz formülü yok -- K/Z sadece temiz fiyat
+                      Bu kağıt için resmi kupon oranı/birikmiş faiz formülü yok — K/Z sadece temiz fiyat
                       farkından hesaplandı.
                     </p>
                   )}

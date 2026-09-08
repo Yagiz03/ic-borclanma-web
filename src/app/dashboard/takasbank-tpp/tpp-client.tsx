@@ -35,7 +35,7 @@ type Satir = {
   islem_sayisi: number | null;
 };
 
-const RENK = "oklch(0.55 0.21 264)";
+const RENK = "var(--chart-1)";
 
 function vadeGunSayi(vadeGun: string): number {
   return vadeGun === "O/N" ? 0 : Number(vadeGun);
@@ -194,7 +194,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
               <>
                 <p className="text-sm text-muted-foreground">
                   {tarihFmt(seciliTarih)} için O/N&apos;den {Math.max(...gunVerisi.map((r) => vadeGunSayi(r.vade_gun)))} güne
-                  kadar tüm vadelerin gün içi ortalama oranı -- TL fonlama piyasasının o günkü kısa vade faiz eğrisi.
+                  kadar tüm vadelerin gün içi ortalama oranı — TL fonlama piyasasının o günkü kısa vade faiz eğrisi.
                 </p>
                 <ResponsiveContainer width="100%" height={360}>
                   <LineChart

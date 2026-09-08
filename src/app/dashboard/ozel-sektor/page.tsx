@@ -59,7 +59,7 @@ export default async function OzelSektorPage() {
       <div>
         <h1 className="text-2xl font-semibold">Özel sektör tahvilleri</h1>
         <p className="text-sm text-muted-foreground">
-          Kurumsal (özel sektör) borçlanma araçları -- BIST&apos;in resmi &quot;İşlem Gören Borçlanma
+          Kurumsal (özel sektör) borçlanma araçları — BIST&apos;in resmi &quot;İşlem Gören Borçlanma
           Araçlarına İlişkin Bilgiler&quot; listesindeki MK Türü&apos;ne göre sınıflandırılıyor. BIST Kesin Alım
           Satım Pazarı&apos;nda o gün işlem görenler.
         </p>

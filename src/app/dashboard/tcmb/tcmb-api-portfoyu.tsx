@@ -138,7 +138,7 @@ export async function TcmbApiPortfoyuBolumu() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-3 text-base font-semibold">TCMB&apos;nin elindeki DİBS portföyü -- kağıt kağıt</h3>
+        <h3 className="mb-3 text-base font-semibold">TCMB&apos;nin elindeki DİBS portföyü — kağıt kağıt</h3>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {sonDibsTcmb != null && (
             <div className="rounded-lg border border-border p-3">
@@ -160,12 +160,12 @@ export async function TcmbApiPortfoyuBolumu() {
           </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          TCMB&apos;nin 2020&apos;den bugüne yaptığı GERÇEK doğrudan alım (APİ) ihalelerinden -- her ihalede
+          TCMB&apos;nin 2020&apos;den bugüne yaptığı GERÇEK doğrudan alım (APİ) ihalelerinden — her ihalede
           kazandığı nominal tutar ISIN bazında toplanıp, hâlâ vadesi gelmemiş olanlar gösteriliyor
           {kapsamOrani != null
-            ? ` (EVDS S.121 piyasa değerinin ~%${kapsamOrani.toFixed(0)}'i -- fark nominal/piyasa değeri farkından kaynaklanıyor)`
+            ? ` (EVDS S.121 piyasa değerinin ~%${kapsamOrani.toFixed(0)}'i — fark nominal/piyasa değeri farkından kaynaklanıyor)`
             : ""}
-          . TCMB bu portföyü yeni doğrudan alımlarla büyütüyor, itfa olan kağıtlarla küçülüyor -- bu tablo
+          . TCMB bu portföyü yeni doğrudan alımlarla büyütüyor, itfa olan kağıtlarla küçülüyor — bu tablo
           sadece ALIM tarafını gösteriyor. Kaynak: TCMB&apos;nin &quot;İhale ile Gerçekleştirilen Doğrudan Alım
           İşlemleri Verileri&quot; sayfası. 450 milyar TL hedefi ve itfa tutarı{" "}
           <a href={TCMB_450MR_KAYNAK_URL} target="_blank" rel="noreferrer" className="underline">
@@ -211,7 +211,7 @@ export async function TcmbApiPortfoyuBolumu() {
         <h3 className="mb-2 text-base font-semibold">Kağıt tipine göre dağılım</h3>
         <PastaGrafigi veri={tipVeri} />
         <p className="mt-2 text-xs text-muted-foreground">
-          Yukarıdaki ISIN bazlı gerçek portföyün kağıt tipine göre toplamı -- TCMB&apos;nin doğrudan alım
+          Yukarıdaki ISIN bazlı gerçek portföyün kağıt tipine göre toplamı — TCMB&apos;nin doğrudan alım
           kanalıyla edindiği Kira Sertifikaları gibi standart DİBS kupon tiplerine girmeyen kağıtlar da kendi
           dilimleriyle görünüyor.
         </p>
@@ -251,9 +251,9 @@ export async function TcmbApiPortfoyuBolumu() {
           })}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Her kartın içindeki liste, o kartın toplamını oluşturan kağıtlar -- vade tarihine göre sıralı.
+          Her kartın içindeki liste, o kartın toplamını oluşturan kağıtlar — vade tarihine göre sıralı.
           Ufuklar KÜMÜLATİF: &quot;3 ay&quot; listesi &quot;1 ay&quot;dakileri de içerir, &quot;1 yıl&quot; listesi
-          hepsini içerir -- aynı kağıt birden fazla listede görünebilir.
+          hepsini içerir — aynı kağıt birden fazla listede görünebilir.
         </p>
       </div>
     </div>

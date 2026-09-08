@@ -126,7 +126,7 @@ export function KagitTipiDagilimiClient({
 
       <p className="text-xs text-muted-foreground">
         TCMB&apos;nin &quot;İhale Yöntemi ile Satılan Hazine Bonoları ve Devlet Tahvilleri&quot; istatistiğinden
-        kurulan bir ihraç/itfa defterinden -- her ihracın NOMİNAL tutarı ihraç ayında eklenip, o ISIN&apos;in TÜM
+        kurulan bir ihraç/itfa defterinden — her ihracın NOMİNAL tutarı ihraç ayında eklenip, o ISIN&apos;in TÜM
         tutarı vade ayında tamamen düşülüyor (bullet itfa). Bu GERÇEK OUTSTANDING&apos;dir (itfa olanlar kalıcı
         olarak düşer), aylık ihraç akışı değildir. {kapsamNotu}%100&apos;e tam ulaşmayabilir çünkü Doğrudan Satış
         (Kira Sertifikası/FX DİBS/Altın Tahvili) kanalı ve 2006 öncesi ihraç edilip hâlâ vadesi gelmemiş kağıtlar

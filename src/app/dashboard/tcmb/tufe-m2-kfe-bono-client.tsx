@@ -172,7 +172,7 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Son veri tarihi: {son.ay} -- &quot;C&quot; TCMB&apos;nin özel kapsamlı çekirdek enflasyon göstergesi (enerji,
+        Son veri tarihi: {son.ay} — &quot;C&quot; TCMB&apos;nin özel kapsamlı çekirdek enflasyon göstergesi (enerji,
         gıda ve alkolsüz içecekler, alkollü içkiler ile tütün ürünleri ve altın hariç TÜFE).
       </p>
 
@@ -192,7 +192,7 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-base font-semibold">M2 para arzı ve Konut Fiyat Endeksi -- nominal ve reel getiriler</h3>
+        <h3 className="text-base font-semibold">M2 para arzı ve Konut Fiyat Endeksi — nominal ve reel getiriler</h3>
         <p className="text-xs text-muted-foreground">Reel getiri = (1 + Nominal Değişim) / (1 + TÜFE Değişim) - 1.</p>
 
         <button
@@ -200,7 +200,7 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
           onClick={() => setTabloAcik((v) => !v)}
           className="text-sm font-medium text-primary hover:underline"
         >
-          {tabloAcik ? "▾" : "▸"} M2 Para Arzı ve Konut Fiyat Endeksi -- Nominal ve Reel Getiriler ({goster12Ay.length}{" "}
+          {tabloAcik ? "▾" : "▸"} M2 Para Arzı ve Konut Fiyat Endeksi — Nominal ve Reel Getiriler ({goster12Ay.length}{" "}
           / son 12 satır)
         </button>
         {tabloAcik && (

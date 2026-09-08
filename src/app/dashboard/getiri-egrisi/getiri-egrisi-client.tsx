@@ -36,7 +36,7 @@ type BistSatiri = { tarih: string; isin: string; temiz_fiyat: number | null; kap
 
 type EgriNokta = { isin: string; senetTanimi: string | null; vade: Date | null; kalanVadeYil: number; getiri: number };
 
-const RENKLER = ["oklch(0.55 0.21 264)", "oklch(0.6 0.19 35)", "oklch(0.6 0.18 155)", "oklch(0.55 0.2 300)", "oklch(0.72 0.18 85)", "oklch(0.6 0.2 200)"];
+const RENKLER = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "oklch(0.6 0.2 200)"];
 const HACIM_SECENEKLERI = [
   { etiket: "Tümü", deger: 0 },
   { etiket: "≥10 milyon TL", deger: 10_000_000 },
@@ -178,7 +178,7 @@ export function GetiriEgrisiClient({
   const gunluk = mod === "canli" ? canliEgriVerisi(minHacim) : egriVerisi(seciliTarih, minHacim);
   const baslik =
     mod === "canli"
-      ? `${tarihFmt(referansTarihDate)} getiri eğrisi (canlı -- her ISIN'in son bilinen fiyatı sabit tutulup bugünün kalan vadesi/birikmiş faiziyle yeniden çözüldü)`
+      ? `${tarihFmt(referansTarihDate)} getiri eğrisi (canlı — her ISIN'in son bilinen fiyatı sabit tutulup bugünün kalan vadesi/birikmiş faiziyle yeniden çözüldü)`
       : `${tarihFmt(referansTarihDate)} getiri eğrisi`;
 
   // --- Karşılaştırma tarihleri ---
@@ -363,7 +363,7 @@ export function GetiriEgrisiClient({
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
                   <Tooltip content={<NoktaTooltip />} />
-                  <Scatter data={gunluk} fill="oklch(0.55 0.21 264)" line={{ stroke: "oklch(0.55 0.21 264)", strokeWidth: 2 }} lineType="joint" />
+                  <Scatter data={gunluk} fill="var(--chart-1)" line={{ stroke: "var(--chart-1)", strokeWidth: 2 }} lineType="joint" />
                 </ScatterChart>
               </ResponsiveContainer>
             </div>
@@ -460,7 +460,7 @@ export function GetiriEgrisiClient({
                     labelFormatter={(v) => (typeof v === "number" ? `Kalan vade: ${v.toFixed(2)} yıl` : String(v))}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line data={gunluk} type="monotone" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="oklch(0.55 0.21 264)" strokeWidth={3} dot={{ r: 3 }} />
+                  <Line data={gunluk} type="monotone" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="var(--chart-1)" strokeWidth={3} dot={{ r: 3 }} />
                   {egriler.map((e) => (
                     <Line key={e.etiket} data={e.veri} type="monotone" dataKey="getiri" name={e.etiket} stroke={e.renk} strokeDasharray="4 3" dot={{ r: 2 }} />
                   ))}
@@ -471,7 +471,7 @@ export function GetiriEgrisiClient({
             {gosterim === "grafik" && spreadSerileri.length > 0 && (
               <div className="space-y-1.5 border-t border-border pt-4">
                 <h3 className="text-sm font-semibold">
-                  Spread farkı -- {tarihFmt(referansTarihDate)} eksi karşılaştırma günü (bps)
+                  Spread farkı — {tarihFmt(referansTarihDate)} eksi karşılaştırma günü (bps)
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   Sıfır çizgisinin üstü: getiri o günden bu yana yükselmiş. Eğrinin kısa vadede aşağı,
@@ -499,7 +499,7 @@ export function GetiriEgrisiClient({
             {egriler.length > 0 && gosterim === "grafik" && (
               <p className="text-xs text-muted-foreground">
                 Pozitif Δ = o kağıdın getirisi karşılaştırma gününe göre yükselmiş (kısa vadede negatif / uzun
-                vadede pozitif -- ya da tersi -- steepener/flattener hareketidir). Tablo görünümünde spread (bp)
+                vadede pozitif — ya da tersi — steepener/flattener hareketidir). Tablo görünümünde spread (bp)
                 değerleri de listelenir.
               </p>
             )}
@@ -566,7 +566,7 @@ export function GetiriEgrisiClient({
             <div className="grid gap-4 md:grid-cols-2">
               <Card>
                 <CardContent className="space-y-2 pt-6">
-                  <p className="text-sm font-semibold text-emerald-600">En ucuz -- eğrinin üstünde</p>
+                  <p className="text-sm font-semibold text-emerald-600">En ucuz — eğrinin üstünde</p>
                   <p className="text-xs text-muted-foreground">En düşük fiyatlı (emsallerine göre en yüksek getirili) 5 ISIN</p>
                   <div className="space-y-1">
                     {[...rvPoli].sort((a, b) => b.zSkoru - a.zSkoru).slice(0, 5).map((r) => (
@@ -580,7 +580,7 @@ export function GetiriEgrisiClient({
               </Card>
               <Card>
                 <CardContent className="space-y-2 pt-6">
-                  <p className="text-sm font-semibold text-destructive">En pahalı -- eğrinin altında</p>
+                  <p className="text-sm font-semibold text-destructive">En pahalı — eğrinin altında</p>
                   <p className="text-xs text-muted-foreground">En yüksek fiyatlı (emsallerine göre en düşük getirili) 5 ISIN</p>
                   <div className="space-y-1">
                     {[...rvPoli].sort((a, b) => a.zSkoru - b.zSkoru).slice(0, 5).map((r) => (

@@ -85,7 +85,7 @@ export default async function PricingPage({
         </TabsContent>
 
         {/* Python'da pnl.py'nin kendi iki alt sekmesi var (Pozisyonlarım /
-            İzleme listesi) -- burada da aynı yapı korunuyor. */}
+            İzleme listesi) — burada da aynı yapı korunuyor. */}
         <TabsContent value="pnl">
           <Tabs defaultValue="pozisyonlar">
             <TabsList className="mb-4 h-auto w-full justify-start overflow-x-auto">

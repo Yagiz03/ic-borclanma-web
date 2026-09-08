@@ -61,7 +61,7 @@ export default async function IhaleGunuPage() {
         <h1 className="text-2xl font-semibold">İhale günü</h1>
         <p className="text-sm text-muted-foreground">
           Yaklaşan bir ihalede muhtemel getiriyi tahmin etmeye yardımcı olur. Tahminler HMB&apos;nin geçmiş ihale
-          sonucu özet istatistiklerine dayanır -- teklif bazlı mikro veri olmadığından KESİN bir model değildir,
+          sonucu özet istatistiklerine dayanır — teklif bazlı mikro veri olmadığından KESİN bir model değildir,
           sadece karar desteğidir.
         </p>
       </div>

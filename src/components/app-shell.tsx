@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-background/70 backdrop-blur-xl backdrop-saturate-150">
         {/* Dar masaüstünde (ör. 1280px, 13" dizüstü) 11 sekme tek satıra sığmıyordu:
             menü taşıp son sekmeler erişilemez oluyor ve sayfa yatay kayıyordu.
-            flex-wrap ile sekmeler ikinci satıra iniyor -- hiçbir sekme gizlenmiyor
+            flex-wrap ile sekmeler ikinci satıra iniyor — hiçbir sekme gizlenmiyor
             ve etiketler eski projeyle birebir aynı kalıyor. */}
         <div className="flex min-h-16 w-full flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2 lg:px-8">
           <nav className="hidden min-w-0 flex-1 flex-wrap items-center gap-1 lg:flex">

@@ -100,7 +100,7 @@ export async function DisDengeBolumu() {
     <div className="space-y-8">
       <p className="text-sm text-muted-foreground">
         TCMB&apos;nin haftalık açıkladığı brüt uluslararası rezervleri (altın + döviz), aylık cari işlemler dengesi
-        ve tüketici kredileri (BDDK&apos;nin haftalık banka bilanço verisinin bir parçası -- ticari krediler dahil
+        ve tüketici kredileri (BDDK&apos;nin haftalık banka bilanço verisinin bir parçası — ticari krediler dahil
         değil, sadece konut/taşıt/ihtiyaç kredileri).
       </p>
 
@@ -132,9 +132,9 @@ export async function DisDengeBolumu() {
 
       {krediYillik.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-base font-semibold">Tüketici kredileri toplamı -- yıllık değişim (%)</h3>
+          <h3 className="text-base font-semibold">Tüketici kredileri toplamı — yıllık değişim (%)</h3>
           <p className="text-xs text-muted-foreground">
-            Konut + taşıt + ihtiyaç kredilerinin toplamı (yurt içi yerleşikler) -- ticari krediler dahil değil,
+            Konut + taşıt + ihtiyaç kredilerinin toplamı (yurt içi yerleşikler) — ticari krediler dahil değil,
             EVDS&apos;de haftalık frekansta temiz bir &quot;toplam banka kredisi&quot; serisi yok.
           </p>
           <CokluCizgiGrafigi veri={krediYillik as Record<string, string | number>[]} seriler={[{ anahtar: "Yıllık değişim", etiket: "Yıllık değişim" }]} birim="%" />
@@ -143,7 +143,7 @@ export async function DisDengeBolumu() {
 
       {sonBilanco && sonYukumluluk && (
         <div className="space-y-3">
-          <h3 className="text-base font-semibold">TCMB Analitik Bilanço -- döviz varlık/yükümlülükleri (bin TL)</h3>
+          <h3 className="text-base font-semibold">TCMB Analitik Bilanço — döviz varlık/yükümlülükleri (bin TL)</h3>
           <p className="text-xs text-muted-foreground">
             A.1 Dış Varlıklar, brüt rezervin bilanço karşılığı; P.1 Toplam Döviz Yükümlülükleri ve onun bir alt
             kalemi olan P.1ba Kamu ve Diğer Döviz Mevduatı ise TCMB&apos;nin döviz cinsi borçlarını gösteriyor.
@@ -178,19 +178,19 @@ export async function DisDengeBolumu() {
 
       {sonSwapAlim && sonSwapSatim && (
         <div className="space-y-3">
-          <h3 className="text-base font-semibold">TCMB taraflı swap işlemleri -- stok (Milyon ABD Doları)</h3>
+          <h3 className="text-base font-semibold">TCMB taraflı swap işlemleri — stok (Milyon ABD Doları)</h3>
           <p className="text-xs text-muted-foreground">
-            Döviz karşılığı TL swap + altın swap + BIST swap işlemlerinin toplam stoku -- brüt rezervin bir kısmı
+            Döviz karşılığı TL swap + altın swap + BIST swap işlemlerinin toplam stoku — brüt rezervin bir kısmı
             bu swap&apos;lar yoluyla geri ödenmesi gereken (borç niteliğinde) döviz olabildiğinden, rezervin
             &quot;kalitesini&quot; değerlendirirken referans olarak bakılıyor.
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Toplam Stok -- Alım Yönlü (Milyon USD)</p>
+              <p className="text-xs text-muted-foreground">Toplam Stok — Alım Yönlü (Milyon USD)</p>
               <p className="font-figures font-semibold">{milyon(sonSwapAlim.deger)}</p>
             </div>
             <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Toplam Stok -- Satım Yönlü (Milyon USD)</p>
+              <p className="text-xs text-muted-foreground">Toplam Stok — Satım Yönlü (Milyon USD)</p>
               <p className="font-figures font-semibold">{milyon(sonSwapSatim.deger)}</p>
             </div>
           </div>

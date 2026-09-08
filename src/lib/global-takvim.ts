@@ -65,7 +65,7 @@ export function globalOlaylariAyIcinBul(yil: number, ay: number): GlobalOlay[] {
   ] as [Record<number, [string, string][]>, string][]) {
     for (const [ayGun, refAy] of kaynak[yil] ?? []) {
       const gun = ayGunEsit(ayGun, ay);
-      if (gun != null) olaylar.push({ gun, etiket, detay: `${refAy} verisi -- 08:30 ET (BLS)` });
+      if (gun != null) olaylar.push({ gun, etiket, detay: `${refAy} verisi — 08:30 ET (BLS)` });
     }
   }
   return olaylar.sort((a, b) => a.gun - b.gun || a.etiket.localeCompare(b.etiket));

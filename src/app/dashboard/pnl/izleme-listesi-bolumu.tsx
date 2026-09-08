@@ -53,7 +53,7 @@ export async function IzlemeListesiBolumu() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        DİBS Detay sayfasından izlemeye aldığın kağıtlar -- son BIST kapanışına göre temiz fiyat ve
+        DİBS Detay sayfasından izlemeye aldığın kağıtlar — son BIST kapanışına göre temiz fiyat ve
         bileşik getirileri, altında fiyat karşılaştırması.
       </p>
 

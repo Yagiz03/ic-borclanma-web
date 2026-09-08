@@ -10,12 +10,14 @@ const AY_ADLARI = [
 ];
 const GUN_BASLIKLARI = ["Pzt", "Sal", "Çar", "Per", "Cum"];
 
+// Grafiklerle aynı palet değişkenleri -- burada sabit oklch değerleri vardı ve
+// Apple paletine (mavi) geçildiğinde takvim hâlâ eski mor tonunu gösteriyordu.
 const RENK: Record<string, string> = {
-  "PPK Toplantı Kararı": "bg-[oklch(0.55_0.21_264)]",
-  "Enflasyon Raporu": "bg-[oklch(0.6_0.19_35)]",
-  "Finansal İstikrar Raporu": "bg-[oklch(0.6_0.18_155)]",
-  "İhale": "bg-[oklch(0.55_0.2_300)]",
-  "Doğrudan Satış": "bg-[oklch(0.72_0.18_85)]",
+  "PPK Toplantı Kararı": "bg-[var(--chart-1)]",
+  "Enflasyon Raporu": "bg-[var(--chart-2)]",
+  "Finansal İstikrar Raporu": "bg-[var(--chart-3)]",
+  "İhale": "bg-[var(--chart-4)]",
+  "Doğrudan Satış": "bg-[var(--chart-5)]",
   "Türkiye Enflasyonu": "bg-[oklch(0.62_0.2_15)]",
 };
 
@@ -74,7 +76,7 @@ export default async function TakvimPage({
     (gunler[gun] ??= []).push({
       etiket: `${kisaYontem}: ${i.senet_turu}`,
       renk: RENK[kisaYontem] ?? "bg-muted-foreground",
-      detay: `${i.vade}${i.itfa_tarihi ? ` -- İtfa: ${i.itfa_tarihi}` : ""}`,
+      detay: `${i.vade}${i.itfa_tarihi ? ` — İtfa: ${i.itfa_tarihi}` : ""}`,
     });
   }
 
@@ -87,7 +89,7 @@ export default async function TakvimPage({
     const parcalar: string[] = [];
     if (tufeAylik != null && tufeYillik != null) parcalar.push(`TÜFE aylık %${tufeAylik.toFixed(2)}, yıllık %${tufeYillik.toFixed(2)}`);
     if (yiufeAylik != null && yiufeYillik != null) parcalar.push(`Yİ-ÜFE aylık %${yiufeAylik.toFixed(2)}, yıllık %${yiufeYillik.toFixed(2)}`);
-    const detay = parcalar.length > 0 ? `${AY_ADLARI[oncekiAy]} verisi: ${parcalar.join(" | ")}` : `${AY_ADLARI[oncekiAy]} verisi -- 10:00 (TÜİK)`;
+    const detay = parcalar.length > 0 ? `${AY_ADLARI[oncekiAy]} verisi: ${parcalar.join(" | ")}` : `${AY_ADLARI[oncekiAy]} verisi — 10:00 (TÜİK)`;
     (gunler[enflasyonTarihi.getUTCDate()] ??= []).push({
       etiket: "Türkiye Enflasyonu (TÜFE + Yİ-ÜFE)",
       renk: RENK["Türkiye Enflasyonu"],

@@ -94,7 +94,7 @@ export default async function DibsDetayPage({
       etiket: floaterMi ? "İlk ihraç faizi (kupon DEĞİL)" : "Kupon oranı",
       deger: yuzde(secilen.tahmini_kupon_orani),
       yardim: floaterMi
-        ? "Bu kağıdın sabit bir kupon oranı yok -- gösterilen, ilk ihracın gerçekleşen getirisi."
+        ? "Bu kağıdın sabit bir kupon oranı yok — gösterilen, ilk ihracın gerçekleşen getirisi."
         : undefined,
     });
   }
@@ -138,9 +138,9 @@ export default async function DibsDetayPage({
 
       {sonBist ? (
         <HeroBant
-          ustBaslik={`${secilen.isin} -- SON BİLEŞİK GETİRİ (${isoTarihGoster(sonBist.tarih)})`}
+          ustBaslik={`${secilen.isin} — SON BİLEŞİK GETİRİ (${isoTarihGoster(sonBist.tarih)})`}
           deger={yuzde(sonBist.kapanis_bilesik_getiri_pct)}
-          aciklama={`Son temiz fiyat ${Number(sonBist.temiz_fiyat).toFixed(3)} -- BIST Kesin Alım Satım Pazarı`}
+          aciklama={`Son temiz fiyat ${Number(sonBist.temiz_fiyat).toFixed(3)} — BIST Kesin Alım Satım Pazarı`}
           yanKartlar={[
             { etiket: "İlk ihraç", deger: isoTarihGoster(secilen.ilk_ihrac_tarihi) },
             { etiket: "Vade", deger: secilen.vade_tarihi ?? "–" },

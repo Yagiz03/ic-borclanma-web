@@ -135,7 +135,7 @@ export default async function TcmbPage() {
 
             <TabsContent value="koridor">
               <p className="mb-3 text-sm text-muted-foreground">
-                TCMB&apos;nin ilan ettiği &quot;faiz koridoru&quot; -- gecelik borç alma (alt bant) ve borç verme (üst
+                TCMB&apos;nin ilan ettiği &quot;faiz koridoru&quot; — gecelik borç alma (alt bant) ve borç verme (üst
                 bant) faizleri ile 1 hafta vadeli repo (politika faizi); BIST gecelik repo piyasada fiilen oluşan
                 oranı gösteriyor.
               </p>
@@ -191,7 +191,7 @@ export default async function TcmbPage() {
             <TabsContent value="ppkfarki">
               <p className="mb-3 text-sm text-muted-foreground">
                 PPK&apos;nın son iki &quot;Faiz Oranlarına İlişkin Basın Duyurusu&quot; metni arasındaki fark,
-                Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde -- kırmızı üstü çizili kısımlar önceki
+                Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde — kırmızı üstü çizili kısımlar önceki
                 karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
               </p>
               <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">

@@ -144,12 +144,12 @@ export function TakasMevduatHesaplayici({
                   <MetrikKart
                     etiket="Net O/N eşlenik"
                     deger={pct(takasSonuc.netOnEslenik)}
-                    yardim="Her gün O/N mevduat yapılıyormuş gibi -- komisyonsuz."
+                    yardim="Her gün O/N mevduat yapılıyormuş gibi — komisyonsuz."
                   />
                   <MetrikKart etiket="Mevduat eşleniği" deger={pct(takasSonuc.mevduatEslenigi!)} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Getiri (100 üzerinden): {takasSonuc.getiri.toFixed(6)} -- iş günü: {takasSonuc.isGunu} /{" "}
+                  Getiri (100 üzerinden): {takasSonuc.getiri.toFixed(6)} — iş günü: {takasSonuc.isGunu} /{" "}
                   {gunTakas} takvim günü
                 </p>
               </>
@@ -191,12 +191,12 @@ export function TakasMevduatHesaplayici({
                   <MetrikKart
                     etiket="Net O/N eşlenik"
                     deger={pct(mevduatSonuc.netOnEslenik)}
-                    yardim="Her gün O/N mevduat yapılıyormuş gibi -- komisyonsuz."
+                    yardim="Her gün O/N mevduat yapılıyormuş gibi — komisyonsuz."
                   />
                   <MetrikKart etiket="Takas eşleniği" deger={pct(mevduatSonuc.takasEslenigi!)} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Getiri (100 üzerinden): {mevduatSonuc.getiri.toFixed(6)} -- iş günü: {mevduatSonuc.isGunu} /{" "}
+                  Getiri (100 üzerinden): {mevduatSonuc.getiri.toFixed(6)} — iş günü: {mevduatSonuc.isGunu} /{" "}
                   {gunMevduat} takvim günü
                 </p>
               </>
@@ -210,9 +210,9 @@ export function TakasMevduatHesaplayici({
           <h3 className="text-base font-semibold">Senaryo analizi: Takas / Mevduat vs O/N repo</h3>
           {koridor && (
             <p className="text-sm text-muted-foreground">
-              Güncel TCMB koridoru -- Alt bant: %{koridor.altBant.toFixed(2)}
+              Güncel TCMB koridoru — Alt bant: %{koridor.altBant.toFixed(2)}
               {politikaFaizi != null && ` · Politika faizi: %${politikaFaizi.toFixed(2)}`} · Üst bant (tavan): %
-              {koridor.ustBant.toFixed(2)} -- O/N repo pratikte tavana yakın seyrettiği için başlangıç değeri üst
+              {koridor.ustBant.toFixed(2)} — O/N repo pratikte tavana yakın seyrettiği için başlangıç değeri üst
               banttır, istersen değiştirebilirsin.
             </p>
           )}
@@ -243,7 +243,7 @@ export function TakasMevduatHesaplayici({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Seçilen pencerede PPK toplantısı yok -- O/N oranı sabit ilerletilir.</p>
+            <p className="text-sm text-muted-foreground">Seçilen pencerede PPK toplantısı yok — O/N oranı sabit ilerletilir.</p>
           )}
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -265,8 +265,8 @@ export function TakasMevduatHesaplayici({
                   {ppkPencerede.map((t) => (
                     <ReferenceLine key={t} x={t} stroke="var(--muted-foreground)" strokeDasharray="2 2" />
                   ))}
-                  <Line type="monotone" dataKey="urun" name="Takas" stroke="oklch(0.55 0.21 264)" strokeWidth={2} dot={false} connectNulls />
-                  <Line type="monotone" dataKey="on" name="O/N repo rulo" stroke="oklch(0.72 0.18 85)" strokeWidth={2} dot={false} connectNulls />
+                  <Line type="monotone" dataKey="urun" name="Takas" stroke="var(--chart-1)" strokeWidth={2} dot={false} connectNulls />
+                  <Line type="monotone" dataKey="on" name="O/N repo rulo" stroke="var(--chart-5)" strokeWidth={2} dot={false} connectNulls />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -289,7 +289,7 @@ export function TakasMevduatHesaplayici({
                     <ReferenceLine key={t} x={t} stroke="var(--muted-foreground)" strokeDasharray="2 2" />
                   ))}
                   <Line type="monotone" dataKey="urun" name="Mevduat" stroke="#34D399" strokeWidth={2} dot={false} connectNulls />
-                  <Line type="monotone" dataKey="on" name="O/N repo rulo" stroke="oklch(0.72 0.18 85)" strokeWidth={2} dot={false} connectNulls />
+                  <Line type="monotone" dataKey="on" name="O/N repo rulo" stroke="var(--chart-5)" strokeWidth={2} dot={false} connectNulls />
                 </LineChart>
               </ResponsiveContainer>
             </div>

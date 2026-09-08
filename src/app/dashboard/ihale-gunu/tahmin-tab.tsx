@@ -256,7 +256,7 @@ export function TahminTab({
           <h3 className="mb-3 text-sm font-semibold">Bu ayki ihaleler</h3>
           {yaklasan.length === 1 ? (
             <p className="text-sm">
-              {yaklasan[0].tarihD.toLocaleDateString("tr-TR")} -- {yaklasan[0].senet_turu} ({yaklasan[0].vade})
+              {yaklasan[0].tarihD.toLocaleDateString("tr-TR")} — {yaklasan[0].senet_turu} ({yaklasan[0].vade})
             </p>
           ) : (
             <select
@@ -266,7 +266,7 @@ export function TahminTab({
             >
               {yaklasan.map((y, i) => (
                 <option key={i} value={i}>
-                  {y.tarihD.toLocaleDateString("tr-TR")} -- {y.senet_turu} ({y.vade})
+                  {y.tarihD.toLocaleDateString("tr-TR")} — {y.senet_turu} ({y.vade})
                 </option>
               ))}
             </select>
@@ -274,7 +274,7 @@ export function TahminTab({
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Bu ay planlanmış bir ihale bulunamadı -- aşağıdaki &quot;Manuel senet tipi / vade seçimi&quot; bölümünden
+          Bu ay planlanmış bir ihale bulunamadı — aşağıdaki &quot;Manuel senet tipi / vade seçimi&quot; bölümünden
           istediğin senet tipi/vadeyi analiz edebilirsin.
         </p>
       )}
@@ -310,10 +310,10 @@ export function TahminTab({
         </p>
       ) : (
         <div className="space-y-4">
-          <h3 className="text-base font-semibold">Detaylı analiz -- {sonBenzer.length} benzer ihale (toplam {benzer.length} bulundu)</h3>
+          <h3 className="text-base font-semibold">Detaylı analiz — {sonBenzer.length} benzer ihale (toplam {benzer.length} bulundu)</h3>
           <p className="text-sm text-muted-foreground">
             Aşağıdaki özet, yılbaşından bugüne gerçekleşen {sonBenzer.length} ihaleye dayanıyor (bu yıl içinde yeterli
-            örnek yoksa son 6 ihaleye düşülür) -- faiz seviyesi yıllar içinde çok değiştiğinden, tüm tarihçenin
+            örnek yoksa son 6 ihaleye düşülür) — faiz seviyesi yıllar içinde çok değiştiğinden, tüm tarihçenin
             ortalaması güncel koşulları yansıtmaz.
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -394,15 +394,15 @@ export function TahminTab({
                   formatter={(v, name, item) => {
                     if (name === "aralik") {
                       const p = item.payload as { enDusuk: number | null; enYuksek: number | null };
-                      return [`${p.enDusuk?.toFixed(2)}% -- ${p.enYuksek?.toFixed(2)}%`, "Kabul aralığı"];
+                      return [`${p.enDusuk?.toFixed(2)}% — ${p.enYuksek?.toFixed(2)}%`, "Kabul aralığı"];
                     }
                     if (name === "ortalama") return [`${Number(v).toFixed(2)}%`, "Ortalama kabul"];
                     return [v, name];
                   }}
                 />
                 <Bar dataKey="taban" stackId="a" fill="transparent" isAnimationActive={false} legendType="none" />
-                <Bar dataKey="aralik" stackId="a" fill="oklch(0.6 0.1 264)" fillOpacity={0.35} radius={[3, 3, 3, 3]} name="Kabul aralığı (en düşük -- en yüksek)" />
-                <Scatter dataKey="ortalama" fill="oklch(0.55 0.21 264)" name="Ortalama kabul" />
+                <Bar dataKey="aralik" stackId="a" fill="var(--chart-1)" fillOpacity={0.35} radius={[3, 3, 3, 3]} name="Kabul aralığı (en düşük — en yüksek)" />
+                <Scatter dataKey="ortalama" fill="var(--chart-1)" name="Ortalama kabul" />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
               </ComposedChart>
             </ResponsiveContainer>

@@ -234,7 +234,7 @@ export async function finansmanIlerlemeVerisiGetir(
     },
     {
       kalem: "Kamuya Satışlar",
-      aciklama: "Gösterilen Gerçekleşen aslında ihale içi kamu ROT katılımıdır -- AYNI KANAL DEĞİL, bilgi amaçlıdır.",
+      aciklama: "Gösterilen Gerçekleşen aslında ihale içi kamu ROT katılımıdır — AYNI KANAL DEĞİL, bilgi amaçlıdır.",
       plan: planKamu, gerceklesen: kamuToplam, kalan: kalanKamu, oran: oranKamu,
     },
   ];

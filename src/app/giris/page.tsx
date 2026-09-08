@@ -21,7 +21,7 @@ type Mod = "giris" | "kayit" | "sifremi-unuttum";
 function hataMesaji(mesaj: string): string {
   const m = mesaj.toLowerCase();
   if (m.includes("invalid login credentials")) return "E-posta veya şifre hatalı.";
-  if (m.includes("email not confirmed")) return "E-postanı henüz doğrulamamışsın -- gelen kutunu kontrol et.";
+  if (m.includes("email not confirmed")) return "E-postanı henüz doğrulamamışsın — gelen kutunu kontrol et.";
   if (m.includes("user already registered") || m.includes("already been registered"))
     return "Bu e-posta ile zaten bir hesap var. Giriş yap sekmesini kullan.";
   if (m.includes("password should be at least")) return "Şifre en az 8 karakter olmalı.";

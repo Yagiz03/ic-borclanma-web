@@ -20,7 +20,7 @@ export default async function StratejiPage() {
         <h1 className="text-2xl font-semibold">Borçlanma Stratejisi</h1>
         <p className="text-sm text-muted-foreground">
           Ardışık iki aylık İç Borçlanma Stratejisi belgesi arasındaki değişiklikleri (plan revizyonları,
-          ihraç takvimi kaymaları vb.) karşılaştıran fark raporu -- HMB&apos;nin stratejinin kendisi değildir.
+          ihraç takvimi kaymaları vb.) karşılaştıran fark raporu — HMB&apos;nin stratejinin kendisi değildir.
         </p>
       </div>
 

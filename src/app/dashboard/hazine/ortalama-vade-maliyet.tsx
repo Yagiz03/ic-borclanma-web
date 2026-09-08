@@ -49,7 +49,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-border p-3">
-            <p className="text-xs text-muted-foreground">Sabit Getirili -- Kümülatif Ort. Vade</p>
+            <p className="text-xs text-muted-foreground">Sabit Getirili — Kümülatif Ort. Vade</p>
             <p className="font-figures text-xl font-semibold">{ay1(son.sabit_kumulatif_vade_ay)}</p>
             {onceki && (
               <p className="text-xs text-muted-foreground">
@@ -58,7 +58,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
             )}
           </div>
           <div className="rounded-lg border border-border p-3">
-            <p className="text-xs text-muted-foreground">Sabit Getirili -- Kümülatif Ort. Maliyet</p>
+            <p className="text-xs text-muted-foreground">Sabit Getirili — Kümülatif Ort. Maliyet</p>
             <p className="font-figures text-xl font-semibold">{pct2(son.sabit_kumulatif_maliyet_pct)}</p>
             {onceki && (
               <p className="text-xs text-muted-foreground">
@@ -67,7 +67,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
             )}
           </div>
           <div className="rounded-lg border border-border p-3">
-            <p className="text-xs text-muted-foreground">Nakit Borçlanma (Toplam) -- Kümülatif Ort. Vade</p>
+            <p className="text-xs text-muted-foreground">Nakit Borçlanma (Toplam) — Kümülatif Ort. Vade</p>
             <p className="font-figures text-xl font-semibold">{ay1(son.nakit_kumulatif_vade_ay)}</p>
             <p className="text-xs text-muted-foreground">Kuponsuz Senetler + Sabit Getirili&apos;nin toplamı</p>
           </div>
@@ -107,7 +107,7 @@ export async function OrtalamaVadeMaliyetBolumu() {
           </Table>
         </div>
         <p className="text-xs text-muted-foreground">
-          Tüm değerler yıl içi KÜMÜLATİF ortalamadır (her Ocak&apos;ta sıfırlanır) -- son 5 yıl (60 ay) gösteriliyor.
+          Tüm değerler yıl içi KÜMÜLATİF ortalamadır (her Ocak&apos;ta sıfırlanır) — son 5 yıl (60 ay) gösteriliyor.
         </p>
       </CardContent>
     </Card>

@@ -184,7 +184,7 @@ async function FinansmanIlerlemeBolumu() {
           </div>
           {veri.bazıAylarArsivdeYok && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Bazı aylar için strateji belgesi arşivlenmemiş -- sadece son birkaç aylık duyuru yerelde saklı.
+              Bazı aylar için strateji belgesi arşivlenmemiş — sadece son birkaç aylık duyuru yerelde saklı.
             </p>
           )}
         </div>
@@ -444,7 +444,7 @@ export default function IhaleDetayPage() {
       <div>
         <h1 className="text-2xl font-semibold">İhale Detay</h1>
         <p className="text-sm text-muted-foreground">
-          Gerçekleşen tüm Hazine ihalelerinin sonuçları -- en yeniden eskiye.
+          Gerçekleşen tüm Hazine ihalelerinin sonuçları — en yeniden eskiye.
         </p>
       </div>
 
