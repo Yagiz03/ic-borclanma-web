@@ -70,7 +70,13 @@ export default async function TakvimPage({
     const gun = Number(t.tarih.slice(8, 10));
     (gunler[gun] ??= []).push({ etiket: t.tur, renk: RENK[t.tur] ?? "bg-muted-foreground", detay: "" });
   }
+  // Aynı ihraç birden çok strateji belgesinden gelebiliyor -- ızgarada iki
+  // kez görünmesin diye tekilleştiriliyor.
+  const gorulenIhrac = new Set<string>();
   for (const i of ihrac ?? []) {
+    const anahtar = `${i.tarih}|${i.yontem}|${i.senet_turu}|${i.vade}|${i.itfa_tarihi ?? ""}`;
+    if (gorulenIhrac.has(anahtar)) continue;
+    gorulenIhrac.add(anahtar);
     const gun = Number(i.tarih.slice(8, 10));
     const kisaYontem = i.yontem.startsWith("İhale") ? "İhale" : "Doğrudan Satış";
     (gunler[gun] ??= []).push({

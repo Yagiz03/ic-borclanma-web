@@ -107,10 +107,20 @@ export type YaklasanIhale = { tarihD: Date; tarih: string; senet_turu: string; v
 export function yaklasanIhaleleriBul(takvim: TakvimSatiri[], bugun: Date): YaklasanIhale[] {
   const yil = bugun.getFullYear();
   const ay = bugun.getMonth();
+  // ihrac_takvimi arka arkaya yayımlanan strateji belgelerinin hepsini
+  // biriktirdiği için aynı ihale birden çok satır olabiliyor -- listede iki
+  // kez görünmesin diye (tarih + senet + vade + itfa) ile tekilleştiriliyor.
+  const gorulen = new Set<string>();
   return takvim
     .filter((r) => r.yontem?.startsWith("İhale"))
     .map((r) => ({ ...r, tarihD: trTarihAyristir(r.tarih) }))
     .filter((r): r is TakvimSatiri & { tarihD: Date } => r.tarihD != null && r.tarihD.getFullYear() === yil && r.tarihD.getMonth() === ay)
+    .filter((r) => {
+      const anahtar = `${r.tarih}|${r.senet_turu}|${r.vade}|${r.itfa_tarihi ?? ""}`;
+      if (gorulen.has(anahtar)) return false;
+      gorulen.add(anahtar);
+      return true;
+    })
     .sort((a, b) => a.tarihD.getTime() - b.tarihD.getTime())
     .map((r) => ({ tarihD: r.tarihD, tarih: r.tarih, senet_turu: r.senet_turu, vade: r.vade }));
 }

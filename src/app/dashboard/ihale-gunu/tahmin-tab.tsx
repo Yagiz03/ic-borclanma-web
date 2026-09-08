@@ -164,12 +164,25 @@ export function TahminTab({
   // tablosu verilince Ekim/Kasım ihaleleri de "Bu ayın ihale dağılımı
   // tahmini" tablosuna sızıyordu (Python tarafı ay_label ile o ayın
   // satırlarını alıyor).
+  //
+  // TEKİLLEŞTİRME de burada: Python tarafı TEK bir strateji belgesinin
+  // ihraç takvimini okuyor, bizim ihrac_takvimi tablosu ise arka arkaya
+  // yayımlanan belgelerin hepsini biriktiriyor -- aynı ihale birden çok
+  // satır oluyordu. Bu sadece tabloyu tekrarlamıyor, AĞIRLIKLARI da
+  // bozuyordu (aynı ihale iki kez sayılınca yüzdelikler kayıyor).
   const ayinTakvimi = useCallback(
-    (hedefYil: number, hedefAy: number) =>
-      takvim.filter((r) => {
+    (hedefYil: number, hedefAy: number) => {
+      const onEk = `${hedefYil}-${String(hedefAy).padStart(2, "0")}`;
+      const gorulen = new Set<string>();
+      return takvim.filter((r) => {
         const t = String(r.tarih).slice(0, 10);
-        return t.startsWith(`${hedefYil}-${String(hedefAy).padStart(2, "0")}`);
-      }),
+        if (!t.startsWith(onEk)) return false;
+        const anahtar = `${t}|${r.yontem}|${r.senet_turu}|${r.vade}|${r.itfa_tarihi ?? ""}`;
+        if (gorulen.has(anahtar)) return false;
+        gorulen.add(anahtar);
+        return true;
+      });
+    },
     [takvim],
   );
 
