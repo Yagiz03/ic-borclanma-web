@@ -430,14 +430,15 @@ export default async function DibsDetayPage({
                   {siraliIhale.map((h, i) => (
                     <KaynakSatiri key={i} url={h.kaynak_url} ilkHucre={h.ihale_tarihi}>
                       <TableCell className="whitespace-nowrap">
-                        {h.ihrac_tipi ?? "–"}
-                        {h.arsivMi && (
+                        {h.arsivMi ? (
                           <span
-                            className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                            title="Eski HMB arşivinden (HTML/OCR) — bu duyurularda oran/tutar detayı yok, sadece ihale tarihi ve kaynak var."
+                            className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground"
+                            title="Eski HMB arşivinden (HTML/OCR) — bu duyurularda oran/tutar dökümü yok, sadece ihale tarihi ve kaynak belgesi var."
                           >
-                            arşiv
+                            {h.ihrac_tipi ?? "arşiv kaydı"}
                           </span>
+                        ) : (
+                          (h.ihrac_tipi ?? "–")
                         )}
                       </TableCell>
                       <TableCell className="font-figures text-right">{sayi(h.toplam_teklif_mn, 1)}</TableCell>
