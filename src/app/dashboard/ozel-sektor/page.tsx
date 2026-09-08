@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OstGunlukIslemler } from "./ost-gunluk-islemler";
 import { OstIhracciProfili } from "./ost-ihracci-profili";
+import { VeriGuncelleButonu } from "./veri-guncelle-butonu";
 
 function turkceKisimAyikla(v: string | null): string | null {
   return v ? v.split("/")[0].trim() : v;
@@ -65,13 +66,16 @@ export default async function OzelSektorPage({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
         <h1 className="text-2xl font-semibold">Özel sektör tahvilleri</h1>
         <p className="text-sm text-muted-foreground">
           Kurumsal (özel sektör) borçlanma araçları — BIST&apos;in resmi &quot;İşlem Gören Borçlanma
           Araçlarına İlişkin Bilgiler&quot; listesindeki MK Türü&apos;ne göre sınıflandırılıyor. BIST Kesin Alım
           Satım Pazarı&apos;nda o gün işlem görenler.
         </p>
+        </div>
+        <VeriGuncelleButonu />
       </div>
 
       {error && <p className="text-sm text-destructive">{error.message}</p>}
