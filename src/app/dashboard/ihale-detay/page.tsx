@@ -81,22 +81,29 @@ async function FinansmanIlerlemeBolumu() {
         <div className="grid gap-6 md:grid-cols-5">
           <div className="md:col-span-3">
             <h3 className="mb-2 text-sm font-semibold">Bu ay hangi kağıttan ne kadar geldi</h3>
-            {veri.kagitlar.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Bu ay henüz gerçekleşen ihale yok.</p>
-            ) : (
-              <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
-                <Table>
-                  <TableHeader>
+            {/* Ay içinde henüz ihale olmadığında da tablo (başlıklarıyla)
+                gösteriliyor; sadece gövdesi boş kalıyor. Önce tablo tamamen
+                gizlenip yerine tek satır yazı çıkıyordu. */}
+            <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tarih</TableHead>
+                    <TableHead>ISIN</TableHead>
+                    <TableHead>Senet</TableHead>
+                    <TableHead className="text-right">Kamu Kurumları (Mlr TL)</TableHead>
+                    <TableHead className="text-right">Piyasa Yapıcılar (Mlr TL)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {veri.kagitlar.length === 0 ? (
                     <TableRow>
-                      <TableHead>Tarih</TableHead>
-                      <TableHead>ISIN</TableHead>
-                      <TableHead>Senet</TableHead>
-                      <TableHead className="text-right">Kamu Kurumları (Mlr TL)</TableHead>
-                      <TableHead className="text-right">Piyasa Yapıcılar (Mlr TL)</TableHead>
+                      <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                        Bu ay henüz gerçekleşen ihale yok.
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {veri.kagitlar.map((k, i) => (
+                  ) : (
+                    veri.kagitlar.map((k, i) => (
                       <TableRow key={i}>
                         <TableCell className="font-figures whitespace-nowrap">{k.ihale_tarihi}</TableCell>
                         <TableCell className="font-figures">
@@ -112,11 +119,11 @@ async function FinansmanIlerlemeBolumu() {
                         <TableCell className="font-figures text-right">{milyarTl(k.kamu_kurumlari_mn)}</TableCell>
                         <TableCell className="font-figures text-right">{milyarTl(k.piyasa_yapicilar_mn)}</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           <div className="md:col-span-2">
