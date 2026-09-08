@@ -15,11 +15,11 @@ export function tarihUtc(yil: number, ay: number, gun: number): Date {
   return new Date(Date.UTC(yil, ay - 1, gun));
 }
 
-function gunFarki(a: Date, b: Date): number {
+export function gunFarki(a: Date, b: Date): number {
   return Math.round((a.getTime() - b.getTime()) / 86_400_000);
 }
 
-function gunEkle(t: Date, gun: number): Date {
+export function gunEkle(t: Date, gun: number): Date {
   return new Date(t.getTime() + gun * 86_400_000);
 }
 

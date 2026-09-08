@@ -19,6 +19,18 @@ import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  FrnFiyatlama,
+  TlrefFiyatlama,
+  TufeFiyatlama,
+  useFloaterSeriler,
+  type FloaterVeri,
+} from "./floater-hesaplayici";
+
+export const SABIT_TIPLER = ["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili"];
+export const TLREF_TIPI = "TLREF'e Endeksli Devlet Tahvili";
+export const TUFE_TIPI = "TÜFE'ye Endeksli Devlet Tahvili";
+export const FRN_TIPI = "Değişken Faizli Devlet Tahvili";
 
 export type FiyatlanabilirKagit = {
   isin: string;
@@ -26,6 +38,8 @@ export type FiyatlanabilirKagit = {
   vade: string; // DD.MM.YYYY ya da ISO -- utcTarihe ile parse edilir
   anchor: string;
   kuponOraniPct: number; // örn. 12.6 (= %12.6)
+  kuponPeriyotGun: number; // floater'larda 91 / 182 -- sabit kuponluda kullanılmaz
+  periyotResmiMi: boolean; // resmi ihraç duyurusundan mı geldi
 };
 
 const bugunIso = () => new Date().toISOString().slice(0, 10);
@@ -42,16 +56,24 @@ function SonucKart({ etiket, deger, birim = "" }: { etiket: string; deger: strin
   );
 }
 
-export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit[] }) {
+export function PricingHesaplayici({
+  kagitlar,
+  floaterVeri,
+}: {
+  kagitlar: FiyatlanabilirKagit[];
+  floaterVeri: FloaterVeri;
+}) {
   const [isin, setIsin] = useState(kagitlar[0]?.isin ?? "");
   const [valorStr, setValorStr] = useState(bugunIso());
   const [mod, setMod] = useState<"fiyat" | "getiri">("getiri");
   const [girdi, setGirdi] = useState("35.00");
 
   const kagit = kagitlar.find((k) => k.isin === isin);
+  const { tlrefSeri, tufeSeri, referansIhaleler } = useFloaterSeriler(floaterVeri);
+  const sabitMi = !kagit || SABIT_TIPLER.includes(kagit.senetTanimi);
 
   const sonuc = useMemo(() => {
-    if (!kagit) return null;
+    if (!kagit || !SABIT_TIPLER.includes(kagit.senetTanimi)) return null;
     const vade = utcTarihe(kagit.vade);
     const anchor = utcTarihe(kagit.anchor);
     const valor = utcTarihe(valorStr);
@@ -85,7 +107,7 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
   }, [kagit, valorStr, mod, girdi]);
 
   const kuponOdemeleri = useMemo(() => {
-    if (!kagit) return null;
+    if (!kagit || !SABIT_TIPLER.includes(kagit.senetTanimi)) return null;
     const vade = utcTarihe(kagit.vade);
     const anchor = utcTarihe(kagit.anchor);
     if (!vade || !anchor) return null;
@@ -110,7 +132,7 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
                 emptyText="Eşleşen kağıt yok."
                 options={kagitlar.map((k) => ({
                   value: k.isin,
-                  label: `${k.isin} — ${k.senetTanimi} (kupon %${k.kuponOraniPct.toFixed(2)})`,
+                  label: `${k.isin} — ${k.senetTanimi}`,
                   keywords: k.isin,
                 }))}
               />
@@ -121,7 +143,7 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
             </div>
           </div>
 
-          <div className="flex flex-wrap items-end gap-4">
+          <div className={`flex flex-wrap items-end gap-4 ${sabitMi ? "" : "hidden"}`}>
             <div className="flex gap-1 rounded-md border border-input p-1">
               <Button
                 type="button"
@@ -161,7 +183,17 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
         </div>
       )}
 
-      {!sonuc ? (
+      {kagit && !sabitMi && (
+        <FloaterBolumu
+          kagit={kagit}
+          valorStr={valorStr}
+          tlrefSeri={tlrefSeri}
+          tufeSeri={tufeSeri}
+          referansIhaleler={referansIhaleler}
+        />
+      )}
+
+      {!sabitMi ? null : !sonuc ? (
         <p className="text-sm text-muted-foreground">
           Geçerli bir valör tarihi ve değer gir (valör, son kupon/vade tarihinden önce olmalı).
         </p>
@@ -178,13 +210,14 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
-        Hesap tarayıcıda anlık çalışır (sunucu round-trip'i yok) — Actual/365 bileşik iskonto, 182 günlük
-        (6 aylık) kupon periyodu varsayımıyla. Sadece sabit kuponlu / kuponsuz kağıtlar için geçerli --
-        TLREF/TÜFE/Değişken Faizli kağıtların floater formülleri henüz portlanmadı.
-      </p>
+      {sabitMi && (
+        <p className="text-xs text-muted-foreground">
+          Hesap tarayıcıda anlık çalışır (sunucu round-trip&apos;i yok) — Actual/365 bileşik iskonto,
+          182 günlük (6 aylık) kupon periyodu varsayımıyla.
+        </p>
+      )}
 
-      <Card>
+      <Card className={sabitMi ? "" : "hidden"}>
         <CardHeader>
           <CardTitle>Kupon ödemeleri</CardTitle>
         </CardHeader>
@@ -210,7 +243,7 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
                       <TableRow key={i}>
                         <TableCell className="font-figures">{a.tarih.toLocaleDateString("tr-TR", { timeZone: "UTC" })}</TableCell>
                         <TableCell className="font-figures text-right">{a.tutar.toFixed(3)}</TableCell>
-                        <TableCell>{a.tarih.getTime() <= Date.now() ? "Ödendi" : "Yaklaşan"}</TableCell>
+                        <TableCell>{a.tarih.getTime() <= new Date().getTime() ? "Ödendi" : "Yaklaşan"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -222,4 +255,74 @@ export function PricingHesaplayici({ kagitlar }: { kagitlar: FiyatlanabilirKagit
       </Card>
     </div>
   );
+}
+
+
+/** Kağıt tipine göre doğru floater bölümünü render eder. */
+function FloaterBolumu({
+  kagit,
+  valorStr,
+  tlrefSeri,
+  tufeSeri,
+  referansIhaleler,
+}: {
+  kagit: FiyatlanabilirKagit;
+  valorStr: string;
+  tlrefSeri: Parameters<typeof TlrefFiyatlama>[0]["seri"];
+  tufeSeri: Parameters<typeof TufeFiyatlama>[0]["tufeSeri"];
+  referansIhaleler: Parameters<typeof FrnFiyatlama>[0]["referansIhaleler"];
+}) {
+  const vade = utcTarihe(kagit.vade);
+  const ihrac = utcTarihe(kagit.anchor);
+  const valor = utcTarihe(valorStr);
+  if (!vade || !ihrac || !valor) {
+    return <p className="text-sm text-muted-foreground">Geçerli bir valör tarihi gir.</p>;
+  }
+
+  if (kagit.senetTanimi === TLREF_TIPI) {
+    return (
+      <div className="space-y-3">
+        {!kagit.periyotResmiMi && (
+          <p className="text-xs text-amber-600 dark:text-amber-500">
+            Kupon periyodu bu ISIN için resmi ihraç duyurusundan okunamadı; {kagit.kuponPeriyotGun}{" "}
+            gün varsayıldı.
+          </p>
+        )}
+        <TlrefFiyatlama
+          seri={tlrefSeri}
+          ilkIhrac={ihrac}
+          vade={vade}
+          valor={valor}
+          periyotGun={kagit.kuponPeriyotGun}
+        />
+      </div>
+    );
+  }
+
+  if (kagit.senetTanimi === FRN_TIPI) {
+    return (
+      <FrnFiyatlama
+        referansIhaleler={referansIhaleler}
+        ilkIhrac={ihrac}
+        vade={vade}
+        valor={valor}
+        periyotGun={kagit.kuponPeriyotGun === 91 ? 182 : kagit.kuponPeriyotGun}
+      />
+    );
+  }
+
+  if (kagit.senetTanimi === TUFE_TIPI) {
+    return (
+      <TufeFiyatlama
+        tufeSeri={tufeSeri}
+        vade={vade}
+        anchor={ihrac}
+        ihracTarihi={ihrac}
+        valor={valor}
+        reelKuponPct={kagit.kuponOraniPct}
+      />
+    );
+  }
+
+  return null;
 }
