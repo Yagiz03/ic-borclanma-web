@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { BosDurum } from "@/components/bos-durum";
+import { MobilKartListesi } from "@/components/mobil-kart-listesi";
+import { KolonBasligi } from "@/components/kolon-basligi";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -47,10 +49,10 @@ async function FinansmanIlerlemeBolumu() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Kalem</TableHead>
-                <TableHead className="text-right">Planlanan (Mlr TL)</TableHead>
-                <TableHead className="text-right">Gerçekleşen (Mlr TL)</TableHead>
-                <TableHead className="text-right">Kalan (Mlr TL)</TableHead>
+                <TableHead className="w-full min-w-[8rem]">Kalem</TableHead>
+                <TableHead className="text-right"><KolonBasligi ust="Planlanan" alt="Mlr TL" /></TableHead>
+                <TableHead className="text-right"><KolonBasligi ust="Gerçekleşen" alt="Mlr TL" /></TableHead>
+                <TableHead className="text-right"><KolonBasligi ust="Kalan" alt="Mlr TL" /></TableHead>
                 <TableHead className="text-right">İlerleme</TableHead>
               </TableRow>
             </TableHeader>
@@ -88,8 +90,8 @@ async function FinansmanIlerlemeBolumu() {
                     <TableHead>Tarih</TableHead>
                     <TableHead>ISIN</TableHead>
                     <TableHead>Senet</TableHead>
-                    <TableHead className="text-right">Kamu Kurumları (Mlr TL)</TableHead>
-                    <TableHead className="text-right">Piyasa Yapıcılar (Mlr TL)</TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Kamu Kurumları" alt="Mlr TL" /></TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Piyasa Yapıcılar" alt="Mlr TL" /></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -150,11 +152,11 @@ async function FinansmanIlerlemeBolumu() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Ay</TableHead>
-                  <TableHead className="text-right">İhale Planlanan</TableHead>
-                  <TableHead className="text-right">İhale Gerçekleşen</TableHead>
-                  <TableHead className="text-right">İhale İlerleme</TableHead>
-                  <TableHead className="text-right">Kamuya Satışlar Planlanan</TableHead>
-                  <TableHead className="text-right">İhale İçi Kamu ROT</TableHead>
+                  <TableHead className="text-right"><KolonBasligi ust="İhale" alt="Planlanan" /></TableHead>
+                  <TableHead className="text-right"><KolonBasligi ust="İhale" alt="Gerçekleşen" /></TableHead>
+                  <TableHead className="text-right"><KolonBasligi ust="İhale" alt="İlerleme" /></TableHead>
+                  <TableHead className="text-right"><KolonBasligi ust="Kamuya Satışlar" alt="Planlanan" /></TableHead>
+                  <TableHead className="text-right"><KolonBasligi ust="İhale İçi" alt="Kamu ROT" /></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -282,7 +284,34 @@ async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean 
           {siraliIhaleler.length === 0 ? (
             <BosDurum baslik="Henüz ihale kaydı yok." />
           ) : (
-            <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+            <>
+            {/* Mobilde 8 sutunlu tablo yatay kaydiriyordu -- orada satir
+                basina kart. Masaustu gorunumu degismedi. */}
+            <MobilKartListesi
+              kartlar={gosterilenIhaleler.map((h) => ({
+                baslik: h.isin,
+                altBaslik: h.ihale_tarihi,
+                alanlar: [
+                  { etiket: "Tür", deger: tipHaritasi.get(h.isin) ?? "–", genis: true },
+                  { etiket: "İhraç Tipi", deger: h.ihrac_tipi ?? "–", genis: true },
+                  { etiket: "Ort. Faiz", deger: yuzde(h.ort_yillik_bilesik_gerceklesme) },
+                  { etiket: "Talep Karşılama", deger: yuzde(h.toplam_oran_pct) },
+                  {
+                    etiket: "Gerçekleşme (Mn TL)",
+                    deger:
+                      h.toplam_gerceklesme_mn != null
+                        ? Number(h.toplam_gerceklesme_mn).toLocaleString("tr-TR", { maximumFractionDigits: 0 })
+                        : "–",
+                  },
+                  {
+                    etiket: "Bid-to-Cover",
+                    deger: h.bid_to_cover != null ? Number(h.bid_to_cover).toFixed(2) : "–",
+                  },
+                ],
+              }))}
+            />
+
+            <div className="hidden max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border sm:block">
               <Table>
                 <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
@@ -326,6 +355,7 @@ async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean 
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
           {!hepsiniGoster && siraliIhaleler.length > VARSAYILAN_IHALE_SAYISI && (
             <p className="mt-3 text-xs text-muted-foreground">
@@ -425,7 +455,7 @@ async function TcmbDogrudanAlimBolumu() {
                     <TableHead>Tarih</TableHead>
                     <TableHead>ISIN</TableHead>
                     <TableHead>Senet</TableHead>
-                    <TableHead className="text-right">Alım Tutarı (Milyon TL)</TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Alım Tutarı" alt="Milyon TL" /></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

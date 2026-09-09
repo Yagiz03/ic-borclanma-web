@@ -20,6 +20,7 @@ import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolum
 import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 import { KaynakSatiri } from "@/components/kaynak-satiri";
 import { KolonBasligi } from "@/components/kolon-basligi";
+import { MobilKartListesi } from "@/components/mobil-kart-listesi";
 import { BosDurum } from "@/components/bos-durum";
 import { IhaleSeyriGrafigi } from "./ihale-seyri-grafigi";
 
@@ -353,7 +354,26 @@ export default async function DibsDetayPage({
               &quot;İhale geçmişi&quot; tablosu) farklı bir belgedir. Tarihe tıklayınca kaynak
               duyuru (PDF) yeni sekmede açılır.
             </p>
-            <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+            <>
+            <MobilKartListesi
+              kartlar={siraliDuyuru.map((d) => ({
+                baslik: d.ihale_tarihi,
+                altBaslik: d.ihrac_tipi ?? undefined,
+                url: d.kaynak_url,
+                alanlar: [
+                  { etiket: "Valör", deger: isoTarihGoster(d.valor_tarihi) },
+                  { etiket: "İtfa", deger: isoTarihGoster(d.itfa_tarihi) },
+                  { etiket: "Vade", deger: d.vade_aciklama ?? "–", genis: true },
+                  { etiket: "Resmi Kupon", deger: yuzde(d.resmi_kupon_orani_pct) },
+                  {
+                    etiket: "Ek Getiri (bp)",
+                    deger: d.ek_getiri_bp == null ? "–" : Number(d.ek_getiri_bp).toFixed(0),
+                  },
+                ],
+              }))}
+            />
+
+            <div className="hidden max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border sm:block">
               <Table>
                 <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
@@ -382,6 +402,7 @@ export default async function DibsDetayPage({
                 </TableBody>
               </Table>
             </div>
+            </>
           </CardContent>
         </Card>
       )}
@@ -407,7 +428,32 @@ export default async function DibsDetayPage({
           {siraliIhale.length === 0 ? (
             <BosDurum baslik="Bu ISIN için ihale kaydı bulunamadı." aciklama="HMB duyuru arşivinde bu kağıda ait bir ihale sonucu yok." />
           ) : (
-            <div className="max-h-[420px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+            <>
+            {/* Mobilde 14 sutunlu tablo 1287 px'e cikiyordu; orada satir
+                basina kart gosteriliyor. Masaustu gorunumu degismedi. */}
+            <MobilKartListesi
+              kartlar={siraliIhale.map((h) => ({
+                baslik: h.ihale_tarihi,
+                altBaslik: h.ihrac_tipi ?? (h.arsivMi ? "arşiv kaydı" : undefined),
+                url: h.kaynak_url,
+                alanlar: [
+                  { etiket: "Ort. Faiz", deger: yuzde(h.ort_yillik_bilesik_gerceklesme) },
+                  { etiket: "Talep Karşılama", deger: yuzde(h.toplam_oran_pct, 0) },
+                  { etiket: "Gerçekleşme (Mn TL)", deger: sayi(h.toplam_gerceklesme_mn, 1) },
+                  { etiket: "Teklif (Mn TL)", deger: sayi(h.toplam_teklif_mn, 1) },
+                  { etiket: "En Düşük Faiz", deger: yuzde(h.en_dusuk_bilesik_gerceklesme) },
+                  { etiket: "En Yüksek Faiz", deger: yuzde(h.en_yuksek_bilesik_gerceklesme) },
+                  { etiket: "Ort. Fiyat", deger: sayi(h.ort_fiyat_gerceklesme, 3) },
+                  { etiket: "Tail (bps)", deger: sayi(h.tail_bps, 1) },
+                  { etiket: "ROT Payı", deger: yuzde(h.rot_pay_toplam_pct, 1) },
+                  { etiket: "İhraç Sonrası Stok", deger: sayi(h.ihrac_sonrasi_stok_mn, 1) },
+                  { etiket: "İlk 3 Katılımcı", deger: yuzde(h.top3_katilimci_pay_pct, 1) },
+                  { etiket: "İlk 5 Katılımcı", deger: yuzde(h.top5_katilimci_pay_pct, 1) },
+                ],
+              }))}
+            />
+
+            <div className="hidden max-h-[420px] overflow-y-auto overflow-x-auto rounded-lg border border-border sm:block">
               <Table>
                 <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
@@ -485,6 +531,7 @@ export default async function DibsDetayPage({
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
 
           {ihaleSeyri.length > 1 && (
