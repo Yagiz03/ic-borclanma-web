@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "duman": "node scripts/duman-testi.mjs",
     "rls": "node scripts/rls-dogrula.mjs"
   },
   "dependencies": {

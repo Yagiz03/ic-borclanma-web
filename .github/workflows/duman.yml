@@ -1,0 +1,23 @@
+# Canlı sitenin sayfa duman testi.
+#
+# test.yml derleme + birim testleri koşuyor ama Supabase kimlik bilgisi
+# olmadığı için GERÇEK sayfa çıktısını göremiyor: bir sorgu düşse ya da bir
+# sütun adı değişse build yine yeşil olur, sayfa canlıda boş gelir. Bu
+# workflow deploy'dan SONRAKİ hâli çekip kontrol ediyor.
+name: Duman testi (canlı)
+
+on:
+  schedule:
+    # Gece pipeline'ı bittikten sonra: her gün 06:00 TSİ (03:00 UTC).
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  duman:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/duman-testi.mjs
