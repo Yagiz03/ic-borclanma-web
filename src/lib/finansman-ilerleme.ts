@@ -274,7 +274,7 @@ export async function finansmanIlerlemeVerisiGetir(
           if (d < bugunSaatsiz) return false;
           if (gerceklesmisSet.has(`${d.toDateString()}|${r.senet_turu}`)) return false;
         }
-        const anahtar = `${r.tarih}|${r.senet_turu}|${r.vade ?? ""}|${r.itfa_tarihi ?? ""}`;
+        const anahtar = `${r.tarih}|${r.senet_turu}|${r.itfa_tarihi ?? ""}`;
         if (gorulen.has(anahtar)) return false;
         gorulen.add(anahtar);
         return true;
