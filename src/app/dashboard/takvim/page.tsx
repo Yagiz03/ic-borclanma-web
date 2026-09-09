@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { globalOlaylariAyIcinBul, kapsamNotu, trEnflasyonGunu } from "@/lib/global-takvim";
+import { trTarihPadle } from "@/lib/tarih";
 
 const AY_ADLARI = [
   "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -13,15 +14,21 @@ const GUN_BASLIKLARI = ["Pzt", "Sal", "Çar", "Per", "Cum"];
 // Grafiklerle aynı palet değişkenleri -- burada sabit oklch değerleri vardı ve
 // Apple paletine (mavi) geçildiğinde takvim hâlâ eski mor tonunu gösteriyordu.
 const RENK: Record<string, string> = {
-  "PPK Toplantı Kararı": "bg-[var(--chart-1)]",
-  "Enflasyon Raporu": "bg-[var(--chart-2)]",
-  "Finansal İstikrar Raporu": "bg-[var(--chart-3)]",
-  "İhale": "bg-[var(--chart-4)]",
-  "Doğrudan Satış": "bg-[var(--chart-5)]",
-  "Türkiye Enflasyonu": "bg-[var(--chart-7)]",
+  "PPK Toplantı Kararı": "var(--chart-1)",
+  "Enflasyon Raporu": "var(--chart-2)",
+  "Finansal İstikrar Raporu": "var(--chart-3)",
+  "İhale": "var(--chart-4)",
+  "Doğrudan Satış": "var(--chart-5)",
+  "Türkiye Enflasyonu": "var(--chart-7)",
 };
 
-type Olay = { etiket: string; renk: string; detay: string };
+type Olay = {
+  etiket: string;
+  renk: string;
+  detay: string;
+  /** Hücrede etiketin altına yazılan tek satırlık öz (ISIN gibi). */
+  oz?: string;
+};
 
 function ayEkle(yil: number, ay: number, delta: number): { yil: number; ay: number } {
   let a = ay + delta;
@@ -53,9 +60,10 @@ export default async function TakvimPage({
   const oncekiYil = ay === 1 ? yil - 1 : yil;
   const oncekiAyReferans = `${oncekiYil}-${String(oncekiAy).padStart(2, "0")}-01`;
 
-  const [{ data: tcmb }, { data: ihrac }, { data: enflasyonSeriler }] = await Promise.all([
+  const [{ data: tcmb }, { data: ihrac }, { data: isinOzet }, { data: enflasyonSeriler }] = await Promise.all([
     supabase.from("tcmb_takvim").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("ihrac_takvimi").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
+    supabase.from("isin_ozet").select("isin, senet_tanimi, vade_tarihi"),
     enflasyonTarihi.getTime() <= bugun.getTime()
       ? supabase
           .from("evds_seriler")
@@ -65,10 +73,16 @@ export default async function TakvimPage({
       : Promise.resolve({ data: [] as { seri_adi: string; deger: number }[] }),
   ]);
 
+  const isinHarita = new Map<string, string>();
+  for (const r of isinOzet ?? []) {
+    const anahtar = `${r.senet_tanimi}|${trTarihPadle(r.vade_tarihi) ?? ""}`;
+    if (!isinHarita.has(anahtar)) isinHarita.set(anahtar, r.isin);
+  }
+
   const gunler: Record<number, Olay[]> = {};
   for (const t of tcmb ?? []) {
     const gun = Number(t.tarih.slice(8, 10));
-    (gunler[gun] ??= []).push({ etiket: t.tur, renk: RENK[t.tur] ?? "bg-muted-foreground", detay: "" });
+    (gunler[gun] ??= []).push({ etiket: t.tur, renk: RENK[t.tur] ?? "var(--muted-foreground)", detay: "" });
   }
   // Aynı ihraç birden çok strateji belgesinden gelebiliyor -- ızgarada iki
   // kez görünmesin diye tekilleştiriliyor.
@@ -79,10 +93,18 @@ export default async function TakvimPage({
     gorulenIhrac.add(anahtar);
     const gun = Number(i.tarih.slice(8, 10));
     const kisaYontem = i.yontem.startsWith("İhale") ? "İhale" : "Doğrudan Satış";
+    // ISIN doğrudan ihraç takviminde yok: kağıt tipi + itfa tarihinden
+    // isin_ozet'e eşleniyor (İhale Detay'daki aynı eşleme). Yeni ihraçlarda
+    // henüz ISIN yok -- o zaman bunu açıkça yazıyoruz.
+    const isin = isinHarita.get(`${i.senet_turu}|${trTarihPadle(i.itfa_tarihi) ?? ""}`);
+    const ilkIhracMi = String(i.yontem).includes("İlk ihraç");
     (gunler[gun] ??= []).push({
       etiket: `${kisaYontem}: ${i.senet_turu}`,
-      renk: RENK[kisaYontem] ?? "bg-muted-foreground",
-      detay: `${i.vade}${i.itfa_tarihi ? ` — İtfa: ${i.itfa_tarihi}` : ""}`,
+      renk: RENK[kisaYontem] ?? "var(--muted-foreground)",
+      oz: isin ?? (ilkIhracMi ? "Yeni kağıt — ISIN henüz belli değil" : undefined),
+      detay: [isin ? `ISIN: ${isin}` : null, i.vade, i.itfa_tarihi ? `İtfa: ${i.itfa_tarihi}` : null]
+        .filter(Boolean)
+        .join(" — "),
     });
   }
 
@@ -234,13 +256,27 @@ export default async function TakvimPage({
                       {gun}
                     </span>
                     <div className="mt-1.5 space-y-1">
+                      {/* Olay kutucuğu: dolu/koyu renk yerine SOLUK zemin +
+                          renkli sol çizgi ve normal metin rengi. Doygun zemin
+                          üstüne beyaz yazı hücreleri okunmaz kılıyordu (eski
+                          Streamlit takviminde de bu biçim kullanılıyordu).
+                          Metin sarmalanıyor, kırpılmıyor. */}
                       {(gunler[gun] ?? []).map((o, j) => (
                         <div
                           key={j}
                           title={o.detay}
-                          className={`rounded px-1.5 py-1 text-xs leading-snug font-medium text-white ${o.renk}`}
+                          style={{
+                            backgroundColor: `color-mix(in oklch, ${o.renk} 14%, transparent)`,
+                            borderLeftColor: o.renk,
+                          }}
+                          className="rounded-sm border-l-[3px] px-1.5 py-1 text-xs leading-snug text-foreground"
                         >
-                          {o.etiket}
+                          <span className="font-medium">{o.etiket}</span>
+                          {o.oz && (
+                            <span className="font-figures mt-0.5 block text-[11px] text-muted-foreground">
+                              {o.oz}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>

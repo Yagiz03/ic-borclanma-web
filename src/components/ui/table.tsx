@@ -75,7 +75,10 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
         // Başlıklar gövdeyle aynı boyuttaydı ve tablo "kalabalık" duruyordu.
         // Küçük + silik + harf aralıklı başlık, sayıların öne çıkmasını sağlar
         // (finansal veri tablolarının standart görünümü).
-        "h-9 px-2 text-left align-middle text-xs font-medium tracking-wide whitespace-nowrap text-muted-foreground uppercase [&:has([role=checkbox])]:pr-0",
+        // Dikey ayraç: sütunlar birbirinden ayrılınca göz satırı takip
+        // ederken kaymıyor (çok sütunlu finansal tablolarda standart).
+        // Son sütunda çizgi yok, tablo kenarı zaten var.
+        "h-9 border-r border-border/60 px-2 text-left align-middle text-xs font-medium tracking-wide whitespace-nowrap text-muted-foreground uppercase last:border-r-0 [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -88,7 +91,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "border-r border-border/60 p-2 align-middle whitespace-nowrap last:border-r-0 [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
