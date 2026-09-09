@@ -16,7 +16,7 @@ export function HeroBant({
   aksiyon?: { etiket: string; href: string };
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-xs">
+    <div className="metrik-serit rounded-2xl border border-border bg-card p-6 pt-6.5 shadow-xs">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex-1">
           <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">

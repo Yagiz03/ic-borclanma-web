@@ -15,7 +15,7 @@ export function OzetSerit({ alanlar }: { alanlar: OzetAlan[] }) {
   if (alanlar.length === 0) return null;
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="metrik-serit overflow-x-auto rounded-xl border border-border bg-card">
       <div className="flex min-w-max divide-x divide-border">
         {alanlar.map((a) => (
           <div key={a.etiket} className="min-w-44 flex-1 px-4 py-3" title={a.yardim}>

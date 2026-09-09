@@ -5,8 +5,9 @@ import Link from "next/link";
 import { CalendarDays, X } from "lucide-react";
 import type { HaftaOlayi, HaftaOzeti } from "@/lib/haftalik-olaylar";
 
-/** Bildirim ekranda kalma süresi. */
-const SURE_MS = 15_000;
+/** Bildirim ekranda kalma süresi (3 dakika -- kullanıcı isteği; haftanın
+ *  olaylarını okuyup not almaya vakit kalsın). */
+const SURE_MS = 3 * 60_000;
 /** Sayfa boyansın diye küçük bir giriş gecikmesi (bildirim sonra kayarak girer). */
 const GIRIS_GECIKMESI_MS = 400;
 /** Kayarak çıkış animasyonunun süresi. */

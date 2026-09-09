@@ -46,7 +46,7 @@ const bugunIso = () => new Date().toISOString().slice(0, 10);
 
 function SonucKart({ etiket, deger, birim = "" }: { etiket: string; deger: string; birim?: string }) {
   return (
-    <div className="rounded-md border border-border p-3">
+    <div className="metrik-serit rounded-md border border-border p-3 pt-3.5">
       <p className="text-xs text-muted-foreground">{etiket}</p>
       <p className="font-figures text-lg font-semibold">
         {deger}

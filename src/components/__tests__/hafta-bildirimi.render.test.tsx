@@ -59,12 +59,18 @@ describe("HaftaBildirimi — ihaleli hafta", () => {
     ).toHaveLength(1);
   });
 
-  it("15 saniye sonra kendiliğinden kapanır", async () => {
+  it("3 dakika sonra kendiliğinden kapanır", async () => {
     render(<HaftaBildirimi ozet={{ olaylar: ihaleOlaylari, ileriBakis: false }} />);
     await gosterilsin();
     expect(screen.getByRole("status")).toBeInTheDocument();
+    // 3 dakikadan ÖNCE hâlâ ekranda olmalı.
     await act(async () => {
-      vi.advanceTimersByTime(15_000 + 400);
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(screen.getByRole("status")).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(3 * 60_000 + 400);
     });
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });

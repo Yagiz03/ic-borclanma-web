@@ -89,8 +89,10 @@
   --accent: oklch(0.95 0.015 250);
   --accent-foreground: oklch(0.3 0.04 250);
   --destructive: oklch(0.58 0.22 25);
-  --border: oklch(0.92 0.004 260);
-  --input: oklch(0.92 0.004 260);
+  /* Eskiden 0.92 idi: tablo cizgileri ve kart kenarlari beyaza cok yakin
+     kaliyor, izgara gorunmuyordu. */
+  --border: oklch(0.86 0.006 260);
+  --input: oklch(0.86 0.006 260);
   --ring: oklch(0.55 0.18 250);
   --chart-1: oklch(0.55 0.18 250);
   --chart-2: oklch(0.66 0.19 35);
@@ -135,7 +137,7 @@
   --accent: oklch(0.27 0.02 250);
   --accent-foreground: oklch(0.96 0.003 260);
   --destructive: oklch(0.68 0.2 25);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 16%);
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.68 0.16 250);
   --chart-1: oklch(0.7 0.16 250);
@@ -188,6 +190,24 @@
 [data-slot="table-head"].text-right {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum" 1, "lnum" 1, "zero" 0;
+}
+
+/* Metrik kartlarinin ustundeki ince renkli serit -- eski Streamlit
+   surumunde her st.metric kartinin ustunde vardi ve gozu dogru yere
+   cekiyordu. Renkler temadan geliyor (koyu modda da dogru). */
+.metrik-serit {
+  position: relative;
+  overflow: hidden;
+}
+.metrik-serit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--chart-1), var(--chart-4), var(--chart-2));
+  opacity: 0.9;
 }
 
 .font-figures {
