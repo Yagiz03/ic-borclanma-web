@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronsUpDown } from "lucide-react"
 import { cn } from "cn"
 
@@ -27,6 +28,12 @@ export function Combobox({
   className?: string
 }) {
   const [open, setOpen] = React.useState(false)
+  // Acilir liste BODY'ye portal ediliyor. Sebep: Card bileseni
+  // `overflow-hidden` tasiyor (kose yuvarlatmasi icin) ve combobox'larin
+  // hepsi bir Card icinde -- liste `absolute` kalirsa kartin alt kenarindan
+  // KESILIYORDU. Kart bazina `overflow-visible` yamasi 5 ayri yerde
+  // tekrarlanir ve bir sonraki kullanimda yine kirilirdi.
+  const [konum, setKonum] = React.useState<{ top: number; left: number; width: number } | null>(null)
   const [query, setQuery] = React.useState("")
   const [highlight, setHighlight] = React.useState(0)
   const rootRef = React.useRef<HTMLDivElement>(null)
@@ -46,7 +53,9 @@ export function Combobox({
 
   React.useEffect(() => {
     function disariTiklama(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      const hedef = e.target as Node
+      const listeIcinde = listRef.current?.contains(hedef) ?? false
+      if (rootRef.current && !rootRef.current.contains(hedef) && !listeIcinde) {
         setOpen(false)
         setQuery("")
       }
@@ -60,6 +69,34 @@ export function Combobox({
       listRef.current?.querySelector(`[data-index="${highlight}"]`)?.scrollIntoView({ block: "nearest" })
     }
   }, [highlight, open])
+
+  // Girdi kutusunun ekrandaki yerine gore listeyi konumlandirir. Asagida yer
+  // yoksa yukari acilir. Sayfa kaydirilinca/pencere boyutlanınca tazelenir.
+  const konumHesapla = React.useCallback(() => {
+    const el = inputRef.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const altBosluk = window.innerHeight - r.bottom
+    const yukariAc = altBosluk < 200 && r.top > altBosluk
+    setKonum({
+      top: yukariAc ? Math.max(8, r.top - Math.min(288, r.top - 8) - 4) : r.bottom + 4,
+      left: r.left,
+      width: r.width,
+    })
+  }, [])
+
+  React.useEffect(() => {
+    if (!open) return
+    konumHesapla()
+    // capture: liste kaydirilabilir bir kapsayici icindeyse onun kaydirmasini
+    // da yakalamak icin.
+    window.addEventListener("scroll", konumHesapla, true)
+    window.addEventListener("resize", konumHesapla)
+    return () => {
+      window.removeEventListener("scroll", konumHesapla, true)
+      window.removeEventListener("resize", konumHesapla)
+    }
+  }, [open, konumHesapla])
 
   function sec(v: string) {
     onChange(v)
@@ -114,12 +151,13 @@ export function Combobox({
         <ChevronsUpDown className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
       </div>
 
-      {open && (
+      {open && konum && createPortal(
         <div
           ref={listRef}
           id={listeId}
           role="listbox"
-          className="absolute z-50 mt-1 max-h-72 w-full overflow-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+          style={{ top: konum.top, left: konum.left, width: konum.width }}
+          className="fixed z-50 max-h-72 overflow-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
         >
           {filtered.length === 0 ? (
             <p className="px-3 py-2 text-sm text-muted-foreground">{emptyText}</p>
@@ -142,7 +180,8 @@ export function Combobox({
               </button>
             ))
           )}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
