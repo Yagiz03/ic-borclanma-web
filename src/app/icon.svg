@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Türkiye Tahvil ve Bono Terminali">
+  <title>Türkiye Tahvil ve Bono Terminali</title>
+  <desc>Türk bayrağı, resmi 3:2 oranıyla. Hilal ve yıldızın koordinatları resmi
+  1200x800 çizimden birebir alınıp kare ikon alanına ölçeklendi.</desc>
+  <rect y="5.3333" width="32" height="21.3333" fill="#E30A17"/>
+  <g transform="translate(0 5.3333) scale(0.026667)">
+    <circle cx="425" cy="400" r="200" fill="#FFFFFF"/>
+    <circle cx="475" cy="400" r="160" fill="#E30A17"/>
+    <path d="M583.334 400l260.677-84.706-161.146 221.803V264.71l161.146 221.802z" fill="#FFFFFF"/>
+  </g>
+</svg>
