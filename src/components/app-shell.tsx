@@ -14,7 +14,6 @@ import {
   Coins,
   ArrowRightLeft,
   CalendarClock,
-  FlaskConical,
   Menu,
   X,
 } from "lucide-react";
@@ -33,6 +32,8 @@ type NavItem = {
 // sabitlenen sıra). Karşılaştır/P&L/İzleme Listesi orijinalde ayrı üst
 // bar sayfası değil, DİBS Detay/Pricing içinde gömülü alt-sekme -- Karşılaştır
 // DİBS Detay'ın, P&L de Bono ve Getiri Hesaplayıcı'nın alt-sekmesi (ayrı nav öğesi yok).
+// Deneysel sayfası da BİLEREK burada yok (kullanıcı isteği): üst barı meşgul
+// etmesin, sadece arama kutusundan bulunup girilsin -- bkz. global-arama.tsx.
 const anaSayfalar: NavItem[] = [
   { href: "/dashboard/ihale-detay", label: "İhale Detay", icon: Gauge },
   { href: "/dashboard/ihale-gunu", label: "İhale günü", icon: CalendarClock },
@@ -45,7 +46,6 @@ const anaSayfalar: NavItem[] = [
   { href: "/dashboard/ozel-sektor", label: "Özel sektör tahvilleri", icon: Building2 },
   { href: "/dashboard/strateji", label: "Borçlanma stratejisi", icon: FileText },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays },
-  { href: "/dashboard/deneysel", label: "Deneysel", icon: FlaskConical },
 ];
 
 function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string; onClick?: () => void }) {

@@ -70,6 +70,11 @@ const KONULAR: { baslik: string; sayfa: string; sekme?: string; hedef: string }[
 
   { baslik: "Borçlanma stratejisi", sayfa: "Borçlanma stratejisi", hedef: "/dashboard/strateji" },
   { baslik: "Takvim", sayfa: "Takvim", hedef: "/dashboard/takvim" },
+
+  // Deneysel sayfası üst barda yok (kullanıcı isteği) -- tek giriş yolu burası.
+  { baslik: "Deneysel", sayfa: "Deneysel", hedef: "/dashboard/deneysel" },
+  { baslik: "Trade Ekranı", sayfa: "Deneysel", sekme: "Trade Ekranı", hedef: "/dashboard/deneysel" },
+  { baslik: "Carry/Roll Hesaplayıcı", sayfa: "Deneysel", sekme: "Carry/Roll Hesaplayıcı", hedef: "/dashboard/deneysel" },
 ];
 
 function kucult(s: string): string {
