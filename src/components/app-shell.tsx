@@ -14,6 +14,7 @@ import {
   Coins,
   ArrowRightLeft,
   CalendarClock,
+  FlaskConical,
   Menu,
   X,
 } from "lucide-react";
@@ -44,6 +45,7 @@ const anaSayfalar: NavItem[] = [
   { href: "/dashboard/ozel-sektor", label: "Özel sektör tahvilleri", icon: Building2 },
   { href: "/dashboard/strateji", label: "Borçlanma stratejisi", icon: FileText },
   { href: "/dashboard/takvim", label: "Takvim", icon: CalendarDays },
+  { href: "/dashboard/deneysel", label: "Deneysel", icon: FlaskConical },
 ];
 
 function NavLink({ item, pathname, onClick }: { item: NavItem; pathname: string; onClick?: () => void }) {
