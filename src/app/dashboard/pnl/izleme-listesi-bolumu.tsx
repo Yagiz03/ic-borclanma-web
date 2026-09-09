@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { IzlemeCikarButonu } from "./izleme-cikar-butonu";
 import { IzlemeGrafigi, type IzlemeSerisi } from "./izleme-grafigi";
+import { sayi, yuzde } from "@/lib/bicim";
 
 // pages/izleme_listesi.py'nin karşılığı: izlenen kağıtların kartları
 // (temiz fiyat / bileşik getiri / vade) + BIST fiyat karşılaştırma grafiği.
@@ -81,13 +82,13 @@ export async function IzlemeListesiBolumu() {
                   <div>
                     <p className="text-xs text-muted-foreground">Temiz fiyat</p>
                     <p className="font-figures text-lg font-semibold">
-                      {fiyat != null ? fiyat.toFixed(3) : "–"}
+                      {sayi(fiyat, 3)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Bileşik getiri</p>
                     <p className="font-figures text-lg font-semibold">
-                      {getiri != null ? `%${getiri.toFixed(2)}` : "–"}
+                      {yuzde(getiri)}
                     </p>
                   </div>
                 </div>

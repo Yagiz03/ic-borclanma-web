@@ -12,7 +12,7 @@ import {
 import { PozisyonEkleFormu } from "./pozisyon-ekle-formu";
 import { PozisyonSilButonu } from "./pozisyon-sil-butonu";
 import { HeroBant } from "@/components/hero-bant";
-import { sayiEsnek as paraFmt } from "@/lib/bicim";
+import { sayi, sayiEsnek as paraFmt } from "@/lib/bicim";
 
 const FIYATLANABILIR_TIPLER = new Set(["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili"]);
 
@@ -187,7 +187,7 @@ export async function PnlBolumu() {
                     </span>
                     <span>
                       <b className="text-foreground">Alış ({s.kirliKullanildi ? "kirli" : "temiz"}):</b>{" "}
-                      {(s.kirliKullanildi ? s.alisKirli! : s.alisFiyati).toFixed(3)}
+                      {sayi(s.kirliKullanildi ? s.alisKirli! : s.alisFiyati, 3)}
                     </span>
                     <span>
                       <b className="text-foreground">Alış tarihi:</b> {s.alisTarihi}
@@ -200,7 +200,7 @@ export async function PnlBolumu() {
                     <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span>
                         <b className="text-foreground">Güncel ({s.kirliKullanildi ? "kirli" : "temiz"}):</b>{" "}
-                        {(s.kirliKullanildi ? s.guncelKirli! : s.guncelFiyat).toFixed(3)}
+                        {sayi(s.kirliKullanildi ? s.guncelKirli! : s.guncelFiyat, 3)}
                       </span>
                       <span>
                         <b className="text-foreground">

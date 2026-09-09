@@ -247,10 +247,10 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
                     ? r.ihracBuyukluguMn.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
                     : "–"}
                 </TableCell>
-                <TableCell className="font-figures text-right">{r.temiz_fiyat != null ? r.temiz_fiyat.toFixed(3) : "–"}</TableCell>
-                <TableCell className="font-figures text-right">{r.ag_ort_takas_fiyati != null ? r.ag_ort_takas_fiyati.toFixed(3) : "–"}</TableCell>
+                <TableCell className="font-figures text-right">{sayi(r.temiz_fiyat, 3)}</TableCell>
+                <TableCell className="font-figures text-right">{sayi(r.ag_ort_takas_fiyati, 3)}</TableCell>
                 <TableCell className="font-figures text-right">{yuzde(r.kapanis_bilesik_getiri_pct)}</TableCell>
-                <TableCell className="font-figures text-right">{r.kirliFiyat != null ? r.kirliFiyat.toFixed(3) : "–"}</TableCell>
+                <TableCell className="font-figures text-right">{sayi(r.kirliFiyat, 3)}</TableCell>
                 <TableCell className="font-figures text-right">{sayi(r.islem_hacmi_tl)}</TableCell>
                 <TableCell className="font-figures text-right">{sayi(r.miktar)}</TableCell>
                 <TableCell className="font-figures text-xs">{r.itfa_tarihi ?? "–"}</TableCell>
