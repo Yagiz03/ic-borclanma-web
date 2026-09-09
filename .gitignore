@@ -40,7 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Ortam dosyalari asla commit edilmez -- .env.production yalnizca public
-# NEXT_PUBLIC_* degerleri tasiyordu ama ileride bir gizli anahtar eklenirse
-# sessizce repoya girmesin diye takipten cikarildi (degerler Vercel'de).
-.env.production
+# .env.production BİLEREK takipte: Vercel derlemesi NEXT_PUBLIC_SUPABASE_*
+# değerlerini buradan okuyor ve dosya takipten çıkarıldığında site 500
+# vermeye başladı. İçinde YALNIZCA public (tarayıcıya zaten inen) değerler
+# olmalı -- gizli anahtar (service_role, PAT) ASLA buraya yazılmaz, onlar
+# Vercel ortam değişkenlerinde durur.
+!.env.production
