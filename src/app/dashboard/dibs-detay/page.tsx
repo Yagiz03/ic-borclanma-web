@@ -80,7 +80,13 @@ export default async function DibsDetayPage({
   const aktifMi = (r: (typeof siraliOzet)[number]) =>
     r.bist_son_tarih != null && String(r.bist_son_tarih).slice(0, 10) >= onGunOnce;
   const KIYASLANABILIR = ["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili", "Hazine Bonosu"];
+  // Sayfa parametresiz açıldığında hep aynı kağıtla açılsın (kullanıcı
+  // isteği): TRT051033T12 -- uzun vadeli, düzenli işlem gören, ihale geçmişi
+  // ve duyuru arşivi dolu bir benchmark. Aşağıdaki zincir OLDUĞU GİBİ duruyor:
+  // kağıt itfa olur ya da bir gün listeden düşerse sayfa boş açılmasın diye.
+  const SABIT_VARSAYILAN = "TRT051033T12";
   const varsayilan =
+    siraliOzet.find((r) => r.isin === SABIT_VARSAYILAN) ??
     siraliOzet.find((r) => aktifMi(r) && KIYASLANABILIR.includes(r.senet_tanimi ?? "")) ??
     siraliOzet.find((r) => aktifMi(r)) ??
     siraliOzet.find((r) => r.bist_son_tarih != null) ??
