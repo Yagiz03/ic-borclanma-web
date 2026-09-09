@@ -261,6 +261,10 @@ export async function finansmanIlerlemeVerisiGetir(
 
   function ayIcinKalanlariBul(hedefYil: number, hedefAy: number): KalanIhaleSatiri[] {
     const bugunSaatsiz = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate());
+    // ihrac_takvimi arka arkaya yayımlanan strateji belgelerinin hepsini
+    // biriktiriyor -- aynı ihale birden çok satır olabiliyor, listede iki kez
+    // görünmesin diye tekilleştiriliyor.
+    const gorulen = new Set<string>();
     return (takvim ?? [])
       .filter((r) => {
         if (!r.yontem?.startsWith("İhale")) return false;
@@ -270,6 +274,9 @@ export async function finansmanIlerlemeVerisiGetir(
           if (d < bugunSaatsiz) return false;
           if (gerceklesmisSet.has(`${d.toDateString()}|${r.senet_turu}`)) return false;
         }
+        const anahtar = `${r.tarih}|${r.senet_turu}|${r.vade ?? ""}|${r.itfa_tarihi ?? ""}`;
+        if (gorulen.has(anahtar)) return false;
+        gorulen.add(anahtar);
         return true;
       })
       .map((r) => {
