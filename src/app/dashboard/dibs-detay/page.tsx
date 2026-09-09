@@ -348,7 +348,8 @@ export default async function DibsDetayPage({
             <p className="mb-3 text-sm text-muted-foreground">
               HMB&apos;nin ihale ÖNCESİ (genelde bir gün önce) yayımladığı duyuru — resmi kupon oranı
               ve ek getiri burada ilan edilir. İhale sonrası sonuç duyurusundan (aşağıdaki
-              &quot;İhale geçmişi&quot; tablosu) farklı bir belgedir.
+              &quot;İhale geçmişi&quot; tablosu) farklı bir belgedir. Tarihe tıklayınca kaynak
+              duyuru (PDF) yeni sekmede açılır.
             </p>
             <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
@@ -365,8 +366,7 @@ export default async function DibsDetayPage({
                 </TableHeader>
                 <TableBody>
                   {siraliDuyuru.map((d, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-figures whitespace-nowrap">{d.ihale_tarihi}</TableCell>
+                    <KaynakSatiri key={i} url={d.kaynak_url} ilkHucre={d.ihale_tarihi}>
                       <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(d.valor_tarihi)}</TableCell>
                       <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(d.itfa_tarihi)}</TableCell>
                       <TableCell>{d.vade_aciklama ?? "–"}</TableCell>
@@ -375,7 +375,7 @@ export default async function DibsDetayPage({
                       <TableCell className="font-figures text-right">
                         {d.ek_getiri_bp == null ? "–" : Number(d.ek_getiri_bp).toFixed(0)}
                       </TableCell>
-                    </TableRow>
+                    </KaynakSatiri>
                   ))}
                 </TableBody>
               </Table>
