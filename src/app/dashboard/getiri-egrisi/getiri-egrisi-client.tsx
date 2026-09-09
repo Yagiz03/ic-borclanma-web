@@ -28,6 +28,8 @@ import {
 import { nelsonSiegelFit, polinom2Fit, rvEkraniOlustur, tlrefBilesikFonlama } from "@/lib/rv-analiz";
 import { yuzde } from "@/lib/bicim";
 import { IslemGunuSecici } from "@/components/islem-gunu-secici";
+import { yumusakEksen } from "@/lib/eksen";
+import { sayiEsnek } from "@/lib/bicim";
 
 type OzetSatiri = {
   isin: string; senet_tanimi: string | null; vade_tarihi: string | null; para_birimi: string | null;
@@ -266,6 +268,19 @@ export function GetiriEgrisiClient({
   // Çubuk grafik, çizginin aksine seri başına ayrı `data` kabul etmiyor:
   // tüm karşılaştırma günleri ISIN bazında TEK veri kümesinde birleştiriliyor
   // (her karşılaştırma günü ayrı bir kolon/dataKey oluyor).
+  // Eksenler artık veriden türetilen ham sınırlar yerine yuvarlak
+  // değerlere oturuyor (bkz. lib/eksen.ts).
+  // useMemo YOK: React Compiler bunları kendisi memolar; elle useMemo
+  // yazınca "memoization could not be preserved" diye derlemeyi atlıyordu.
+  const vadeEkseni = yumusakEksen(
+    gunluk.map((r) => r.kalanVadeYil),
+    6,
+  );
+  const getiriEkseni = yumusakEksen(
+    [...gunluk.map((r) => r.getiri), ...egriler.flatMap((e) => e.veri.map((r) => r.getiri))],
+    6,
+  );
+
   const spreadVerisi = (() => {
     const satirlar = new Map<string, Record<string, string | number | null>>();
     for (const s of spreadSerileri) {
@@ -400,8 +415,8 @@ export function GetiriEgrisiClient({
               <ResponsiveContainer width="100%" height={420}>
                 <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} />
+                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
                   <Tooltip content={<NoktaTooltip />} />
                   <Scatter data={gunluk} fill="var(--chart-1)" line={{ stroke: "var(--chart-1)", strokeWidth: 2 }} lineType="joint" />
                 </ScatterChart>
@@ -492,8 +507,8 @@ export function GetiriEgrisiClient({
               <ResponsiveContainer width="100%" height={420}>
                 <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
-                  <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} />
+                  <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
                     formatter={(v) => (typeof v === "number" ? `%${v.toFixed(2)}` : v)}
@@ -520,7 +535,7 @@ export function GetiriEgrisiClient({
                 <ResponsiveContainer width="100%" height={240}>
                   <ComposedChart data={spreadVerisi} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} />
+                    <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} />
                     <YAxis type="number" unit=" bp" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={64} domain={["dataMin - 5", "dataMax + 5"]} tickFormatter={(v) => Number(v).toFixed(0)} />
                     <Tooltip
                       contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
@@ -599,8 +614,8 @@ export function GetiriEgrisiClient({
               <ResponsiveContainer width="100%" height={440}>
                 <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} allowDuplicatedCategory={false} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
+                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
                   <ZAxis dataKey="zSkoru" range={[40, 200]} />
                   <Tooltip content={<NoktaTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -690,8 +705,8 @@ export function GetiriEgrisiClient({
               <ResponsiveContainer width="100%" height={440}>
                 <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${Number(v).toFixed(1)} yıl`} domain={["dataMin - 0.2", "dataMax + 0.2"]} allowDuplicatedCategory={false} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={48} domain={["dataMin - 0.5", "dataMax + 0.5"]} />
+                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
+                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
                   <Tooltip content={<NoktaTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={nsEgriNoktalari} dataKey="egri" name="Nelson-Siegel eğrisi" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />

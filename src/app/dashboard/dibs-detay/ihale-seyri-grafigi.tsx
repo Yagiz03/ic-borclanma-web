@@ -2,6 +2,8 @@
 
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { utcTarihe } from "@/lib/tarih";
+import { yumusakEksen } from "@/lib/eksen";
+import { sayiEsnek } from "@/lib/bicim";
 
 /**
  * İhale geçmişinin zaman serisi grafikleri (gerçekleşen faiz / ihraç sonrası
@@ -24,6 +26,11 @@ export function IhaleSeyriGrafigi({
   if (veri.length < 2) {
     return <p className="text-sm text-muted-foreground">Grafik için yeterli ihale kaydı yok.</p>;
   }
+  const eksen = yumusakEksen(
+    veri.map((r) => (dataKey === "faiz" ? r.faiz : (r.stokMlr ?? NaN))),
+    5,
+  );
+
   const fmt = (v: string) => {
     const d = utcTarihe(v);
     return d ? d.toLocaleDateString("tr-TR", { timeZone: "UTC" }) : v;
@@ -42,8 +49,9 @@ export function IhaleSeyriGrafigi({
         <YAxis
           tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
           width={56}
-          domain={["dataMin - 1", "dataMax + 1"]}
-          tickFormatter={(v) => Number(v).toFixed(ondalik === 3 ? 1 : 0)}
+          domain={eksen?.domain ?? ["dataMin - 1", "dataMax + 1"]}
+          ticks={eksen?.ticks}
+          tickFormatter={(v) => sayiEsnek(v, ondalik === 3 ? 1 : 0)}
         />
         <Tooltip
           contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
