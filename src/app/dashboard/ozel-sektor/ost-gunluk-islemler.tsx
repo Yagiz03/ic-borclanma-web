@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { OzetSerit } from "@/components/ozet-serit";
 import { sayi, yuzde } from "@/lib/bicim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { KolonBasligi } from "@/components/kolon-basligi";
 import { IslemGunuSecici } from "@/components/islem-gunu-secici";
 
 const FIYAT_ANOMALI_ESIK_PCT = 3.0;
@@ -215,17 +216,34 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
           <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead>ISIN</TableHead>
-              <TableHead>İhraççı</TableHead>
+              {/* İhraççı adı en uzun metin: artan genişliği bu sütun emiyor. */}
+              <TableHead className="w-full min-w-[10rem]">İhraççı</TableHead>
               <TableHead>Tip</TableHead>
               <TableHead>Getiri Türü</TableHead>
-              <TableHead className="text-right">İhraç Büyüklüğü (Mn TL)</TableHead>
-              <TableHead className="text-right">Temiz Fiyat</TableHead>
-              <TableHead className="text-right">Takas Fiyatı</TableHead>
-              <TableHead className="text-right">Bileşik Getiri</TableHead>
-              <TableHead className="text-right">Kirli Fiyat</TableHead>
-              <TableHead className="text-right">İşlem Hacmi (TL)</TableHead>
-              <TableHead className="text-right">İşlem Hacmi (Nominal)</TableHead>
-              <TableHead>İtfa Tarihi</TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="İhraç Büyüklüğü" alt="Mn TL" />
+              </TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="Temiz" alt="Fiyat" />
+              </TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="Takas" alt="Fiyatı" />
+              </TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="Bileşik" alt="Getiri" />
+              </TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="Kirli" alt="Fiyat" />
+              </TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="İşlem Hacmi" alt="TL" />
+              </TableHead>
+              <TableHead className="text-right">
+                <KolonBasligi ust="İşlem Hacmi" alt="Nominal" />
+              </TableHead>
+              <TableHead>
+                <KolonBasligi ust="İtfa" alt="Tarihi" />
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

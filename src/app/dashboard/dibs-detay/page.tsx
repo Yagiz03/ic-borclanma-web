@@ -19,6 +19,7 @@ import { OzetSerit } from "@/components/ozet-serit";
 import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolumu";
 import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 import { KaynakSatiri } from "@/components/kaynak-satiri";
+import { KolonBasligi } from "@/components/kolon-basligi";
 import { IhaleSeyriGrafigi } from "./ihale-seyri-grafigi";
 
 
@@ -410,19 +411,45 @@ export default async function DibsDetayPage({
                 <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
-                    <TableHead>İhraç Tipi</TableHead>
-                    <TableHead className="text-right">Toplam Teklif (Mn TL)</TableHead>
-                    <TableHead className="text-right">Toplam Gerçekleşme (Mn TL)</TableHead>
-                    <TableHead className="text-right">İhraç Sonrası Stok (Mn TL)</TableHead>
-                    <TableHead className="text-right">Ort. Faiz (Bileşik)</TableHead>
-                    <TableHead className="text-right">En Düşük Faiz</TableHead>
-                    <TableHead className="text-right">En Yüksek Faiz</TableHead>
-                    <TableHead className="text-right">Ort. Fiyat</TableHead>
-                    <TableHead className="text-right">Talep Karşılama</TableHead>
-                    <TableHead className="text-right">Tail (bps)</TableHead>
-                    <TableHead className="text-right">ROT Payı</TableHead>
-                    <TableHead className="text-right">İlk 3 Katılımcı</TableHead>
-                    <TableHead className="text-right">İlk 5 Katılımcı</TableHead>
+                    {/* Metin sütunu artan genişliği emiyor -- yoksa boşluk sayı
+                        sütunlarına dağılıp ihraç tipini sıkıştırıyordu. */}
+                    <TableHead className="w-full min-w-[10rem]">İhraç Tipi</TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="Toplam Teklif" alt="Mn TL" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="Gerçekleşme" alt="Mn TL" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="İhraç Sonrası Stok" alt="Mn TL" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="Ort. Faiz" alt="Bileşik" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="En Düşük" alt="Faiz" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="En Yüksek" alt="Faiz" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="Ort. Fiyat" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="Talep" alt="Karşılama" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="Tail" alt="bps" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="ROT" alt="Payı" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="İlk 3" alt="Katılımcı" />
+                    </TableHead>
+                    <TableHead className="text-right">
+                      <KolonBasligi ust="İlk 5" alt="Katılımcı" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
