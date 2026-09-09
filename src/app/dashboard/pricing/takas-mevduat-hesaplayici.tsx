@@ -288,7 +288,7 @@ export function TakasMevduatHesaplayici({
                   {ppkPencerede.map((t) => (
                     <ReferenceLine key={t} x={t} stroke="var(--muted-foreground)" strokeDasharray="2 2" />
                   ))}
-                  <Line type="monotone" dataKey="urun" name="Mevduat" stroke="#34D399" strokeWidth={2} dot={false} connectNulls />
+                  <Line type="monotone" dataKey="urun" name="Mevduat" stroke="var(--pozitif)" strokeWidth={2} dot={false} connectNulls />
                   <Line type="monotone" dataKey="on" name="O/N repo rulo" stroke="var(--chart-5)" strokeWidth={2} dot={false} connectNulls />
                 </LineChart>
               </ResponsiveContainer>

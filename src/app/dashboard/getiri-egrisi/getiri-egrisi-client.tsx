@@ -35,7 +35,7 @@ type BistSatiri = { tarih: string; isin: string; temiz_fiyat: number | null; kap
 
 type EgriNokta = { isin: string; senetTanimi: string | null; vade: Date | null; kalanVadeYil: number; getiri: number };
 
-const RENKLER = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "oklch(0.6 0.2 200)"];
+const RENKLER = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
 const HACIM_SECENEKLERI = [
   { etiket: "Tümü", deger: 0 },
   { etiket: "≥10 milyon TL", deger: 10_000_000 },
@@ -608,8 +608,8 @@ export function GetiriEgrisiClient({
                   <Tooltip content={<NoktaTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={rvPoliSonuc?.egri ?? []} dataKey="egri" name="Uyarlanan eğri (2. derece polinom)" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
-                  <Scatter name="Ucuz (z>0)" data={rvPoli.filter((r) => r.zSkoru >= 0)} fill="#34D399" />
-                  <Scatter name="Pahalı (z<0)" data={rvPoli.filter((r) => r.zSkoru < 0)} fill="#F87171" />
+                  <Scatter name="Ucuz (z>0)" data={rvPoli.filter((r) => r.zSkoru >= 0)} fill="var(--pozitif)" />
+                  <Scatter name="Pahalı (z<0)" data={rvPoli.filter((r) => r.zSkoru < 0)} fill="var(--negatif)" />
                 </ComposedChart>
               </ResponsiveContainer>
             )}
@@ -698,8 +698,8 @@ export function GetiriEgrisiClient({
                   <Tooltip content={<NoktaTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={nsEgriNoktalari} dataKey="egri" name="Nelson-Siegel eğrisi" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
-                  <Scatter name="Ucuz (z>0)" data={rvNs.filter((r) => r.zSkoru >= 0)} fill="#34D399" />
-                  <Scatter name="Pahalı (z<0)" data={rvNs.filter((r) => r.zSkoru < 0)} fill="#F87171" />
+                  <Scatter name="Ucuz (z>0)" data={rvNs.filter((r) => r.zSkoru >= 0)} fill="var(--pozitif)" />
+                  <Scatter name="Pahalı (z<0)" data={rvNs.filter((r) => r.zSkoru < 0)} fill="var(--negatif)" />
                 </ComposedChart>
               </ResponsiveContainer>
             )}

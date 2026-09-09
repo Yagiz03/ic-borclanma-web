@@ -18,7 +18,7 @@ const RENK: Record<string, string> = {
   "Finansal İstikrar Raporu": "bg-[var(--chart-3)]",
   "İhale": "bg-[var(--chart-4)]",
   "Doğrudan Satış": "bg-[var(--chart-5)]",
-  "Türkiye Enflasyonu": "bg-[oklch(0.62_0.2_15)]",
+  "Türkiye Enflasyonu": "bg-[var(--chart-7)]",
 };
 
 type Olay = { etiket: string; renk: string; detay: string };

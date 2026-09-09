@@ -22,7 +22,10 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      // Başlık VARSAYILAN olarak sabit: uzun tablolarda (ör. 489 satırlık
+      // "Son ihaleler") kaydırınca başlık kayboluyor ve hangi sütuna
+      // bakıldığı anlaşılmıyordu. Kaydırılmayan tablolarda etkisiz.
+      className={cn("sticky top-0 z-10 bg-card [&_tr]:border-b", className)}
       {...props}
     />
   )

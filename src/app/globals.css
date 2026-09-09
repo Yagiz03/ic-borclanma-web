@@ -17,6 +17,9 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-chart-8: var(--chart-8);
+  --color-chart-7: var(--chart-7);
+  --color-chart-6: var(--chart-6);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -94,6 +97,17 @@
   --chart-3: oklch(0.6 0.18 155);
   --chart-4: oklch(0.58 0.2 300);
   --chart-5: oklch(0.72 0.18 85);
+  /* 6-8: beşten fazla serili grafikler için (TCMB stok dağılımı, sahiplik
+     kırılımı). Eskiden bunlar bileşenlerin içine gömülü hex/oklch
+     literal'iydi ve koyu modda olduğu gibi kalıyordu. */
+  --chart-6: oklch(0.55 0.18 200);
+  --chart-7: oklch(0.62 0.2 15);
+  --chart-8: oklch(0.5 0.05 260);
+  /* Yön belirten anlamsal renkler: ucuz/pahalı, kâr/zarar, artı/eksi spread.
+     Grafik serisi renkleri değil -- ayrı tutuluyor ki palet değişince
+     "yeşil = iyi" anlamı bozulmasın. */
+  --pozitif: oklch(0.6 0.16 155);
+  --negatif: oklch(0.58 0.2 25);
   --radius: 0.875rem;
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.16 0.01 260);
@@ -129,6 +143,11 @@
   --chart-3: oklch(0.68 0.15 300);
   --chart-4: oklch(0.72 0.15 155);
   --chart-5: oklch(0.75 0.16 95);
+  --chart-6: oklch(0.7 0.15 200);
+  --chart-7: oklch(0.72 0.17 15);
+  --chart-8: oklch(0.66 0.04 260);
+  --pozitif: oklch(0.72 0.15 155);
+  --negatif: oklch(0.7 0.17 25);
   --sidebar: oklch(0.19 0.006 260);
   --sidebar-foreground: oklch(0.96 0.003 260);
   --sidebar-primary: oklch(0.68 0.16 250);
@@ -162,7 +181,16 @@
   /* Finansal rakamlar (getiri, fiyat, DV01 vb.) için -- monospace +
      tabular-nums, tablodaki sayıların hizasını bozmadan okunmasını
      sağlar (bkz. göç planı: "tasarım sistemi" bölümü). */
-  .font-figures {
+  /* Sağa hizalı tablo hücreleri her zaman tabular rakam kullanır: yüzde
+   sütunlarına tek tek font-figures verilmediği için (ör. İhale Detay
+   ilerleme tabloları) sayılar satırdan satıra oynuyordu. */
+[data-slot="table-cell"].text-right,
+[data-slot="table-head"].text-right {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 0;
+}
+
+.font-figures {
     /* Monospace font DEĞİL -- Inter'in kendi tabular-figure (eş genişlikli
        rakam) OpenType özelliği kullanılıyor (bkz. :root yorumu, 07.09.2026):
        hizalama korunuyor ama "0" hiçbir tarayıcıda çizgili/noktalı çıkmıyor. */

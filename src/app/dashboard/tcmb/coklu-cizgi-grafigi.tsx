@@ -11,9 +11,9 @@ const RENKLER = [
   "var(--chart-3)",
   "var(--chart-4)",
   "var(--chart-5)",
-  "oklch(0.55 0.18 200)",
-  "oklch(0.62 0.2 15)",
-  "oklch(0.5 0.05 260)",
+  "var(--chart-6)",
+  "var(--chart-7)",
+  "var(--chart-8)",
 ];
 
 type Seri = { anahtar: string; etiket: string };
@@ -266,7 +266,7 @@ export function BarCizgiGrafigi({
         <ReferenceLine y={0} stroke="var(--border)" />
         <Bar dataKey={barDataKey} name={barEtiket}>
           {veri.map((v, i) => (
-            <Cell key={i} fill={Number(v[barDataKey]) < 0 ? "var(--chart-2)" : "oklch(0.65 0.16 155)"} />
+            <Cell key={i} fill={Number(v[barDataKey]) < 0 ? "var(--chart-2)" : "var(--pozitif)"} />
           ))}
         </Bar>
         <Line type="monotone" dataKey={cizgiDataKey} name={cizgiEtiket} stroke="var(--chart-2)" strokeWidth={2} dot={false} connectNulls />

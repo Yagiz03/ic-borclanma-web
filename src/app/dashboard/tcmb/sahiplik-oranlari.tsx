@@ -13,10 +13,10 @@ import { OzetSerit } from "@/components/ozet-serit";
 export type DibsSatiri = Record<string, string | number>;
 
 const KESIMLER = [
-  { anahtar: "dunya_geri_kalani", etiket: "Yabancı sahipliği", renk: "#F472B6" },
-  { anahtar: "tcmb", etiket: "TCMB sahipliği", renk: "#FBBF24" },
-  { anahtar: "bankalar", etiket: "Bankalar sahipliği", renk: "#34D399" },
-  { anahtar: "fonlar", etiket: "Yatırım ve emeklilik fonları sahipliği", renk: "#A78BFA" },
+  { anahtar: "dunya_geri_kalani", etiket: "Yabancı sahipliği", renk: "var(--chart-7)" },
+  { anahtar: "tcmb", etiket: "TCMB sahipliği", renk: "var(--chart-5)" },
+  { anahtar: "bankalar", etiket: "Bankalar sahipliği", renk: "var(--chart-3)" },
+  { anahtar: "fonlar", etiket: "Yatırım ve emeklilik fonları sahipliği", renk: "var(--chart-4)" },
 ] as const;
 
 const sayi = (v: number | null) =>

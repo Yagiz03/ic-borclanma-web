@@ -82,10 +82,24 @@ export default async function DibsDetayPage({
   const listelenenler = bosKagitlariGoster ? aktifler : aktifler.filter((r) => !veriYokMu(r));
 
   const siraliOzet = trTarihSirala(listelenenler, (r) => r.vade_tarihi);
+
+  // Varsayılan kağıt: en yakın vadeli olan çoğu zaman hiç işlem görmemiş bir
+  // Kamu Kira Sertifikası oluyordu -- sayfa iki boş grafik ve "ihale kaydı
+  // bulunamadı" ile açılıyordu. Bunun yerine AKTİF ve KIYASLANABİLİR bir
+  // benchmark kağıt seçiliyor: son 10 günde işlem görmüş, TL, sabit
+  // kuponlu/kuponsuz olanların en yakın vadelisi. Bulunamazsa kademeli gevşer.
+  const onGunOnce = new Date(bugunMs - 10 * 86_400_000).toISOString().slice(0, 10);
+  const aktifMi = (r: (typeof siraliOzet)[number]) =>
+    r.bist_son_tarih != null && String(r.bist_son_tarih).slice(0, 10) >= onGunOnce;
+  const KIYASLANABILIR = ["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili", "Hazine Bonosu"];
+  const varsayilan =
+    siraliOzet.find((r) => aktifMi(r) && KIYASLANABILIR.includes(r.senet_tanimi ?? "")) ??
+    siraliOzet.find((r) => aktifMi(r)) ??
+    siraliOzet.find((r) => r.bist_son_tarih != null) ??
+    siraliOzet[0];
   // URL'de gizlenmiş bir kağıt istenmişse (ör. aramadan gelen bağlantı) yine
   // de gösteriliyor -- filtre listeyi kısaltmak için, erişimi kapatmak için değil.
-  const secilen =
-    ozetHam.find((r) => r.isin === secilenParam) ?? siraliOzet[0] ?? ozetHam[0];
+  const secilen = ozetHam.find((r) => r.isin === secilenParam) ?? varsayilan ?? ozetHam[0];
 
   const [
     { data: ihaleler },

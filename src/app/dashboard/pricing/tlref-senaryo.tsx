@@ -190,7 +190,7 @@ export function TlrefSenaryoAnalizi({
               {ufukIciPpk.map((t) => (
                 <ReferenceLine key={t} x={t} stroke="var(--chart-4)" strokeDasharray="3 3" />
               ))}
-              <ReferenceLine x={sonuc.kuponIso} stroke="#34D399" strokeDasharray="3 3" />
+              <ReferenceLine x={sonuc.kuponIso} stroke="var(--pozitif)" strokeDasharray="3 3" />
               <Area
                 type="monotone"
                 dataKey="birikmis"
