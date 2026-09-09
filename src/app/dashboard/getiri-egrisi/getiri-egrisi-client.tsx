@@ -27,6 +27,7 @@ import {
 } from "@/lib/bond-math/tahvil-fiyatlama";
 import { nelsonSiegelFit, polinom2Fit, rvEkraniOlustur, tlrefBilesikFonlama } from "@/lib/rv-analiz";
 import { yuzde } from "@/lib/bicim";
+import { IslemGunuSecici } from "@/components/islem-gunu-secici";
 
 type OzetSatiri = {
   isin: string; senet_tanimi: string | null; vade_tarihi: string | null; para_birimi: string | null;
@@ -358,14 +359,12 @@ export function GetiriEgrisiClient({
               </select>
             </div>
             {mod === "kapanis" && (
-              <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground" htmlFor="ge-tarih">Tarih</label>
-                <select id="ge-tarih" value={seciliTarih} onChange={(e) => setSeciliTarih(e.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm font-figures">
-                  {tarihler.map((t) => (
-                    <option key={t} value={t}>{tarihFmt(t)}</option>
-                  ))}
-                </select>
-              </div>
+              <IslemGunuSecici
+                id="ge-tarih"
+                tarihler={tarihler}
+                deger={seciliTarih}
+                onChange={setSeciliTarih}
+              />
             )}
           </div>
 

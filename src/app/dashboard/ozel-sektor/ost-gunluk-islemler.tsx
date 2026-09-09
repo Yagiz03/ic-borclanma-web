@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { OzetSerit } from "@/components/ozet-serit";
 import { sayi, yuzde } from "@/lib/bicim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { isoTarihGoster } from "@/lib/tarih";
+import { IslemGunuSecici } from "@/components/islem-gunu-secici";
 
 const FIYAT_ANOMALI_ESIK_PCT = 3.0;
 const GETIRI_ANOMALI_ESIK_BPS = 300.0;
@@ -167,19 +167,12 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-muted-foreground" htmlFor="ost-tarih">Tarih</label>
-        <select
-          id="ost-tarih"
-          value={seciliTarih}
-          onChange={(e) => setSeciliTarih(e.target.value)}
-          className="rounded-md border border-input bg-background px-2 py-1 text-sm font-figures"
-        >
-          {tarihler.map((t) => (
-            <option key={t} value={t}>{isoTarihGoster(t)}</option>
-          ))}
-        </select>
-      </div>
+      <IslemGunuSecici
+        id="ost-tarih"
+        tarihler={tarihler}
+        deger={seciliTarih}
+        onChange={setSeciliTarih}
+      />
 
       {anomaliGercek.length > 0 && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
