@@ -37,7 +37,11 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+        // font-semibold: sayfa boyunca ELLE yazilan bolum basliklari
+        // (h2/h3) hep font-semibold; CardTitle font-medium kalinca kart
+        // basliklari yanlarindaki duz bolum basliklarindan zayif duruyordu.
+        // Olcek zaten tutarli (h2 = text-lg, kart/h3 = text-base).
+        "font-heading text-base leading-snug font-semibold group-data-[size=sm]/card:text-sm",
         className
       )}
       {...props}

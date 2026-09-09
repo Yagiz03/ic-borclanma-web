@@ -281,7 +281,7 @@ export function TahminTab({
         {gelecekAcik && (
           <div className="border-t border-border p-4">
             {dagilimGelecek.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Gelecek ay için henüz arşivlenmiş bir strateji planı/ihraç takvimi yok.</p>
+              <BosDurum baslik="Gelecek ay için plan yok." aciklama="HMB henüz gelecek ayın strateji planını/ihraç takvimini yayımlamadı." />
             ) : (
               <DagilimTablosu dagilim={dagilimGelecek} ihale={ihale} />
             )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { BosDurum } from "@/components/bos-durum";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -264,7 +265,7 @@ export function EmirlerimTab({ takipler, kesmeOnerileri }: { takipler: Track[]; 
     <div className="space-y-4">
       <YeniTakipFormu />
       {takipler.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Henüz takip edilen bir ihale emri yok.</p>
+        <BosDurum baslik="Henüz takip edilen bir ihale emri yok." aciklama="Yukarıdan bir ihale seçip emirlerini girerek takibe başlayabilirsin." />
       ) : (
         takipler.map((t) => <TakipKarti key={t.id} takip={t} oneri={kesmeOnerileri[t.isin] ?? null} />)
       )}

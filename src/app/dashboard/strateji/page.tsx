@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { BosDurum } from "@/components/bos-durum";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default async function StratejiPage() {
@@ -29,7 +30,7 @@ export default async function StratejiPage() {
       {!rapor ? (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Henüz fark raporu yok.</p>
+            <BosDurum baslik="Henüz fark raporu yok." aciklama="İki strateji belgesi arasında karşılaştırma yapıldığında burada listelenir." />
           </CardContent>
         </Card>
       ) : (

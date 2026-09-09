@@ -94,7 +94,7 @@ export async function TcmbApiPortfoyuBolumu() {
     .filter((r) => (utcTarihe(r.vadeTarihi)?.getTime() ?? 0) > bugunUtc);
 
   if (outstandingHam.length === 0) {
-    return <p className="text-sm text-muted-foreground">Vadesi gelmemiş TCMB doğrudan alımı bulunamadı.</p>;
+    return <BosDurum baslik="Vadesi gelmemiş TCMB doğrudan alımı bulunamadı." />;
   }
 
   const toplamNominal = outstandingHam.reduce((s, r) => s + r.nominalMn, 0);

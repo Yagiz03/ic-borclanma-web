@@ -187,7 +187,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
             </div>
 
             {gunVerisi.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Seçilen tarihte veri yok.</p>
+              <BosDurum baslik="Seçilen tarihte veri yok." aciklama="Başka bir işlem günü seçmeyi deneyin." />
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">

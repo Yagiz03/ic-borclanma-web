@@ -20,6 +20,7 @@ import { KarsilastirBolumu } from "@/app/dashboard/karsilastir/karsilastir-bolum
 import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 import { KaynakSatiri } from "@/components/kaynak-satiri";
 import { KolonBasligi } from "@/components/kolon-basligi";
+import { BosDurum } from "@/components/bos-durum";
 import { IhaleSeyriGrafigi } from "./ihale-seyri-grafigi";
 
 
@@ -404,7 +405,7 @@ export default async function DibsDetayPage({
             )}
           </p>
           {siraliIhale.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Bu ISIN için ihale kaydı bulunamadı.</p>
+            <BosDurum baslik="Bu ISIN için ihale kaydı bulunamadı." aciklama="HMB duyuru arşivinde bu kağıda ait bir ihale sonucu yok." />
           ) : (
             <div className="max-h-[420px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>

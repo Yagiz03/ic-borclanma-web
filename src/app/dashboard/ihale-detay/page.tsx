@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BosDurum } from "@/components/bos-durum";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -233,7 +234,7 @@ async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean 
         </summary>
         <div className="border-t border-border px-4 pb-4 pt-3">
           {sonIhaleler.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Henüz ihale kaydı yok.</p>
+            <BosDurum baslik="Henüz ihale kaydı yok." />
           ) : (
             <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
@@ -279,7 +280,7 @@ async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean 
         <CardContent className="pt-6">
           {error && <p className="text-sm text-destructive">{error.message}</p>}
           {siraliIhaleler.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Henüz ihale kaydı yok.</p>
+            <BosDurum baslik="Henüz ihale kaydı yok." />
           ) : (
             <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
