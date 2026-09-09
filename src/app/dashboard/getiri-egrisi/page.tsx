@@ -25,6 +25,15 @@ export default async function GetiriEgrisiPage() {
   const isinOzet = ozetHam.filter((r) => !r.para_birimi || r.para_birimi === "TRY");
   const isinListesi = isinOzet.map((r) => r.isin);
 
+  // Sayfa, tarih değiştirince sunucuya gitmeden anında çizebilmek için BIST
+  // satırlarını HTML'e gömüyor. Tüm geçmiş gömülünce bu 22.300 satır / ~3 MB
+  // oluyordu ve sayfa 8 saniyede açılıyordu. Karşılaştırma hazır seçenekleri
+  // en fazla 3 ay geriye gittiğinden 2 yıllık pencere fazlasıyla yeterli;
+  // yük üçte birine iniyor, etkileşim yine anında.
+  const pencereBaslangic = new Date();
+  pencereBaslangic.setFullYear(pencereBaslangic.getFullYear() - 2);
+  const pencereIso = pencereBaslangic.toISOString().slice(0, 10);
+
   const [{ data: bist }, { data: tlrefHam }] = await Promise.all([
     isinListesi.length
       ? tumSatirlariGetir<{
@@ -35,6 +44,7 @@ export default async function GetiriEgrisiPage() {
             .from("bist_bap_fiyatlar")
             .select("tarih, isin, temiz_fiyat, kapanis_bilesik_getiri_pct, islem_hacmi_tl")
             .in("isin", isinListesi)
+            .gte("tarih", pencereIso)
             .order("tarih")
             .range(from, to),
         )

@@ -187,7 +187,11 @@ async function FinansmanIlerlemeBolumu() {
   );
 }
 
-async function IhaleDetayTabIcerigi() {
+/** Tabloda varsayılan olarak gösterilen ihale sayısı. 489 satırın tamamını
+ *  HTML'e gömmek sayfayı ~2 MB yapıyordu; kullanıcı isterse hepsini açıyor. */
+const VARSAYILAN_IHALE_SAYISI = 60;
+
+async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean }) {
   const supabase = await createClient();
 
   const [{ data: ihaleler, error }, { data: ozet }] = await Promise.all([
@@ -203,6 +207,10 @@ async function IhaleDetayTabIcerigi() {
   const siraliIhaleler = ihaleler
     ? trTarihSirala(ihaleler, (r) => r.ihale_tarihi).reverse()
     : [];
+
+  const gosterilenIhaleler = hepsiniGoster
+    ? siraliIhaleler
+    : siraliIhaleler.slice(0, VARSAYILAN_IHALE_SAYISI);
 
   const sonIhaleler = siraliIhaleler.slice(0, 25).map((h) => ({
     ...h,
@@ -288,7 +296,7 @@ async function IhaleDetayTabIcerigi() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {siraliIhaleler.map((h, i) => (
+                  {gosterilenIhaleler.map((h, i) => (
                     <TableRow key={i}>
                       <TableCell className="font-figures">{h.ihale_tarihi}</TableCell>
                       <TableCell className="font-figures">
@@ -317,6 +325,14 @@ async function IhaleDetayTabIcerigi() {
                 </TableBody>
               </Table>
             </div>
+          )}
+          {!hepsiniGoster && siraliIhaleler.length > VARSAYILAN_IHALE_SAYISI && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              En yeni {VARSAYILAN_IHALE_SAYISI} ihale gösteriliyor ({siraliIhaleler.length} kayıttan).{" "}
+              <Link href="?ihaleler=tumu" className="text-primary underline-offset-2 hover:underline">
+                Tümünü göster
+              </Link>
+            </p>
           )}
         </CardContent>
       </Card>
@@ -432,7 +448,12 @@ async function TcmbDogrudanAlimBolumu() {
   );
 }
 
-export default function IhaleDetayPage() {
+export default async function IhaleDetayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ihaleler?: string }>;
+}) {
+  const { ihaleler } = await searchParams;
   return (
     <div className="space-y-6">
       <div>
@@ -442,7 +463,7 @@ export default function IhaleDetayPage() {
         </p>
       </div>
 
-      <IhaleDetayTabIcerigi />
+      <IhaleDetayTabIcerigi hepsiniGoster={ihaleler === "tumu"} />
     </div>
   );
 }
