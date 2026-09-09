@@ -12,6 +12,9 @@
  * fine-grained PAT). Yalnızca sunucuda okunur, tarayıcıya hiç gitmez.
  */
 
+import { revalidateTag } from "next/cache";
+import { VERI_ETIKETI } from "@/lib/veri-onbellek";
+
 const REPO = "Yagiz03/ic-borclanma-dashboard";
 const WORKFLOW = "update-ost.yml";
 const GH = "https://api.github.com";
@@ -122,6 +125,12 @@ export async function POST() {
       { status: 502 },
     );
   }
+
+  // Sunucu önbelleği temizleniyor: workflow bitip Supabase'e yazdıktan sonra
+  // sayfa hâlâ eski kopyayı sunarsa butona basmak hiçbir şey yapmamış gibi
+  // görünürdü. (Workflow birkaç dakika sürdüğü için sayfa yenilendiğinde
+  // önbellek zaten yeniden dolacak.)
+  revalidateTag(VERI_ETIKETI, "max");
 
   return Response.json({
     durum: "baslatildi",

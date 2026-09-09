@@ -189,7 +189,7 @@ async function FinansmanIlerlemeBolumu() {
 
 /** Tabloda varsayılan olarak gösterilen ihale sayısı. 489 satırın tamamını
  *  HTML'e gömmek sayfayı ~2 MB yapıyordu; kullanıcı isterse hepsini açıyor. */
-const VARSAYILAN_IHALE_SAYISI = 60;
+const VARSAYILAN_IHALE_SAYISI = 20;
 
 async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean }) {
   const supabase = await createClient();

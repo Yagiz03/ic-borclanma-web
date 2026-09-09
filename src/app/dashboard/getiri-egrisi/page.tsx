@@ -1,11 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
+import { onbellekle } from "@/lib/veri-onbellek";
 import { GetiriEgrisiClient } from "./getiri-egrisi-client";
 
 const EGRI_TIPLERI = ["Sabit Kuponlu Devlet Tahvili", "Hazine Bonosu", "Kuponsuz Devlet Tahvili"];
 
-export default async function GetiriEgrisiPage() {
-  const supabase = await createClient();
+/** Sayfanın tüm verisi herkese açık ve oturumdan bağımsız -- önbelleğe
+ *  alınabiliyor. Pencere hesabı da içeride: önbellek anahtarı sabit kalsın. */
+const egriVerisiniGetir = onbellekle(["getiri-egrisi"], async () => {
+  const supabase = createPublicClient();
 
   const { data: ozetHam, error } = await supabase
     .from("isin_ozet")
@@ -13,12 +16,7 @@ export default async function GetiriEgrisiPage() {
     .in("senet_tanimi", EGRI_TIPLERI);
 
   if (error || !ozetHam) {
-    return (
-      <div className="w-full">
-        <h1 className="text-2xl font-semibold">Getiri eğrisi</h1>
-        <p className="mt-4 text-sm text-destructive">{error?.message ?? "Veri bulunamadı."}</p>
-      </div>
-    );
+    return { hata: error?.message ?? "Veri bulunamadı.", isinOzet: [], bist: [], tlrefSonPct: null };
   }
 
   // TCMB/kamu USD/Avro cinsi kağıtlar getiri düzeyi farklı olduğundan eğriye dahil edilmiyor.
@@ -56,6 +54,21 @@ export default async function GetiriEgrisiPage() {
 
   const tlrefSonPct = tlrefHam?.[0]?.oran_pct != null ? Number(tlrefHam[0].oran_pct) : null;
 
+  return { hata: null, isinOzet, bist: bist ?? [], tlrefSonPct };
+});
+
+export default async function GetiriEgrisiPage() {
+  const { hata, isinOzet, bist, tlrefSonPct } = await egriVerisiniGetir();
+
+  if (hata) {
+    return (
+      <div className="w-full">
+        <h1 className="text-2xl font-semibold">Getiri eğrisi</h1>
+        <p className="mt-4 text-sm text-destructive">{hata}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -66,7 +79,7 @@ export default async function GetiriEgrisiPage() {
         </p>
       </div>
 
-      <GetiriEgrisiClient isinOzet={isinOzet} bist={bist ?? []} tlrefSonPct={tlrefSonPct} />
+      <GetiriEgrisiClient isinOzet={isinOzet} bist={bist} tlrefSonPct={tlrefSonPct} />
     </div>
   );
 }
