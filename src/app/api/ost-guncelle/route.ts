@@ -21,6 +21,17 @@ const GH = "https://api.github.com";
  *  demektir -- tekrar tetiklemek gereksiz. */
 const PENCERE_UTC_SAAT = 12;
 const PENCERE_UTC_DAKIKA = 16;
+/**
+ * Patlama (burst) koruması. Endpoint herkese açık ve her çağrı bir GitHub
+ * Actions çalışması başlatıyor. "Zaten çalışıyor" kontrolü tek başına yetmez:
+ * GitHub'ın runs API'si yeni çalışmayı birkaç saniye gecikmeyle gösterdiği
+ * için aynı anda gönderilen onlarca istek onlarca çalışma başlatabilir.
+ * Son çalışmadan bu yana bu kadar saniye geçmediyse yenisi açılmıyor.
+ *
+ * Kullanıcıya dönük bekleme kuralı DEĞİL (o kaldırılmıştı) -- sadece
+ * saniyeler mertebesinde bir yarış penceresini kapatıyor.
+ */
+const PATLAMA_KORUMASI_SN = 45;
 
 /** Bugünkü veri penceresinin başlangıcı (UTC). Henüz o saate gelinmediyse
  *  null döner -- o zaman "bugün güncellendi" kuralı işletilmez. */
@@ -69,6 +80,18 @@ export async function POST() {
           { status: 409 },
         );
       }
+      const gecenSn = (Date.now() - new Date(son.created_at).getTime()) / 1000;
+      if (gecenSn < PATLAMA_KORUMASI_SN) {
+        return Response.json(
+          {
+            durum: "cok_sik",
+            mesaj: "Güncelleme az önce başlatıldı, birkaç saniye içinde çalışmaya başlar.",
+            url: son.html_url,
+          },
+          { status: 429 },
+        );
+      }
+
       // Günün verisi zaten alınmışsa (15:16 TR'den sonra başarıyla çalışmış)
       // tekrar tetiklemeye gerek yok.
       const pencere = bugunkuPencereBaslangici(new Date());

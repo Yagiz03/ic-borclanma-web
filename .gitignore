@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ortam dosyalari asla commit edilmez -- .env.production yalnizca public
+# NEXT_PUBLIC_* degerleri tasiyordu ama ileride bir gizli anahtar eklenirse
+# sessizce repoya girmesin diye takipten cikarildi (degerler Vercel'de).
+.env.production
