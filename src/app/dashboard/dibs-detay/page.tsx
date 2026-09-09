@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { trTarihAyristir, trTarihSirala, trTarihPadle, isoTarihGoster } from "@/lib/tarih";
+import { milyonTl as milyon, sayi, yuzde } from "@/lib/bicim";
 import { SenetBadge } from "@/components/senet-badge";
 import { IsinSecici } from "./isin-secici";
 import { FiyatGrafigi } from "./fiyat-grafigi";
@@ -20,23 +21,7 @@ import { DuzenliIslemGorenBolumu } from "./duzenli-islem-goren";
 import { KaynakSatiri } from "@/components/kaynak-satiri";
 import { IhaleSeyriGrafigi } from "./ihale-seyri-grafigi";
 
-function yuzde(v: number | string | null | undefined, ondalik = 2): string {
-  if (v == null) return "–";
-  const n = typeof v === "string" ? Number(v) : v;
-  return Number.isFinite(n) ? `%${n.toFixed(ondalik)}` : "–";
-}
 
-function sayi(v: number | string | null | undefined, ondalik = 2): string {
-  if (v == null) return "–";
-  const n = typeof v === "string" ? Number(v) : v;
-  return Number.isFinite(n) ? n.toLocaleString("tr-TR", { minimumFractionDigits: ondalik, maximumFractionDigits: ondalik }) : "–";
-}
-
-function milyon(v: number | string | null | undefined): string {
-  if (v == null) return "–";
-  const n = typeof v === "string" ? Number(v) : v;
-  return Number.isFinite(n) ? `${n.toLocaleString("tr-TR", { maximumFractionDigits: 0 })} Mn TL` : "–";
-}
 
 export default async function DibsDetayPage({
   searchParams,

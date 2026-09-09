@@ -26,6 +26,7 @@ import {
   getiriBul,
 } from "@/lib/bond-math/tahvil-fiyatlama";
 import { nelsonSiegelFit, polinom2Fit, rvEkraniOlustur, tlrefBilesikFonlama } from "@/lib/rv-analiz";
+import { yuzde } from "@/lib/bicim";
 
 type OzetSatiri = {
   isin: string; senet_tanimi: string | null; vade_tarihi: string | null; para_birimi: string | null;
@@ -47,9 +48,6 @@ const HACIM_SECENEKLERI = [
 function tarihFmt(d: Date | string): string {
   const dt = typeof d === "string" ? new Date(d) : d;
   return dt.toLocaleDateString("tr-TR", { timeZone: "UTC" });
-}
-function yuzde(v: number | null): string {
-  return v == null || !Number.isFinite(v) ? "–" : `%${v.toFixed(2)}`;
 }
 function bp(v: number | null): string {
   return v == null || !Number.isFinite(v) ? "–" : `${v >= 0 ? "+" : ""}${v.toFixed(0)}`;

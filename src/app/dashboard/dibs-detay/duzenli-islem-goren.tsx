@@ -11,6 +11,7 @@ import {
   modifiedDurationHesapla,
   dv01Hesapla,
 } from "@/lib/bond-math/tahvil-fiyatlama";
+import { yuzde } from "@/lib/bicim";
 
 const VARSAYILAN_GUN_ESIGI = 40;
 const VARSAYILAN_PENCERE_GUN = 90;
@@ -21,9 +22,6 @@ const TUR_RENKLERI = [
   "bg-rose-500/10", "bg-cyan-500/10", "bg-lime-500/10", "bg-fuchsia-500/10",
 ];
 
-function yuzde(v: number | null | undefined): string {
-  return v == null || !Number.isFinite(v) ? "–" : `%${v.toFixed(2)}`;
-}
 
 export async function DuzenliIslemGorenBolumu() {
   const supabase = await createClient();

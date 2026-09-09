@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { emirOzetHesapla } from "@/lib/ihale-emir";
+import { sayiEsnek as paraFmt } from "@/lib/bicim";
 
 type Track = {
   id: string;
@@ -20,9 +21,6 @@ type Track = {
 
 const bugunIso = () => new Date().toISOString().slice(0, 10);
 
-function paraFmt(n: number): string {
-  return n.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-}
 
 function YeniTakipFormu() {
   const router = useRouter();

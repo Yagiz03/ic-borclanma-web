@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { CokluCizgiGrafigi, BarCizgiGrafigi } from "./coklu-cizgi-grafigi";
+import { sayiEsnek as milyon } from "@/lib/bicim";
 
 type SeriRow = { seri_adi: string; tarih: string; deger: number | null };
 
@@ -14,9 +15,6 @@ function pivotla(rows: SeriRow[]): Record<string, string | number>[] {
   return Array.from(gunler.values()).sort((a, b) => String(a.tarih).localeCompare(String(b.tarih)));
 }
 
-function milyon(v: number | null | undefined): string {
-  return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-}
 
 export async function DisDengeBolumu() {
   const supabase = await createClient();

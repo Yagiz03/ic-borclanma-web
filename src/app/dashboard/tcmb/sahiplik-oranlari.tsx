@@ -2,6 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { OzetSerit } from "@/components/ozet-serit";
+import { sayiEsnek as sayi } from "@/lib/bicim";
 
 /**
  * DİBS piyasa değeri sekmesinin sayısal özeti: kesim bazında son piyasa
@@ -19,8 +20,6 @@ const KESIMLER = [
   { anahtar: "fonlar", etiket: "Yatırım ve emeklilik fonları sahipliği", renk: "var(--chart-4)" },
 ] as const;
 
-const sayi = (v: number | null) =>
-  v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
 const tarihFmt = (v: string) =>
   new Date(`${v}T00:00:00Z`).toLocaleDateString("tr-TR", { timeZone: "UTC" });
 

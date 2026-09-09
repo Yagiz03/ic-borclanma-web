@@ -13,6 +13,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { KarsilastirmaGrafigi, SpreadGrafigi } from "./karsilastirma-grafigi";
 import { IsinCokSecici } from "./isin-cok-secici";
+import { bps } from "@/lib/bicim";
 
 export type KagitBilgi = {
   isin: string;
@@ -32,7 +33,6 @@ export type GetiriNoktasi = {
 
 const ARALIKLAR: ZamanAraligi[] = ["3a", "6a", "ytd", "1y", "tum"];
 
-const bps = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)} bps`;
 
 export function KarsilastirIstemci({
   kagitlar,

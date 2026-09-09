@@ -12,12 +12,10 @@ import {
 import { PozisyonEkleFormu } from "./pozisyon-ekle-formu";
 import { PozisyonSilButonu } from "./pozisyon-sil-butonu";
 import { HeroBant } from "@/components/hero-bant";
+import { sayiEsnek as paraFmt } from "@/lib/bicim";
 
 const FIYATLANABILIR_TIPLER = new Set(["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili"]);
 
-function paraFmt(n: number): string {
-  return n.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-}
 
 export async function PnlBolumu() {
   const supabase = await createClient();

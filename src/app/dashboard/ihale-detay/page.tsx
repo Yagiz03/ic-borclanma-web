@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { KaynakSatiri } from "@/components/kaynak-satiri";
+import { yuzde, milyarTl } from "@/lib/bicim";
 import { SenetBadge } from "@/components/senet-badge";
 import { IlerlemeRozeti } from "@/components/ilerleme-rozeti";
 import { trTarihSirala, isoTarihGoster, utcTarihe } from "@/lib/tarih";
@@ -22,15 +23,7 @@ const AY_ADLARI = [
   "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
 ];
 
-function yuzde(v: number | string | null | undefined): string {
-  if (v == null) return "–";
-  const n = typeof v === "string" ? Number(v) : v;
-  return Number.isFinite(n) ? `%${n.toFixed(2)}` : "–";
-}
 
-function milyarTl(v: number | null | undefined): string {
-  return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 1 });
-}
 
 function bps1(v: number | null | undefined): string {
   return v == null ? "–" : v.toFixed(1);

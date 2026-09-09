@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { OzetSerit } from "@/components/ozet-serit";
+import { sayi, yuzde } from "@/lib/bicim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { isoTarihGoster } from "@/lib/tarih";
 
@@ -33,12 +34,6 @@ type MkbSatiri = {
   ilk_ihrac_tarihi: string | null;
 };
 
-function yuzde(v: number | null): string {
-  return v == null || !Number.isFinite(v) ? "–" : `%${v.toFixed(2)}`;
-}
-function sayi(v: number | null, ondalik = 0): string {
-  return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: ondalik });
-}
 
 function trTarihiParcala(s: string | null): Date | null {
   if (!s) return null;

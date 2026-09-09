@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { sayi, yuzde } from "@/lib/bicim";
 
 type Satir = {
   tarih: string;
@@ -47,13 +48,7 @@ function tarihFmt(v: string) {
   return new Date(v).toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
-function yuzde(v: number | null): string {
-  return v == null ? "–" : `%${v.toFixed(2)}`;
-}
 
-function sayi(v: number | null, ondalik = 0): string {
-  return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: ondalik });
-}
 
 const SEKMELER = ["on", "egri", "tablo"] as const;
 

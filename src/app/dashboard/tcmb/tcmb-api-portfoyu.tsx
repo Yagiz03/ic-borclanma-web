@@ -15,13 +15,11 @@ import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { OrtKalanVadeGrafigi } from "./ort-kalan-vade-grafigi";
 import { VADE_KOVALARI, agirlikliOrtalamaKalanVade, vadeKovasiBul, type AlimKaydi } from "@/lib/api-portfoy-vade";
 import { PastaGrafigi } from "./coklu-cizgi-grafigi";
+import { sayiEsnek as milyon } from "@/lib/bicim";
 
 const TCMB_450MR_KAYNAK_URL =
   "https://www.tcmb.gov.tr/wps/wcm/connect/50433504-d77c-472a-82d0-6ad1cc25c927/2026_Para_Politikas%C4%B1_Metni.pdf";
 
-function milyon(v: number): string {
-  return v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-}
 
 type Outstanding = {
   isin: string;

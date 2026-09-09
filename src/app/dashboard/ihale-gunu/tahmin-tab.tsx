@@ -28,15 +28,13 @@ import {
   type IhalePrep,
   type TakvimSatiri,
 } from "@/lib/ihale-gunu";
+import { sayiEsnek as milyonFmt } from "@/lib/bicim";
 
 const AY_ADLARI = [
   "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
   "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
 ];
 
-function milyonFmt(v: number | null): string {
-  return v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 0 });
-}
 
 function KagitGecmisi({ isin, ihale }: { isin: string; ihale: IhalePrep[] }) {
   const gecmis = useMemo(

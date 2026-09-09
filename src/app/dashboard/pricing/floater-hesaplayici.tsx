@@ -33,10 +33,10 @@ import { OzetSerit, type OzetAlan } from "@/components/ozet-serit";
 import { TlrefSenaryoAnalizi } from "./tlref-senaryo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { yuzde as pct } from "@/lib/bicim";
 
 const g = (s: string) => new Date(`${s}T00:00:00Z`);
 const trTarih = (d: Date) => d.toLocaleDateString("tr-TR", { timeZone: "UTC" });
-const pct = (v: number, n = 2) => `%${v.toFixed(n)}`;
 
 export type FloaterVeri = {
   tlref: { tarihler: string[]; degerler: number[] };
