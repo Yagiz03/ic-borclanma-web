@@ -78,18 +78,43 @@ function egriNoktalariUret(
   return cikti;
 }
 
-type NoktaTooltipPayload = { isin: string; senetTanimi?: string | null; kalanVadeYil: number; getiri: number; zSkoru?: number };
+/** Grafiklerdeki noktaların HEPSİ aynı şekle sahip değil: saçılım noktaları
+ *  ISIN/getiri taşır, uyarlanan EĞRİNİN noktaları ise yalnızca kalan vade ve
+ *  eğri değeri taşır. Bu yüzden tüm alanlar isteğe bağlı. */
+type NoktaTooltipPayload = {
+  isin?: string;
+  senetTanimi?: string | null;
+  kalanVadeYil?: number;
+  getiri?: number;
+  egri?: number;
+  zSkoru?: number;
+};
 
-function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { payload: NoktaTooltipPayload }[] }) {
+const oy = (v: number | undefined, ondalik = 2) =>
+  typeof v === "number" && Number.isFinite(v) ? v.toFixed(ondalik) : null;
+
+export function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { payload: NoktaTooltipPayload }[] }) {
   if (!active || !payload || payload.length === 0) return null;
-  const p = payload[0].payload;
+  const p = payload[0]?.payload;
+  if (!p) return null;
+
+  // İmleç eğrinin üstündeyken getiri/ISIN alanları YOK; eskiden burada
+  // koşulsuz p.getiri.toFixed() çağrılıyordu ve tooltip belirince bileşen
+  // çöküp "Bu sayfa yüklenemedi" ekranını açıyordu.
+  const vade = oy(p.kalanVadeYil);
+  const getiri = oy(p.getiri);
+  const egri = oy(p.egri);
+  const z = oy(p.zSkoru);
+  if (!p.isin && vade == null && getiri == null && egri == null) return null;
+
   return (
     <div style={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, padding: "8px 10px" }}>
-      <div style={{ fontWeight: 600, fontFamily: "var(--font-figures, monospace)" }}>{p.isin}</div>
+      {p.isin && <div style={{ fontWeight: 600, fontFamily: "var(--font-figures, monospace)" }}>{p.isin}</div>}
       {p.senetTanimi && <div style={{ color: "var(--muted-foreground)" }}>{p.senetTanimi}</div>}
-      <div>Kalan vade: {p.kalanVadeYil.toFixed(2)} yıl</div>
-      <div>Getiri: %{p.getiri.toFixed(2)}</div>
-      {p.zSkoru != null && <div>Z-skoru: {p.zSkoru >= 0 ? "+" : ""}{p.zSkoru.toFixed(2)}</div>}
+      {vade != null && <div>Kalan vade: {vade} yıl</div>}
+      {getiri != null && <div>Getiri: %{getiri}</div>}
+      {getiri == null && egri != null && <div>Eğri: %{egri}</div>}
+      {z != null && <div>Z-skoru: {Number(z) >= 0 ? "+" : ""}{z}</div>}
     </div>
   );
 }
