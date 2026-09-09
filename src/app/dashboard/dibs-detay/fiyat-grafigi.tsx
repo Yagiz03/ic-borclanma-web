@@ -41,19 +41,49 @@ export function FiyatGrafigi({
     );
   }
 
-  const suzulmus = zamanaGoreSuz(veri, aralik);
-  const gosterilecek = suzulmus.length > 0 ? suzulmus : veri;
+  const gosterilecek = zamanaGoreSuz(veri, aralik);
+
+  // Seçilen aralıkta veri yoksa SESSİZCE tüm veriye düşülmüyor: eskiden öyle
+  // yapılıyordu ve "Yılbaşından" seçiliyken grafik 2020'den başlıyordu --
+  // kullanıcı seçtiği aralığa güvenemiyordu. Bunun yerine ne olduğu yazılıp
+  // tek tıkla tüm geçmişe geçiş sunuluyor.
+  const sonIslem = veri[veri.length - 1]?.tarih;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          {gosterilecek.length} işlem günü
-          {suzulmus.length === 0 &&
-            " (seçilen aralıkta veri yok, tümü gösteriliyor)"}
+          {gosterilecek.length > 0 ? `${gosterilecek.length} işlem günü` : ""}
         </p>
         <ZamanAraligiSecici deger={aralik} onChange={setAralik} />
       </div>
+
+      {gosterilecek.length === 0 && (
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border px-6 py-10 text-center">
+          <p className="text-sm font-medium">Bu aralıkta işlem yok</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Bu kağıt seçilen dönemde BIST&apos;te hiç işlem görmemiş.
+            {sonIslem && (
+              <>
+                {" "}
+                Son işlem tarihi:{" "}
+                <b className="font-figures text-foreground">
+                  {new Date(sonIslem).toLocaleDateString("tr-TR")}
+                </b>
+                .
+              </>
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={() => setAralik("tum")}
+            className="rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+          >
+            Tüm geçmişi göster
+          </button>
+        </div>
+      )}
+      {gosterilecek.length > 0 && (
       <ResponsiveContainer width="100%" height={280}>
         <LineChart
           data={gosterilecek}
@@ -110,6 +140,7 @@ export function FiyatGrafigi({
           />
         </LineChart>
       </ResponsiveContainer>
+      )}
     </div>
   );
 }
