@@ -35,13 +35,37 @@ Genel bakış, mimari ve sayfa listesi için `README.md`.
   - `Date.now()` render sırasında saf değil — `new Date().getTime()` kullan.
   - `useMemo` bağımlılığı olacak Date/dizi/nesne render'da yeniden
     üretilmemeli; ISO string gibi ilkel bir değere bağla.
+  - **Elle `useMemo` yazmadan önce iki kez düşün.** Derleyici zaten memoluyor;
+    elle yazılan memo bazen doğrulanamayıp `Compilation Skipped: Existing
+    memoization could not be preserved` hatası veriyor ve o bileşen HİÇ
+    optimize edilmeden geçiyor — yani elle memo, tersine sonuç doğuruyor.
+    Bu hatayı görürsen çözüm `useMemo`yu kaldırıp düz hesaplamaya dönmek
+    (getiri eğrisi eksen hesabında ve `spreadVerisi` çevresinde yaşandı).
 - Grafiklerde renkler CSS değişkenlerinden (`var(--chart-N)`) gelir, sabit
   hex değil — koyu mod bozulmasın diye.
 - Grid/flex çocuklarında geniş içerik (tablo, grafik) varsa `min-w-0`; yoksa
   kap içeriğe göre büyüyüp taşar.
 
+## Veri gösterimi
+
+- **İtfa olmuş kağıtlar listelenmez.** Kağıt seçtiren her yüzey (DİBS Detay,
+  Karşılaştır, Pricing, P&L formu, global arama) vadesi geçmişleri süzer.
+  İzleme listesi istisna: kullanıcının kendi eklediği kayıt sessizce yok
+  sayılmaz, ana listeden çıkıp altta "itfa olduğu için düştü" satırında
+  çıkarılabilir olarak durur.
+- Sayı/yüzde biçimlendirmesi `lib/bicim.ts`, grafik ekseni `lib/eksen.ts`
+  üzerinden. Bileşen içinde yeni bir `toFixed`/`toLocaleString` yardımcısı
+  yazma — biçim tutarsızlığı bu şekilde başlamıştı.
+
 ## Doğrulama
 
 Göndermeden önce: `npm run build` (tip kontrolü dahil), `npm test`,
-`npx eslint src`. Görsel bir değişiklik yaptıysan canlıda/preview'da gerçek
+`npx eslint src`. Build çıktısını `grep`'e boğma — çıkış kodunu kontrol et
+(`npm run build > /dev/null 2>&1 && echo OK || echo KIRIK`); aksi halde tip
+hatası veren bir derlemeyi başarılı sanabiliyorsun.
+
+Deploy beklerken `curl | grep` kullanıyorsan, aradığın dizenin YALNIZCA yeni
+sürümde bulunduğundan emin ol ve sunucudan gelen HTML'de gerçekten var olsun —
+istemcide çizilen şeyler (Recharts eksen etiketleri, koşullu render edilen
+bildirimler) sunucu HTML'inde yoktur, döngü sonsuza kadar bekler. Görsel bir değişiklik yaptıysan canlıda/preview'da gerçek
 veriyle bak — ekran görüntüsü olmadan "çalışıyor" deme.

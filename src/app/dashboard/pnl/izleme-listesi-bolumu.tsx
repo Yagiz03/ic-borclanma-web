@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { IzlemeCikarButonu } from "./izleme-cikar-butonu";
 import { IzlemeGrafigi, type IzlemeSerisi } from "./izleme-grafigi";
 import { sayi, yuzde } from "@/lib/bicim";
+import { trTarihAyristir } from "@/lib/tarih";
 
 // pages/izleme_listesi.py'nin karşılığı: izlenen kağıtların kartları
 // (temiz fiyat / bileşik getiri / vade) + BIST fiyat karşılaştırma grafiği.
@@ -40,7 +41,19 @@ export async function IzlemeListesiBolumu() {
 
   const ozetHarita = new Map((ozetHam ?? []).map((r) => [r.isin as string, r]));
 
-  const seriler: IzlemeSerisi[] = isinler.map((isin) => ({
+  // İtfa olmuş kağıtlar ana listeden ve karşılaştırma grafiğinden çıkıyor --
+  // artık işlem görmüyorlar. Yine de SESSİZCE yok sayılmıyorlar: kullanıcının
+  // kendi eklediği kayıtlar, listeden çıkarabilsin diye altta ayrı bir
+  // satırda toplanıyor.
+  const bugunMs = new Date().getTime();
+  const itfaOlduMu = (isin: string) => {
+    const v = trTarihAyristir(ozetHarita.get(isin)?.vade_tarihi as string | null | undefined);
+    return v != null && v.getTime() <= bugunMs;
+  };
+  const aktifIsinler = isinler.filter((i) => !itfaOlduMu(i));
+  const itfaOlanlar = isinler.filter(itfaOlduMu);
+
+  const seriler: IzlemeSerisi[] = aktifIsinler.map((isin) => ({
     isin,
     noktalar: (bistHam ?? [])
       .filter((r) => r.isin === isin)
@@ -59,7 +72,7 @@ export async function IzlemeListesiBolumu() {
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {isinler.map((isin) => {
+        {aktifIsinler.map((isin) => {
           const r = ozetHarita.get(isin);
           const fiyat = r?.bist_son_temiz_fiyat != null ? Number(r.bist_son_temiz_fiyat) : null;
           const getiri =
@@ -101,6 +114,18 @@ export async function IzlemeListesiBolumu() {
           );
         })}
       </div>
+
+      {itfaOlanlar.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">
+          <span>İtfa olduğu için listeden düştü:</span>
+          {itfaOlanlar.map((isin) => (
+            <span key={isin} className="flex items-center gap-1">
+              <b className="font-figures text-foreground">{isin}</b>
+              <IzlemeCikarButonu isin={isin} />
+            </span>
+          ))}
+        </div>
+      )}
 
       <Card>
         <CardContent className="space-y-3 pt-5">
