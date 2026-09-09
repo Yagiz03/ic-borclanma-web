@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { sayi } from "@/lib/bicim";
 import {
   kuponTakvimi,
   nakitAkislariniOlustur,
   kirliFiyatHesapla,
   temizFiyatHesapla,
+  birikmisFaizHesapla,
   getiriBul,
   modifiedDurationHesapla,
   dv01Hesapla,
@@ -68,8 +70,11 @@ export function PricingHesaplayici({
 }) {
   const [isin, setIsin] = useState(kagitlar[0]?.isin ?? "");
   const [valorStr, setValorStr] = useState(bugunIso());
-  const [mod, setMod] = useState<"fiyat" | "getiri">("getiri");
-  const [girdi, setGirdi] = useState("35.00");
+  // Eski sitedeki (pages/pricing.py) sira ve varsayilan: "Fiyattan getiriye"
+  // once ve secili, girdi TEMIZ FIYAT (100,000). Kirli fiyat hesaplanan
+  // taraftir, girilen degil.
+  const [mod, setMod] = useState<"fiyat" | "getiri">("fiyat");
+  const [girdi, setGirdi] = useState("100.000");
 
   const kagit = kagitlar.find((k) => k.isin === isin);
   const { tlrefSeri, tufeSeri, referansIhaleler } = useFloaterSeriler(floaterVeri);
@@ -95,7 +100,10 @@ export function PricingHesaplayici({
       getiri = girdiSayi / 100;
       kirli = kirliFiyatHesapla(akislar, valor, getiri);
     } else {
-      kirli = girdiSayi;
+      // Girdi TEMIZ fiyat (eski sitedeki gibi). Birikmis faiz getiriden
+      // BAGIMSIZ hesaplandigi icin kirliyi dogrudan kurabiliyoruz.
+      const birikmisSimdi = birikmisFaizHesapla(vade, anchor, valor, kuponOrani);
+      kirli = girdiSayi + birikmisSimdi;
       getiri = getiriBul(vade, anchor, valor, kuponOrani, kirli);
     }
 
@@ -151,22 +159,28 @@ export function PricingHesaplayici({
               <Button
                 type="button"
                 size="sm"
-                variant={mod === "getiri" ? "default" : "ghost"}
-                onClick={() => setMod("getiri")}
+                variant={mod === "fiyat" ? "default" : "ghost"}
+                onClick={() => {
+                  setMod("fiyat");
+                  setGirdi("100.000");
+                }}
               >
-                Getiriden fiyata
+                Fiyattan getiriye
               </Button>
               <Button
                 type="button"
                 size="sm"
-                variant={mod === "fiyat" ? "default" : "ghost"}
-                onClick={() => setMod("fiyat")}
+                variant={mod === "getiri" ? "default" : "ghost"}
+                onClick={() => {
+                  setMod("getiri");
+                  setGirdi("35.00");
+                }}
               >
-                Fiyattan getiriye
+                Getiriden fiyata
               </Button>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="girdi">{mod === "getiri" ? "Bileşik getiri (%)" : "Kirli fiyat"}</Label>
+              <Label htmlFor="girdi">{mod === "getiri" ? "Bileşik getiri (%)" : "Temiz fiyat"}</Label>
               <Input
                 id="girdi"
                 inputMode="decimal"
@@ -180,9 +194,22 @@ export function PricingHesaplayici({
       </Card>
 
       {kagit && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <h2 className="text-lg font-semibold">{kagit.isin}</h2>
           <SenetBadge tanim={kagit.senetTanimi} />
+          {/* Kullanici istegi: secilen kagidin temiz fiyati basligin
+              yaninda dursun -- girdiler degistikce aninda guncelleniyor,
+              asagi kaydirmadan "kagit su an kacta" gorulebiliyor. */}
+          {sonuc && (
+            <span className="flex items-baseline gap-1.5">
+              <span className="text-xs tracking-wide text-muted-foreground uppercase">
+                Temiz fiyat
+              </span>
+              <span className="font-figures text-lg font-semibold">
+                {sayi(sonuc.temiz, 3)}
+              </span>
+            </span>
+          )}
         </div>
       )}
 
