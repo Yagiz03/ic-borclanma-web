@@ -46,3 +46,9 @@ next-env.d.ts
 # olmalı -- gizli anahtar (service_role, PAT) ASLA buraya yazılmaz, onlar
 # Vercel ortam değişkenlerinde durur.
 !.env.production
+
+# Ekran goruntuleri: canli sayfalar her gun degisen veri gosteriyor, bu
+# yuzden repoda sabit bir referans TUTULMUYOR. Kullanim "degisiklikten
+# once cek, degistir, tekrar cek, karsilastir" seklinde -- ayni oturum
+# icinde veri sabit kaldigi surece fark yalnizca tasarimdan gelir.
+ekran/
