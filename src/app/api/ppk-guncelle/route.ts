@@ -13,6 +13,6 @@ import { workflowTetikle } from "@/lib/workflow-tetikle";
 export async function POST() {
   return workflowTetikle("ppk-karar-farki.yml", {
     calisiyor: "Rapor şu an zaten üretiliyor.",
-    baslatildi: "Rapor üretiliyor, ~30 saniye.",
+    baslatildi: "Rapor üretiliyor, ~20 saniye.",
   });
 }

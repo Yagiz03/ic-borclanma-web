@@ -11,6 +11,6 @@ import { workflowTetikle } from "@/lib/workflow-tetikle";
 export async function POST() {
   return workflowTetikle("update-strateji.yml", {
     calisiyor: "Rapor şu an zaten üretiliyor.",
-    baslatildi: "Rapor üretiliyor. 1-2 dakika sonra sayfayı yenile.",
+    baslatildi: "Rapor üretiliyor, ~35 saniye.",
   });
 }

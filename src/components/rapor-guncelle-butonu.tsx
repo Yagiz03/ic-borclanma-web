@@ -22,6 +22,8 @@ export function RaporGuncelleButonu({
   uc,
   etiket = "Raporu güncelle",
   aciklama,
+  // Olculen workflow sureleri: PPK ~21 sn, strateji ~34 sn. Iki kez
+  // yenileniyor cunku runner suresi ag/kuyruk yuzunden oynuyor.
   yenilemeSn = [40, 80],
 }: {
   uc: string;
