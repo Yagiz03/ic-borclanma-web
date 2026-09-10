@@ -9,6 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "duman": "node scripts/duman-testi.mjs",
+    "tutarlilik": "node scripts/tutarlilik.mjs",
+    "kontrol": "npm run lint && npm run test && npm run build && npm run tutarlilik",
     "rls": "node scripts/rls-dogrula.mjs"
   },
   "dependencies": {
