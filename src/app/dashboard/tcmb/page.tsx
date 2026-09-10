@@ -1,4 +1,5 @@
 import { BosDurum } from "@/components/bos-durum";
+import { PpkGuncelleButonu } from "./ppk-guncelle-butonu";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Bolum } from "@/components/bolum";
@@ -40,29 +41,72 @@ const SEKMELER = [
 ] as const;
 
 
-/** public/ppk-karar-farki/ altindaki EN YENI fark raporu.
+/** En yeni PPK fark raporu.
  *
- *  Tarih eskiden koda gomuluydu (ppk-karar-farki-2026-07-23.pdf); her PPK
- *  kararindan sonra elle degistirmek gerekiyordu ve unutuldugunda sayfa
- *  sessizce eski karari gostermeye devam ediyordu. Artik dosya adlarindaki
- *  ISO tarihe gore en yenisi seciliyor -- yeni PDF klasore dustugu anda
- *  sayfa onu gosterir, kod degismez.
+ *  Rapor tarihi eskiden koda gomuluydu (ppk-karar-farki-2026-07-23.pdf); her
+ *  PPK karari sonrasi elle degistirmek gerekiyordu ve unutuldugunda sayfa
+ *  sessizce eski karari gosteriyordu.
+ *
+ *  Once Supabase Storage'daki "ppk-raporlari" kovasina bakilir -- pipeline
+ *  (ic-borclanma-dashboard/ppk-karar-farki.yml) yeni raporu oraya yukluyor,
+ *  yani sitenin yeniden derlenmesi gerekmiyor. Kova bos ya da ulasilamazsa
+ *  repodaki public/ppk-karar-farki/ kopyasina dusuluyor.
  */
-function ppkFarkRaporu(): { url: string; tarih: string } | null {
-  const dizin = join(process.cwd(), "public", "ppk-karar-farki");
+const PPK_DESEN = /^ppk-karar-farki-(\d{4}-\d{2}-\d{2})\.pdf$/;
+
+function enYeniAd(adlar: string[]): { ad: string; tarih: string } | null {
+  const adaylar = adlar
+    .map((ad) => PPK_DESEN.exec(ad))
+    .filter((m): m is RegExpExecArray => m != null)
+    .sort((a, b) => b[1].localeCompare(a[1]));
+  return adaylar[0] ? { ad: adaylar[0][0], tarih: adaylar[0][1] } : null;
+}
+
+function ppkYerelRapor(): { url: string; tarih: string } | null {
   let dosyalar: string[];
   try {
-    dosyalar = readdirSync(dizin);
+    dosyalar = readdirSync(join(process.cwd(), "public", "ppk-karar-farki"));
   } catch {
     return null;
   }
-  const adaylar = dosyalar
-    .map((ad) => /^ppk-karar-farki-(\d{4}-\d{2}-\d{2})\.pdf$/.exec(ad))
-    .filter((m): m is RegExpExecArray => m != null)
-    .sort((a, b) => b[1].localeCompare(a[1]));
-  const enYeni = adaylar[0];
-  return enYeni ? { url: `/ppk-karar-farki/${enYeni[0]}`, tarih: enYeni[1] } : null;
+  const enYeni = enYeniAd(dosyalar);
+  return enYeni ? { url: `/ppk-karar-farki/${enYeni.ad}`, tarih: enYeni.tarih } : null;
 }
+
+async function ppkFarkRaporu(): Promise<{ url: string; tarih: string } | null> {
+  const temel = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anahtar = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (temel && anahtar) {
+    try {
+      const y = await fetch(`${temel}/storage/v1/object/list/ppk-raporlari`, {
+        method: "POST",
+        headers: {
+          apikey: anahtar,
+          Authorization: `Bearer ${anahtar}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prefix: "", limit: 100 }),
+        // Kova nadiren degisiyor ama butona basildiginda birkac dakika
+        // icinde gorunmeli.
+        next: { revalidate: 60 },
+      });
+      if (y.ok) {
+        const nesneler = (await y.json()) as { name: string }[];
+        const enYeni = enYeniAd(nesneler.map((n) => n.name));
+        if (enYeni) {
+          return {
+            url: `${temel}/storage/v1/object/public/ppk-raporlari/${enYeni.ad}`,
+            tarih: enYeni.tarih,
+          };
+        }
+      }
+    } catch {
+      // Kovaya ulasilamadi -- asagida repodaki kopyaya dusuluyor.
+    }
+  }
+  return ppkYerelRapor();
+}
+
 
 export default async function TcmbPage({
   searchParams,
@@ -168,7 +212,7 @@ export default async function TcmbPage({
     : null;
 
   const enflasyonRaporu = enflasyonRaporuRes.data;
-  const ppkRaporu = ppkFarkRaporu();
+  const ppkRaporu = await ppkFarkRaporu();
 
   return (
     <div className="space-y-6">
@@ -306,8 +350,11 @@ export default async function TcmbPage({
             Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde — kırmızı üstü çizili kısımlar önceki
             karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
           </p>
+          <div className="mb-4">
+            <PpkGuncelleButonu />
+          </div>
           {!ppkRaporu ? (
-            <BosDurum baslik="Fark raporu yok" aciklama="PPK karar farkı raporu henüz üretilmedi." />
+            <BosDurum baslik="Fark raporu yok" aciklama="PPK karar farkı raporu henüz üretilmedi — yukarıdaki tuşla üret." />
           ) : (
             <Bolum
               baslik={`Fark Raporu — ${new Date(`${ppkRaporu.tarih}T00:00:00Z`).toLocaleDateString("tr-TR", { timeZone: "UTC" })} kararı`}
