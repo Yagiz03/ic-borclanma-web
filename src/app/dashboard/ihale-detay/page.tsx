@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { KaynakSatiri } from "@/components/kaynak-satiri";
-import { yuzde, milyarTl } from "@/lib/bicim";
+import { yuzde, milyarTl, sayi } from "@/lib/bicim";
 import { SenetBadge } from "@/components/senet-badge";
 import { IlerlemeRozeti } from "@/components/ilerleme-rozeti";
 import { trTarihSirala, isoTarihGoster, utcTarihe } from "@/lib/tarih";
@@ -377,10 +377,10 @@ async function TcmbDogrudanAlimBolumu() {
   const supabase = await createClient();
   const [{ data: tcmb, error }, { data: ozet }] = await Promise.all([
     // 1152 satır -- tek sorguda Supabase'in 1000 satır sınırını aşıyor.
-    tumSatirlariGetir<{ ihale_tarihi: string; isin: string; kazanan_tutar_nominal_bin_tl: number | null }>((from, to) =>
+    tumSatirlariGetir<{ ihale_tarihi: string; isin: string; teklif_tutari_nominal_bin_tl: number | null; kazanan_tutar_nominal_bin_tl: number | null; kabul_orani_pct: number | null; ort_bilesik_faiz: number | null }>((from, to) =>
       supabase
         .from("tcmb_dogrudan_alim")
-        .select("ihale_tarihi, isin, kazanan_tutar_nominal_bin_tl")
+        .select("ihale_tarihi, isin, teklif_tutari_nominal_bin_tl, kazanan_tutar_nominal_bin_tl, kabul_orani_pct, ort_bilesik_faiz")
         .order("ihale_tarihi")
         .order("isin")
         .range(from, to),
@@ -427,7 +427,14 @@ async function TcmbDogrudanAlimBolumu() {
       ihale_tarihi: r.ihale_tarihi,
       isin: r.isin,
       senet_tanimi: senetHaritasi.get(r.isin),
+      // TCMB once bir teklif topluyor, sonra bunun bir kismini kabul ediyor.
+      // Yalnizca kabul edileni gostermek "ne kadar talep vardi, ne kadari
+      // karsilandi" sorusunu cevapsiz birakiyordu.
+      teklif_mn: r.teklif_tutari_nominal_bin_tl != null
+        ? Number(r.teklif_tutari_nominal_bin_tl) / 1000 : null,
       tutar_mn: Number(r.kazanan_tutar_nominal_bin_tl) / 1000,
+      kabul_pct: r.kabul_orani_pct != null ? Number(r.kabul_orani_pct) : null,
+      faiz: r.ort_bilesik_faiz != null ? Number(r.ort_bilesik_faiz) : null,
     }))
     .sort((a, b) => b.ihale_tarihi.localeCompare(a.ihale_tarihi));
 
@@ -447,15 +454,18 @@ async function TcmbDogrudanAlimBolumu() {
 
         {ytdDetay.length > 0 && (
           <div>
-            <h3 className="mb-2 text-base font-semibold">Yukarıdaki grafikte hangi kağıttan ne kadar alındı</h3>
+            <h3 className="mb-2 text-base font-semibold">Yukarıdaki grafikte hangi kağıttan ne kadar alındı — teklif, alınan ve faiz</h3>
             <div className="max-h-[400px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>ISIN</TableHead>
-                    <TableHead>Senet</TableHead>
-                    <TableHead className="text-right"><KolonBasligi ust="Alım Tutarı" alt="Milyon TL" /></TableHead>
+                    <TableHead className="w-full min-w-[10rem]">Senet</TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Teklif" alt="Milyon TL" /></TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Alınan" alt="Milyon TL" /></TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Kabul" alt="Oranı" /></TableHead>
+                    <TableHead className="text-right"><KolonBasligi ust="Ort. Faiz" alt="Bileşik" /></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -464,9 +474,12 @@ async function TcmbDogrudanAlimBolumu() {
                       <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(r.ihale_tarihi)}</TableCell>
                       <TableCell className="font-figures">{r.isin}</TableCell>
                       <TableCell><SenetBadge tanim={r.senet_tanimi} /></TableCell>
-                      <TableCell className="font-figures text-right">
-                        {r.tutar_mn.toLocaleString("tr-TR", { maximumFractionDigits: 1 })}
+                      <TableCell className="font-figures text-right">{sayi(r.teklif_mn, 1)}</TableCell>
+                      <TableCell className="font-figures text-right font-semibold">
+                        {sayi(r.tutar_mn, 1)}
                       </TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(r.kabul_pct, 0)}</TableCell>
+                      <TableCell className="font-figures text-right">{yuzde(r.faiz)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
