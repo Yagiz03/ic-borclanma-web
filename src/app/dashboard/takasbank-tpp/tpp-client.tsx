@@ -15,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 import { BosDurum } from "@/components/bos-durum";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OzetSerit } from "@/components/ozet-serit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -125,7 +126,12 @@ export function TppClient({ veri }: { veri: Satir[] }) {
               ]}
             />
 
-            <ResponsiveContainer width="100%" height={340}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Gecelik Faiz (O/N)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={340}>
               <AreaChart data={onSerisi} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
@@ -143,9 +149,16 @@ export function TppClient({ veri }: { veri: Satir[] }) {
                 <Line type="monotone" dataKey="ort_oran" name="Ortalama Oran" stroke={RENK} strokeWidth={2} dot={false} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
               </AreaChart>
-            </ResponsiveContainer>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-            <ResponsiveContainer width="100%" height={200}>
+            <Card>
+              <CardHeader>
+                <CardTitle>İşlem Hacmi</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={onSerisi} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="tarih" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={tarihFmt} minTickGap={32} />
@@ -162,7 +175,9 @@ export function TppClient({ veri }: { veri: Satir[] }) {
                   stroke={RENK} fill={RENK} fillOpacity={0.5}
                 />
               </AreaChart>
-            </ResponsiveContainer>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
         )}
       </TabsContent>
@@ -171,7 +186,11 @@ export function TppClient({ veri }: { veri: Satir[] }) {
         {tarihler.length === 0 ? (
           <BosDurum baslik="TPP verisi yok" aciklama="Takasbank para piyasası işlem ortalamaları henüz aktarılmadı." />
         ) : (
-          <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Kısa Vade Faiz Eğrisi</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground" htmlFor="tpp-tarih">İşlem tarihi</label>
               <select
@@ -210,7 +229,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
                   </LineChart>
                 </ResponsiveContainer>
 
-                <div className="max-h-[360px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+                <div className="max-h-[360px] overflow-y-auto rounded-lg border border-border">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -240,7 +259,8 @@ export function TppClient({ veri }: { veri: Satir[] }) {
                 </div>
               </>
             )}
-          </div>
+            </CardContent>
+          </Card>
         )}
       </TabsContent>
 
@@ -248,7 +268,11 @@ export function TppClient({ veri }: { veri: Satir[] }) {
         {veri.length === 0 ? (
           <BosDurum baslik="TPP verisi yok" aciklama="Takasbank para piyasası işlem ortalamaları henüz aktarılmadı." />
         ) : (
-          <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tüm İşlem Verisi</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-muted-foreground" htmlFor="tpp-baslangic">Başlangıç</label>
@@ -269,7 +293,7 @@ export function TppClient({ veri }: { veri: Satir[] }) {
               <p className="text-xs text-muted-foreground">{aralikVerisi.length} satır</p>
             </div>
 
-            <div className="max-h-[560px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
+            <div className="max-h-[560px] overflow-y-auto rounded-lg border border-border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -299,7 +323,8 @@ export function TppClient({ veri }: { veri: Satir[] }) {
                 </TableBody>
               </Table>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </TabsContent>
     </Tabs>

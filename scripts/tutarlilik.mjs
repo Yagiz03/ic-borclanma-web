@@ -51,7 +51,9 @@ function cardsizSayfalar() {
     const sayfa = m[1];
     const kaynak = readFileSync(yol, "utf8");
     const onceki = bolumler.get(sayfa) ?? 0;
-    bolumler.set(sayfa, onceki + (kaynak.match(/<Card\b/g) ?? []).length);
+    // <Bolum> Card + CardHeader/CardTitle + CardContent sarmalayicisi
+    // (components/bolum.tsx) -- Card kadar gecerli sayilir.
+    bolumler.set(sayfa, onceki + (kaynak.match(/<(Card|Bolum)\b/g) ?? []).length);
   }
   return [...bolumler.entries()].filter(([, n]) => n === 0).map(([s]) => s);
 }
@@ -80,7 +82,7 @@ for (const kural of KURALLAR) {
 const cardsiz = cardsizSayfalar();
 if (cardsiz.length) {
   console.log(`\nCard kullanmayan sayfa — ${cardsiz.length} tane`);
-  console.log("  Bolumleri <Card> icine al; duz kutular diger sayfalardan farkli goruunuyor.");
+  console.log("  Bolumleri <Card> ya da <Bolum> icine al; duz kutular diger sayfalardan farkli goruunuyor.");
   for (const s of cardsiz) console.log(`  src/app/dashboard/${s}/`);
   toplam += cardsiz.length;
 } else {

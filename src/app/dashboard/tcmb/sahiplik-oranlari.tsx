@@ -1,6 +1,7 @@
 "use client";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bolum } from "@/components/bolum";
 import { OzetSerit } from "@/components/ozet-serit";
 import { sayiEsnek as sayi } from "@/lib/bicim";
 
@@ -65,8 +66,7 @@ export function SahiplikOranlari({ veri }: { veri: DibsSatiri[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold">Piyasa değerleri (milyon TL)</h3>
+      <Bolum baslik="Piyasa değerleri (milyon TL)">
         <OzetSerit
           alanlar={[
             { etiket: "Bono piyasa toplam değeri", deger: sayi(son.toplam) },
@@ -76,10 +76,9 @@ export function SahiplikOranlari({ veri }: { veri: DibsSatiri[] }) {
             { etiket: "Fonlar (S129+S1234)", deger: sayi(son.fonlar) },
           ]}
         />
-      </div>
+      </Bolum>
 
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold">Toplama oranlar</h3>
+      <Bolum baslik="Toplama oranlar">
         <OzetSerit
           alanlar={KESIMLER.map((k) => {
             const p = pay(son[k.anahtar]);
@@ -87,10 +86,9 @@ export function SahiplikOranlari({ veri }: { veri: DibsSatiri[] }) {
           })}
         />
         <p className="text-xs text-muted-foreground">Son veri tarihi: {tarihFmt(son.tarih)}</p>
-      </div>
+      </Bolum>
 
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold">Toplama oranlar (%)</h3>
+      <Bolum baslik="Toplama oranlar (%)">
         <div className="grid gap-4 lg:grid-cols-2">
           {KESIMLER.map((k) => (
             <div key={k.anahtar} className="min-w-0 rounded-xl border border-border p-3">
@@ -128,7 +126,7 @@ export function SahiplikOranlari({ veri }: { veri: DibsSatiri[] }) {
             </div>
           ))}
         </div>
-      </div>
+      </Bolum>
     </div>
   );
 }

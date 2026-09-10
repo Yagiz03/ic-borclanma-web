@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Bolum } from "@/components/bolum";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { YuzdeAlanGrafigi } from "./coklu-cizgi-grafigi";
 import { TIP_KISA } from "@/lib/isin-tip";
@@ -50,8 +51,7 @@ export function KagitTipiDagilimiClient({
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-base font-semibold">Kağıt tipine göre outstanding stok dağılımı</h3>
+    <Bolum baslik="Kağıt tipine göre outstanding stok dağılımı">
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -133,6 +133,6 @@ export function KagitTipiDagilimiClient({
         (Kira Sertifikası/FX DİBS/Altın Tahvili) kanalı ve 2006 öncesi ihraç edilip hâlâ vadesi gelmemiş kağıtlar
         bu deftere dahil değil.
       </p>
-    </div>
+    </Bolum>
   );
 }

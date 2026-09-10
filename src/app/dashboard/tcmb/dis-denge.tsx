@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Bolum } from "@/components/bolum";
 import { CokluCizgiGrafigi, BarCizgiGrafigi } from "./coklu-cizgi-grafigi";
 import { sayiEsnek as milyon } from "@/lib/bicim";
 
@@ -111,7 +112,7 @@ export async function DisDengeBolumu() {
               </div>
             )}
           </div>
-          <h3 className="text-base font-semibold">Cari işlemler dengesi (Milyon USD)</h3>
+          <Bolum baslik="Cari işlemler dengesi (Milyon USD)">
           <BarCizgiGrafigi
             veri={cariGrafik.map((r) => ({ tarih: r.tarih, aylik: r.aylik, kumulatif12ay: r.kumulatif12ay ?? "" }))}
             barDataKey="aylik"
@@ -120,23 +121,22 @@ export async function DisDengeBolumu() {
             cizgiEtiket="Son 12 ay kümülatif"
             birim=" Mn USD"
           />
-        </div>
+          </Bolum>
+</div>
       )}
 
       {krediYillik.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold">Tüketici kredileri toplamı — yıllık değişim (%)</h3>
+        <Bolum baslik="Tüketici kredileri toplamı — yıllık değişim (%)">
           <p className="text-xs text-muted-foreground">
             Konut + taşıt + ihtiyaç kredilerinin toplamı (yurt içi yerleşikler) — ticari krediler dahil değil,
             EVDS&apos;de haftalık frekansta temiz bir &quot;toplam banka kredisi&quot; serisi yok.
           </p>
           <CokluCizgiGrafigi veri={krediYillik as Record<string, string | number>[]} seriler={[{ anahtar: "Yıllık değişim", etiket: "Yıllık değişim" }]} birim="%" />
-        </div>
+        </Bolum>
       )}
 
       {sonBilanco && sonYukumluluk && (
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold">TCMB Analitik Bilanço — döviz varlık/yükümlülükleri (bin TL)</h3>
+        <Bolum baslik="TCMB Analitik Bilanço — döviz varlık/yükümlülükleri (bin TL)">
           <p className="text-xs text-muted-foreground">
             A.1 Dış Varlıklar, brüt rezervin bilanço karşılığı; P.1 Toplam Döviz Yükümlülükleri ve onun bir alt
             kalemi olan P.1ba Kamu ve Diğer Döviz Mevduatı ise TCMB&apos;nin döviz cinsi borçlarını gösteriyor.
@@ -166,12 +166,11 @@ export async function DisDengeBolumu() {
             ]}
             ondalik={0}
           />
-        </div>
+        </Bolum>
       )}
 
       {sonSwapAlim && sonSwapSatim && (
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold">TCMB taraflı swap işlemleri — stok (Milyon ABD Doları)</h3>
+        <Bolum baslik="TCMB taraflı swap işlemleri — stok (Milyon ABD Doları)">
           <p className="text-xs text-muted-foreground">
             Döviz karşılığı TL swap + altın swap + BIST swap işlemlerinin toplam stoku — brüt rezervin bir kısmı
             bu swap&apos;lar yoluyla geri ödenmesi gereken (borç niteliğinde) döviz olabildiğinden, rezervin
@@ -195,7 +194,7 @@ export async function DisDengeBolumu() {
             ]}
             ondalik={0}
           />
-        </div>
+        </Bolum>
       )}
     </div>
   );

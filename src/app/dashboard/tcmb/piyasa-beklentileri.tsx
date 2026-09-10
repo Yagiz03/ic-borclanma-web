@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Bolum } from "@/components/bolum";
 import { CokluCizgiGrafigi } from "./coklu-cizgi-grafigi";
 
 const SERI_ADLARI = [
@@ -112,7 +113,7 @@ export async function PiyasaBeklentileriBolumu() {
               <p className="font-figures font-semibold">{pct2(sonTufeBeklenti.beklenti_tufe_12ay as number)}</p>
             </div>
           </div>
-          <h3 className="text-base font-semibold">TÜFE — piyasa beklentisi vs. gerçekleşen (yıllık %)</h3>
+          <Bolum baslik="TÜFE — piyasa beklentisi vs. gerçekleşen (yıllık %)">
           <CokluCizgiGrafigi
             veri={tufeGrafik}
             seriler={[
@@ -122,12 +123,12 @@ export async function PiyasaBeklentileriBolumu() {
             ]}
             birim="%"
           />
-        </div>
+          </Bolum>
+</div>
       )}
 
       {enfbekGrafik.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold">Sektörel Enflasyon Beklentileri vs. Piyasa Katılımcıları Anketi (12 ay sonrası, %)</h3>
+        <Bolum baslik="Sektörel Enflasyon Beklentileri vs. Piyasa Katılımcıları Anketi (12 ay sonrası, %)">
           <p className="text-xs text-muted-foreground">
             TCMB&apos;nin Piyasa Katılımcıları Anketi&apos;nden AYRI bir anket — &quot;Sektörel Enflasyon
             Beklentileri&quot;, piyasa katılımcıları, reel sektör ve hanehalkı gruplarına ayrı ayrı soruyor.
@@ -142,7 +143,7 @@ export async function PiyasaBeklentileriBolumu() {
             ]}
             birim="%"
           />
-        </div>
+        </Bolum>
       )}
 
       {sonFaizBeklenti && (
@@ -159,7 +160,7 @@ export async function PiyasaBeklentileriBolumu() {
               </div>
             )}
           </div>
-          <h3 className="text-base font-semibold">Politika faizi — piyasa beklentisi vs. gerçekleşen (%)</h3>
+          <Bolum baslik="Politika faizi — piyasa beklentisi vs. gerçekleşen (%)">
           <CokluCizgiGrafigi
             veri={faizBirlesik}
             seriler={[
@@ -169,7 +170,8 @@ export async function PiyasaBeklentileriBolumu() {
             ]}
             birim="%"
           />
-        </div>
+          </Bolum>
+</div>
       )}
     </div>
   );

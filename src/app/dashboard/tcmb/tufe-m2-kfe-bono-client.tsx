@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Bolum } from "@/components/bolum";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CokluCizgiGrafigi } from "./coklu-cizgi-grafigi";
 
@@ -179,9 +180,10 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-semibold">Yıllık enflasyon (%)</h3>
+          <Bolum baslik="Yıllık enflasyon (%)">
           <AralikSecici secili={aralik1} onSec={setAralik1} />
-        </div>
+          </Bolum>
+</div>
         <CokluCizgiGrafigi
           veri={enflasyonVerisi}
           seriler={[
@@ -192,8 +194,7 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
         />
       </div>
 
-      <div className="space-y-3">
-        <h3 className="text-base font-semibold">M2 para arzı ve Konut Fiyat Endeksi — nominal ve reel getiriler</h3>
+      <Bolum baslik="M2 para arzı ve Konut Fiyat Endeksi — nominal ve reel getiriler">
         <p className="text-xs text-muted-foreground">Reel getiri = (1 + Nominal Değişim) / (1 + TÜFE Değişim) - 1.</p>
 
         <button
@@ -238,10 +239,9 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
             </Table>
           </div>
         )}
-      </div>
+      </Bolum>
 
-      <div className="space-y-3">
-        <h3 className="text-base font-semibold">Yıllık değişim karşılaştırması</h3>
+      <Bolum baslik="Yıllık değişim karşılaştırması">
         <div className="overflow-x-auto rounded-lg border border-border">
           <Table>
             <TableHeader>
@@ -278,7 +278,7 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
           ]}
           birim="%"
         />
-      </div>
+      </Bolum>
     </div>
   );
 }

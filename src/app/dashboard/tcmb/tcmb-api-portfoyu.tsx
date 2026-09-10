@@ -1,4 +1,5 @@
 import { BosDurum } from "@/components/bos-durum";
+import { Bolum } from "@/components/bolum";
 import { createClient } from "@/lib/supabase/server";
 import {
   Table,
@@ -166,8 +167,7 @@ export async function TcmbApiPortfoyuBolumu() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="mb-3 text-base font-semibold">TCMB&apos;nin elindeki DİBS portföyü — kağıt kağıt</h3>
+      <Bolum baslik="TCMB&apos;nin elindeki DİBS portföyü — kağıt kağıt">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {sonDibsTcmb != null && (
             <div className="rounded-lg border border-border p-3">
@@ -202,10 +202,9 @@ export async function TcmbApiPortfoyuBolumu() {
           </a>{" "}
           kaynaklı.
         </p>
-      </div>
+      </Bolum>
 
-      <div>
-        <h3 className="mb-2 text-base font-semibold">ISIN / vade / nominal dağılımı</h3>
+      <Bolum baslik="ISIN / vade / nominal dağılımı">
         <div className="max-h-[420px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
           <Table>
             <TableHeader>
@@ -234,10 +233,9 @@ export async function TcmbApiPortfoyuBolumu() {
             </TableBody>
           </Table>
         </div>
-      </div>
+      </Bolum>
 
-      <div>
-        <h3 className="mb-2 text-base font-semibold">Vade dağılımı (kalan vadeye göre)</h3>
+      <Bolum baslik="Vade dağılımı (kalan vadeye göre)">
         <div className="overflow-x-auto rounded-lg border border-border">
           <Table>
             <TableHeader>
@@ -264,20 +262,18 @@ export async function TcmbApiPortfoyuBolumu() {
           Yukarıdaki ISIN bazlı gerçek portföyün KALAN vadeye (bugünden itfaya kalan süre, orijinal
           ihraç vadesine değil) göre dağılımı.
         </p>
-      </div>
+      </Bolum>
 
-      <div>
-        <h3 className="mb-2 text-base font-semibold">Kağıt tipine göre dağılım</h3>
+      <Bolum baslik="Kağıt tipine göre dağılım">
         <PastaGrafigi veri={tipVeri} />
         <p className="mt-2 text-xs text-muted-foreground">
           Yukarıdaki ISIN bazlı gerçek portföyün kağıt tipine göre toplamı — TCMB&apos;nin doğrudan alım
           kanalıyla edindiği Kira Sertifikaları gibi standart DİBS kupon tiplerine girmeyen kağıtlar da kendi
           dilimleriyle görünüyor.
         </p>
-      </div>
+      </Bolum>
 
-      <div>
-        <h3 className="mb-3 text-base font-semibold">TCMB APİ Portföyü — yaklaşan itfalar</h3>
+      <Bolum baslik="TCMB APİ Portföyü — yaklaşan itfalar">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {ufuklar.map(({ etiket, gunSayisi }) => {
             const esikMs = bugunUtc + gunSayisi * 86400000;
@@ -314,20 +310,17 @@ export async function TcmbApiPortfoyuBolumu() {
           Ufuklar KÜMÜLATİF: &quot;3 ay&quot; listesi &quot;1 ay&quot;dakileri de içerir, &quot;1 yıl&quot; listesi
           hepsini içerir — aynı kağıt birden fazla listede görünebilir.
         </p>
-      </div>
+      </Bolum>
 
-      <div>
-        <h3 className="mb-2 text-base font-semibold">
-          Ağırlıklı ortalama kalan vade — son 5 yıl (gün gün)
-        </h3>
-        <p className="mb-3 text-xs text-muted-foreground">
+      <Bolum baslik="Ağırlıklı Ortalama Kalan Vade — Son 5 Yıl">
+        <p className="text-xs text-muted-foreground">
           Portföyün hangi vadeye kaydığını (kısa mı uzun mu kağıt biriktiriliyor) gün gün gösterir.
           Her doğrudan alım kendi ihale tarihinde deftere girer, o ISIN&apos;in tüm birikmiş nominali
           vade tarihinde tamamen düşer; her gün için portföyde hâlâ aktif olan kağıtların nominal
           ağırlıklı ortalama kalan vadesi hesaplanır.
         </p>
         <OrtKalanVadeGrafigi veri={ortKalanVade} />
-      </div>
+      </Bolum>
     </div>
   );
 }

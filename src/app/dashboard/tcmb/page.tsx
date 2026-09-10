@@ -1,4 +1,5 @@
 import { BosDurum } from "@/components/bos-durum";
+import { Bolum } from "@/components/bolum";
 import { createClient } from "@/lib/supabase/server";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -204,8 +205,9 @@ export default async function TcmbPage({
           {koridorVeri.length === 0 ? (
             <p className="text-sm text-muted-foreground">Veri yok.</p>
           ) : (
-            <>
-              <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+            <div className="space-y-6">
+              <Bolum baslik="Faiz Koridoru">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 <div className="rounded-lg border border-border p-3">
                   <p className="text-xs text-muted-foreground">Üst bant (gecelik borç verme)</p>
                   <p className="font-figures font-semibold">{pct1(sonKoridor?.["Üst bant"] as number)}</p>
@@ -238,19 +240,19 @@ export default async function TcmbPage({
                 ]}
                 ondalik={2}
               />
+              </Bolum>
 
               {repoHacimVerisi.length > 0 && (
-                <div className="mt-8 space-y-2">
-                  <h3 className="text-base font-semibold">BIST gecelik repo işlem hacmi (TL)</h3>
+                <Bolum baslik="BIST Gecelik Repo İşlem Hacmi (TL)">
                   <p className="text-xs text-muted-foreground">
                     Aynı BIST Repo-Ters Repo Pazarı&apos;ndaki gecelik işlemlerin toplam hacmi —
                     yukarıdaki faiz oranının kaç TL&apos;lik işlem üzerinden oluştuğunu gösteriyor.
                     Hacim düştüğünde oluşan faiz daha az güvenilir/temsili olabilir.
                   </p>
                   <RepoHacimGrafigi veri={repoHacimVerisi} />
-                </div>
+                </Bolum>
               )}
-            </>
+            </div>
           )}
         </TabsContent>
 
@@ -276,8 +278,7 @@ export default async function TcmbPage({
             Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde — kırmızı üstü çizili kısımlar önceki
             karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
           </p>
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
-            <h3 className="text-base font-semibold">Fark raporu (PDF)</h3>
+          <Bolum baslik="Fark Raporu (PDF)">
             <a
               href="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
               target="_blank"
@@ -286,20 +287,19 @@ export default async function TcmbPage({
             >
               📄 PDF&apos;i indir / yeni sekmede aç
             </a>
-          </div>
-          <iframe
-            src="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
-            title="PPK Karar Farkı"
-            className="mt-3 h-[80vh] w-full rounded-lg border border-border"
-          />
+            <iframe
+              src="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
+              title="PPK Karar Farkı"
+              className="h-[80vh] w-full rounded-lg border border-border"
+            />
+          </Bolum>
         </TabsContent>
 
         <TabsContent value="enflasyonraporu">
           {!enflasyonRaporu ? (
             <BosDurum baslik="Enflasyon Raporu kaydı yok" aciklama="TCMB'nin yayımladığı Enflasyon Raporu özetleri burada listelenir." />
           ) : (
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold">{enflasyonRaporu.rapor_baslik}</h3>
+            <Bolum baslik={enflasyonRaporu.rapor_baslik}>
               <a
                 href={enflasyonRaporu.tam_metin_url}
                 target="_blank"
@@ -311,7 +311,7 @@ export default async function TcmbPage({
               <p className="text-xs text-muted-foreground">
                 Bu bilgiler {enflasyonRaporu.indirilme_tarihi} tarihinde TCMB&apos;nin sitesinden çekildi.
               </p>
-            </div>
+            </Bolum>
           )}
         </TabsContent>
       </Tabs>

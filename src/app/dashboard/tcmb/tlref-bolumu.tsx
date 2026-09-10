@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Bolum } from "@/components/bolum";
 import {
   CartesianGrid,
   Line,
@@ -145,8 +146,7 @@ export function TlrefBolumu({ seri }: { seri: TlrefNoktasi[] }) {
         </ResponsiveContainer>
       </div>
 
-      <div className="space-y-3">
-        <h3 className="text-base font-semibold">Dönem fonlama oranı</h3>
+      <Bolum baslik="Dönem fonlama oranı">
         <p className="text-sm text-muted-foreground">
           İki tarih arasında günlük TLREF oranları Actual/365 bileşik işletilip (hafta sonu/tatil
           günlerinde bir önceki iş gününün oranı geçerli sayılır), gerçekleşen getiri TLREF&apos;in kendi
@@ -190,7 +190,7 @@ export function TlrefBolumu({ seri }: { seri: TlrefNoktasi[] }) {
             ]}
           />
         )}
-      </div>
+      </Bolum>
     </div>
   );
 }

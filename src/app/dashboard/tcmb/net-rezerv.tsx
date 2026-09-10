@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Bolum } from "@/components/bolum";
 import { netRezervHesapla } from "@/lib/net-rezerv";
 import { CokluCizgiGrafigi, YiginliAlanGrafigi } from "./coklu-cizgi-grafigi";
 
@@ -101,8 +102,7 @@ export async function NetRezervBolumu() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <h3 className="text-base font-semibold">TCMB rezervleri (milyar USD)</h3>
+      <Bolum baslik="TCMB rezervleri (milyar USD)">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <div className="rounded-lg border border-border p-3">
             <p className="text-xs text-muted-foreground">Net Rezerv</p>
@@ -160,11 +160,10 @@ export async function NetRezervBolumu() {
             birim=" Mlr $"
           />
         </div>
-      </div>
+      </Bolum>
 
       {sonRezerv && (
-        <div className="space-y-3">
-          <h3 className="text-base font-semibold">Rezervler (Milyon USD)</h3>
+        <Bolum baslik="Rezervler (Milyon USD)">
           <p className="text-xs text-muted-foreground">TCMB&apos;nin haftalık açıkladığı resmi Toplam Rezerv/Altın/Döviz kompozisyonu.</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border border-border p-3">
@@ -188,7 +187,7 @@ export async function NetRezervBolumu() {
             ]}
             birim=" Mn USD"
           />
-        </div>
+        </Bolum>
       )}
     </div>
   );
