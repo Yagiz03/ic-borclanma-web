@@ -14,6 +14,9 @@
     "ekran": "node scripts/ekran.mjs",
     "ekran-fark": "python3 scripts/ekran-fark.py",
     "sema": "node scripts/sema-kaymasi.mjs",
+    "fixture": "node scripts/fixture-kaydet.mjs",
+    "dev:kaydet": "FIXTURE=kaydet next dev",
+    "dev:fixture": "FIXTURE=1 next dev",
     "kontrol": "npm run lint && npm run test && npm run build && npm run tutarlilik",
     "rls": "node scripts/rls-dogrula.mjs"
   },

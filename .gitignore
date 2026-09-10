@@ -52,3 +52,7 @@ next-env.d.ts
 # once cek, degistir, tekrar cek, karsilastir" seklinde -- ayni oturum
 # icinde veri sabit kaldigi surece fark yalnizca tasarimdan gelir.
 ekran/
+
+# Fixture: kaydedilmis Supabase yanitlari (canli veriden turetilir,
+# her an yeniden uretilebilir -- repoda tutmaya gerek yok).
+fixture/

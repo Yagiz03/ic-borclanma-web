@@ -1,5 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
+import { fixtureAcik, fixtureFetch } from "./fixture";
+
 /**
  * Çerez OKUMAYAN Supabase istemcisi.
  *
@@ -17,6 +19,9 @@ export function createPublicClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      ...(fixtureAcik ? { global: { fetch: fixtureFetch() } } : {}),
+    },
   );
 }
