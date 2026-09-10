@@ -31,6 +31,23 @@ type Olay = {
   oz?: string;
 };
 
+/**
+ * Doğrudan satış adını kaba bir "tür imzası"na indirger.
+ *
+ * Plan ile gerçekleşen kayıt aynı kağıdı FARKLI yazıyor: strateji belgesi
+ * "ABD Doları Cinsi Devlet Tahvili" derken fx_dibs_sonuc "Devlet Tahvili"
+ * + doviz_cinsi "USD" tutuyor. Düz metin karşılaştırması yapılınca ikisi
+ * de takvimde görünüyordu (3 Şubat 2026'da dört satır). İmza üzerinden
+ * eşleştirince aynı ihraç bir kez çıkıyor.
+ */
+function satisImzasi(ad: string): string {
+  const a = ad.toLocaleLowerCase("tr");
+  const dovizli = /abd doları|euro|döviz|\(usd\)|\(eur\)/.test(a);
+  const altinli = /altın|altına/.test(a);
+  const kira = /kira sertifika/.test(a);
+  return `${dovizli ? "fx" : altinli ? "altin" : "tl"}|${kira ? "kira" : "tahvil"}`;
+}
+
 function ayEkle(yil: number, ay: number, delta: number): { yil: number; ay: number } {
   let a = ay + delta;
   let y = yil;
@@ -71,6 +88,7 @@ export default async function TakvimPage({
 
   const [
     { data: tcmb }, { data: ihrac }, { data: isinOzet }, { data: enflasyonSeriler }, { data: gerceklesen },
+    { data: kiraSatis }, { data: altinSatis }, { data: fxSatis },
   ] = await Promise.all([
     supabase.from("tcmb_takvim").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("ihrac_takvimi").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
@@ -86,6 +104,11 @@ export default async function TakvimPage({
       .from("ihale_sonuclari")
       .select("isin, senet_tanimi, ihale_tarihi, ihrac_tipi, vade_tarihi, ort_yillik_bilesik_gerceklesme, toplam_gerceklesme_mn")
       .like("ihale_tarihi", ayEki),
+    // Gerceklesen DOGRUDAN SATISLAR uc ayri tabloda: TL kira sertifikasi,
+    // altin (tahvil + altina dayali kira sertifikasi) ve doviz cinsi DIBS.
+    supabase.from("kira_sertifikasi_ihrac").select("isin, ihrac_tarihi, itfa_tarihi, tutar_tl").like("ihrac_tarihi", ayEki),
+    supabase.from("altin_ihrac_sonuclari").select("isin, tur, ihrac_tarihi, itfa_tarihi, miktar_kg, yillik_oran_pct").like("ihrac_tarihi", ayEki),
+    supabase.from("fx_dibs_sonuc").select("isin, tur, doviz_cinsi, ihrac_tarihi, itfa_tarihi, gerceklesen_tutar").like("ihrac_tarihi", ayEki),
   ]);
 
   const isinHarita = new Map<string, string>();
@@ -124,6 +147,45 @@ export default async function TakvimPage({
     void a;
   }
 
+  // Gerçekleşen doğrudan satışlar. Senet adı, plan satırındakiyle aynı
+  // yazılıyor ki aşağıdaki bastırma eşleşsin.
+  function dogrudanSatisEkle(
+    ihracTarihi: unknown, senet: string, isin: unknown, itfa: unknown, detaylar: (string | null)[],
+  ) {
+    const gun = Number(String(ihracTarihi).split(".")[0]);
+    if (!Number.isFinite(gun)) return;
+    gerceklesenAnahtarlari.add(`${gun}|${satisImzasi(senet)}`);
+    (gunler[gun] ??= []).push({
+      etiket: `Doğrudan Satış: ${senet}`,
+      renk: RENK["Doğrudan Satış"],
+      oz: typeof isin === "string" ? isin : undefined,
+      detay: [
+        isin ? `ISIN: ${isin}` : null,
+        ...detaylar,
+        itfa ? `İtfa: ${itfa}` : null,
+      ].filter(Boolean).join(" — "),
+    });
+  }
+
+  for (const r of kiraSatis ?? []) {
+    dogrudanSatisEkle(r.ihrac_tarihi, "Kira Sertifikası", r.isin, r.itfa_tarihi, [
+      r.tutar_tl != null ? `${sayi(Number(r.tutar_tl) / 1e6, 0)} Mn TL` : null,
+    ]);
+  }
+  for (const r of altinSatis ?? []) {
+    dogrudanSatisEkle(r.ihrac_tarihi, String(r.tur), r.isin, r.itfa_tarihi, [
+      r.miktar_kg != null ? `${sayi(Number(r.miktar_kg), 0)} kg altın` : null,
+      r.yillik_oran_pct != null ? `Yıllık %${Number(r.yillik_oran_pct).toFixed(2)}` : null,
+    ]);
+  }
+  for (const r of fxSatis ?? []) {
+    // "Devlet Tahvili" / "Kira Sertifikası" -- doviz cinsi eklenmezse TL
+    // ihraclariyla karisiyor.
+    dogrudanSatisEkle(r.ihrac_tarihi, `${r.tur} (${r.doviz_cinsi})`, r.isin, r.itfa_tarihi, [
+      r.gerceklesen_tutar != null ? `${sayi(Number(r.gerceklesen_tutar), 0)} ${r.doviz_cinsi}` : null,
+    ]);
+  }
+
   // Aynı ihraç birden çok strateji belgesinden gelebiliyor -- ızgarada iki
   // kez görünmesin diye tekilleştiriliyor.
   const gorulenIhrac = new Set<string>();
@@ -133,8 +195,11 @@ export default async function TakvimPage({
     gorulenIhrac.add(anahtar);
     const gun = Number(i.tarih.slice(8, 10));
     const kisaYontem = i.yontem.startsWith("İhale") ? "İhale" : "Doğrudan Satış";
-    // Bu ihale gerçekleşmişse planı tekrar yazma.
-    if (gerceklesenAnahtarlari.has(`${gun}|${i.senet_turu}`)) continue;
+    // Bu ihraç gerçekleşmişse planı tekrar yazma. İhalelerde senet adı iki
+    // tarafta da aynı; doğrudan satışlarda değil (bkz. satisImzasi).
+    const bastirmaAnahtari =
+      kisaYontem === "İhale" ? `${gun}|${i.senet_turu}` : `${gun}|${satisImzasi(i.senet_turu)}`;
+    if (gerceklesenAnahtarlari.has(bastirmaAnahtari)) continue;
     // ISIN doğrudan ihraç takviminde yok: kağıt tipi + itfa tarihinden
     // isin_ozet'e eşleniyor (İhale Detay'daki aynı eşleme). Yeni ihraçlarda
     // henüz ISIN yok -- o zaman bunu açıkça yazıyoruz.
