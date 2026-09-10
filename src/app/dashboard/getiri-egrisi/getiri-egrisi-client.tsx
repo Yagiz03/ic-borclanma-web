@@ -93,6 +93,56 @@ type NoktaTooltipPayload = {
 const oy = (v: number | undefined, ondalik = 2) =>
   typeof v === "number" && Number.isFinite(v) ? v.toFixed(ondalik) : null;
 
+/** Eğri karşılaştırması grafiğinin tooltip'i.
+ *
+ *  Burada birden çok seri (referans gün + eklenen karşılaştırma günleri) var
+ *  ve her serinin kendi verisi. Eskiden Recharts'ın genel tooltip'i
+ *  kullanılıyordu: yalnızca "Kalan vade" ve yüzde gösteriyor, KAĞIDIN ISIN'İNİ
+ *  göstermiyordu -- oysa kullanıcının bakarken sorduğu ilk soru "bu nokta
+ *  hangi kağıt". ISIN'i ilk yükten alıp başa koyuyoruz, altında her günün
+ *  getirisi ve referansa göre farkı (bps) listeleniyor.
+ */
+export function KarsilastirmaTooltip({
+  active, payload, referansAdi,
+}: {
+  active?: boolean;
+  payload?: { name?: string; value?: number; color?: string; payload: NoktaTooltipPayload }[];
+  referansAdi: string;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const ilk = payload.find((x) => x.payload?.isin)?.payload ?? payload[0]?.payload;
+  if (!ilk) return null;
+  const vade = oy(ilk.kalanVadeYil);
+  const referans = payload.find((x) => x.name === referansAdi)?.value;
+
+  return (
+    <div style={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, padding: "8px 10px" }}>
+      {ilk.isin && <div style={{ fontWeight: 600, fontFamily: "var(--font-figures, monospace)" }}>{ilk.isin}</div>}
+      {ilk.senetTanimi && <div style={{ color: "var(--muted-foreground)" }}>{ilk.senetTanimi}</div>}
+      {vade != null && <div style={{ color: "var(--muted-foreground)" }}>Kalan vade: {vade} yıl</div>}
+      <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+        {payload.map((x, i) => {
+          const deger = oy(x.value);
+          if (deger == null) return null;
+          const fark =
+            typeof referans === "number" && typeof x.value === "number" && x.name !== referansAdi
+              ? (x.value - referans) * 100
+              : null;
+          return (
+            <div key={i} style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
+              <span style={{ color: x.color }}>{x.name}</span>
+              <span style={{ fontFamily: "var(--font-figures, monospace)" }}>
+                %{deger}
+                {fark != null && ` (${fark >= 0 ? "+" : ""}${fark.toFixed(0)} bp)`}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { payload: NoktaTooltipPayload }[] }) {
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0]?.payload;
@@ -534,11 +584,7 @@ export function GetiriEgrisiClient({
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} />
                   <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-                    formatter={(v) => (typeof v === "number" ? `%${v.toFixed(2)}` : v)}
-                    labelFormatter={(v) => (typeof v === "number" ? `Kalan vade: ${v.toFixed(2)} yıl` : String(v))}
-                  />
+                  <Tooltip content={<KarsilastirmaTooltip referansAdi={tarihFmt(referansTarihDate)} />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={gunluk} type="linear" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="var(--chart-1)" strokeWidth={3} dot={{ r: 3 }} />
                   {egriler.map((e) => (
