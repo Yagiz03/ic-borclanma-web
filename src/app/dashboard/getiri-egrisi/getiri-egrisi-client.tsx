@@ -693,7 +693,9 @@ export function GetiriEgrisiClient({
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} />
                   <YAxis type="number" dataKey="getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
                   <Tooltip content={<KarsilastirmaTooltip referansAdi={tarihFmt(referansTarihDate)} />} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  {/* Tarihler grafigin ustunde: karsilastirilan gunler grafige
+                      bakmadan once okunsun. */}
+                  <Legend verticalAlign="top" align="center" wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} />
                   <Line data={gunluk} type="linear" dataKey="getiri" name={tarihFmt(referansTarihDate)} stroke="var(--chart-1)" strokeWidth={3} dot={{ r: 3 }} />
                   {egriler.map((e) => (
                     <Line key={e.etiket} data={e.veri} type="linear" dataKey="getiri" name={e.etiket} stroke={e.renk} strokeDasharray="4 3" dot={{ r: 2 }} />
