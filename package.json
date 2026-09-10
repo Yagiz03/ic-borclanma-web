@@ -15,6 +15,7 @@
     "ekran-fark": "python3 scripts/ekran-fark.py",
     "sema": "node scripts/sema-kaymasi.mjs",
     "satir": "node scripts/satir-siniri.mjs",
+    "capraz": "node scripts/senkron-capraz.mjs",
     "fixture": "node scripts/fixture-kaydet.mjs",
     "dev:kaydet": "FIXTURE=kaydet next dev",
     "dev:fixture": "FIXTURE=1 next dev",
