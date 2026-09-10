@@ -461,11 +461,11 @@ async function TcmbDogrudanAlimBolumu() {
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>ISIN</TableHead>
-                    <TableHead className="w-full min-w-[10rem]">Senet</TableHead>
-                    <TableHead className="text-right"><KolonBasligi ust="Teklif" alt="Milyon TL" /></TableHead>
-                    <TableHead className="text-right"><KolonBasligi ust="Alınan" alt="Milyon TL" /></TableHead>
-                    <TableHead className="text-right"><KolonBasligi ust="Kabul" alt="Oranı" /></TableHead>
-                    <TableHead className="text-right"><KolonBasligi ust="Ort. Faiz" alt="Bileşik" /></TableHead>
+                    <TableHead>Senet</TableHead>
+                    <TableHead className="min-w-[6rem] px-3 text-right"><KolonBasligi ust="Teklif" alt="Milyon TL" /></TableHead>
+                    <TableHead className="min-w-[6rem] px-3 text-right"><KolonBasligi ust="Alınan" alt="Milyon TL" /></TableHead>
+                    <TableHead className="min-w-[5rem] px-3 text-right"><KolonBasligi ust="Kabul" alt="Oranı" /></TableHead>
+                    <TableHead className="min-w-[6rem] px-3 text-right"><KolonBasligi ust="Ort. Faiz" alt="Bileşik" /></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -474,12 +474,12 @@ async function TcmbDogrudanAlimBolumu() {
                       <TableCell className="font-figures whitespace-nowrap">{isoTarihGoster(r.ihale_tarihi)}</TableCell>
                       <TableCell className="font-figures">{r.isin}</TableCell>
                       <TableCell><SenetBadge tanim={r.senet_tanimi} /></TableCell>
-                      <TableCell className="font-figures text-right">{sayi(r.teklif_mn, 1)}</TableCell>
-                      <TableCell className="font-figures text-right font-semibold">
+                      <TableCell className="font-figures px-3 text-right">{sayi(r.teklif_mn, 1)}</TableCell>
+                      <TableCell className="font-figures px-3 text-right font-semibold">
                         {sayi(r.tutar_mn, 1)}
                       </TableCell>
-                      <TableCell className="font-figures text-right">{yuzde(r.kabul_pct, 0)}</TableCell>
-                      <TableCell className="font-figures text-right">{yuzde(r.faiz)}</TableCell>
+                      <TableCell className="font-figures px-3 text-right">{yuzde(r.kabul_pct, 0)}</TableCell>
+                      <TableCell className="font-figures px-3 text-right">{yuzde(r.faiz)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
