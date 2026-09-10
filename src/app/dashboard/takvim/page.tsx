@@ -89,6 +89,7 @@ export default async function TakvimPage({
   const [
     { data: tcmb }, { data: ihrac }, { data: isinOzet }, { data: enflasyonSeriler }, { data: gerceklesen },
     { data: kiraSatis }, { data: altinSatis }, { data: fxSatis }, { data: duyurular },
+    { data: kiraOran }, { data: fxOran },
   ] = await Promise.all([
     supabase.from("tcmb_takvim").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("ihrac_takvimi").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
@@ -117,6 +118,10 @@ export default async function TakvimPage({
       .from("ihale_duyurulari")
       .select("isin, ihale_tarihi, senet_tanimi, ihrac_tipi, resmi_kupon_orani_pct, ek_getiri_bp")
       .like("ihale_tarihi", ayEki),
+    // Dogrudan satislarin RESMI oranlari yalnizca ihrac DUYURUSU
+    // tablolarinda var (sonuc tablolarinda tutar var, oran yok).
+    supabase.from("kira_sabit_ihrac").select("isin, donemsel_oran_pct, yillik_oran_pct"),
+    supabase.from("fx_dibs").select("isin, donemsel_oran_pct, yillik_oran_pct"),
   ]);
 
   const isinHarita = new Map<string, string>();
@@ -155,6 +160,23 @@ export default async function TakvimPage({
     void a;
   }
 
+  // ISIN -> ihraç duyurusunda ilan edilen resmi oran.
+  const oranHarita = new Map<string, { donemsel: number | null; yillik: number | null }>();
+  for (const r of [...(kiraOran ?? []), ...(fxOran ?? [])]) {
+    oranHarita.set(r.isin, {
+      donemsel: r.donemsel_oran_pct != null ? Number(r.donemsel_oran_pct) : null,
+      yillik: r.yillik_oran_pct != null ? Number(r.yillik_oran_pct) : null,
+    });
+  }
+  const oranDetayi = (isin: unknown): string | null => {
+    const o = typeof isin === "string" ? oranHarita.get(isin) : undefined;
+    if (!o) return null;
+    const p: string[] = [];
+    if (o.donemsel != null) p.push(`dönemsel %${o.donemsel.toFixed(2)}`);
+    if (o.yillik != null) p.push(`yıllık %${o.yillik.toFixed(2)}`);
+    return p.length > 0 ? p.join(" / ") : null;
+  };
+
   // Gerçekleşen doğrudan satışlar. Senet adı, plan satırındakiyle aynı
   // yazılıyor ki aşağıdaki bastırma eşleşsin.
   function dogrudanSatisEkle(
@@ -170,6 +192,7 @@ export default async function TakvimPage({
       detay: [
         isin ? `ISIN: ${isin}` : null,
         ...detaylar,
+        oranDetayi(isin),
         itfa ? `İtfa: ${itfa}` : null,
       ].filter(Boolean).join(" — "),
     });

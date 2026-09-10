@@ -1,4 +1,6 @@
 import { BosDurum } from "@/components/bos-durum";
+import { sayi, yuzde } from "@/lib/bicim";
+import { trTarihAyristir } from "@/lib/tarih";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createClient } from "@/lib/supabase/server";
 import { OzetSerit } from "@/components/ozet-serit";
@@ -200,7 +202,79 @@ async function IcBorcCevirmeOraniBolumu() {
 
 // Global aramadan ?tab= ile doğrudan ilgili sekmeye gelinebilsin diye
 // (önce her sonuç sayfanın ilk sekmesini açıyordu).
-const SEKMELER = ["borcnakit", "cevirme", "vade"] as const;
+/**
+ * Eurobond (uluslararasi tahvil) ihrac sonuclari.
+ *
+ * tahvil_ihrac_sonuclari tablosu yerel veritabaninda vardi ama Supabase'e
+ * hic tasinmamisti ve eski sitede de hicbir sayfa okumuyordu -- kupon,
+ * ihrac fiyati, yatirimci getirisi ve UST'ye gore spread hicbir yerde
+ * gorunmuyordu.
+ */
+async function EurobondBolumu() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tahvil_ihrac_sonuclari")
+    .select("ihrac_tarihi, vade_tarihi, doviz_cinsi, miktar, kupon_orani_pct, fiyat_pct, yatirimciya_getirisi_pct, spread");
+
+  const satirlar = [...(data ?? [])].sort(
+    (a, b) =>
+      (trTarihAyristir(b.ihrac_tarihi)?.getTime() ?? 0) -
+      (trTarihAyristir(a.ihrac_tarihi)?.getTime() ?? 0),
+  );
+
+  if (satirlar.length === 0) {
+    return (
+      <BosDurum
+        baslik="Eurobond ihraç kaydı yok"
+        aciklama="HMB'nin uluslararası tahvil ihraç sonucu duyuruları henüz aktarılmadı."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        HMB&apos;nin uluslararası piyasalarda gerçekleştirdiği tahvil ihraçları — ihraç anındaki kupon,
+        fiyat, yatırımcıya getiri ve ABD Hazine tahviline (UST) göre spread. Kaynak: ihraç sonucu basın
+        duyuruları.
+      </p>
+      <div className="max-h-[560px] overflow-y-auto rounded-lg border border-border">
+        <Table>
+          <TableHeader className="sticky top-0 z-10">
+            <TableRow>
+              <TableHead>İhraç Tarihi</TableHead>
+              <TableHead>İtfa Tarihi</TableHead>
+              <TableHead>Döviz</TableHead>
+              <TableHead>Miktar</TableHead>
+              <TableHead className="px-4 text-right">Kupon</TableHead>
+              <TableHead className="px-4 text-right">Fiyat</TableHead>
+              <TableHead className="px-4 text-right">Yatırımcı Getirisi</TableHead>
+              <TableHead>Spread</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {satirlar.map((r) => (
+              <TableRow key={`${r.ihrac_tarihi}|${r.vade_tarihi}`}>
+                <TableCell className="font-figures whitespace-nowrap">{r.ihrac_tarihi}</TableCell>
+                <TableCell className="font-figures whitespace-nowrap">{r.vade_tarihi}</TableCell>
+                <TableCell>{r.doviz_cinsi ?? "–"}</TableCell>
+                <TableCell className="font-figures">{r.miktar ?? "–"}</TableCell>
+                <TableCell className="font-figures px-4 text-right">{yuzde(r.kupon_orani_pct)}</TableCell>
+                <TableCell className="font-figures px-4 text-right">
+                  {r.fiyat_pct != null ? sayi(Number(r.fiyat_pct), 3) : "–"}
+                </TableCell>
+                <TableCell className="font-figures px-4 text-right">{yuzde(r.yatirimciya_getirisi_pct)}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{r.spread ?? "–"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+const SEKMELER = ["borcnakit", "cevirme", "vade", "eurobond"] as const;
 
 export default async function HazinePage({
   searchParams,
@@ -225,12 +299,16 @@ export default async function HazinePage({
           <TabsTrigger value="borcnakit" className="shrink-0">Borç Stoku / Nakit</TabsTrigger>
           <TabsTrigger value="cevirme" className="shrink-0">İç Borç Çevirme Oranı</TabsTrigger>
           <TabsTrigger value="vade" className="shrink-0">Ortalama Vade / Maliyet</TabsTrigger>
+          <TabsTrigger value="eurobond" className="shrink-0">Eurobond İhraçları</TabsTrigger>
         </TabsList>
         <TabsContent value="borcnakit">
           <BorcStokuNakitBolumu />
         </TabsContent>
         <TabsContent value="cevirme">
           <IcBorcCevirmeOraniBolumu />
+        </TabsContent>
+        <TabsContent value="eurobond">
+          <EurobondBolumu />
         </TabsContent>
         <TabsContent value="vade">
           <OrtalamaVadeMaliyetBolumu />
