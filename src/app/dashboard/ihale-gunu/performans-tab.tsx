@@ -12,7 +12,14 @@ type IhaleRow = {
   ort_fiyat_gerceklesme: number | null;
 };
 
-type BistRow = { isin: string; tarih: string; temiz_fiyat: number | null };
+/** ihale_sonrasi_fiyatlar gorunumu: her (isin, ihale_tarihi) icin ihale
+ *  gununden itibaren siralanmis ilk 21 kapanis. `sira` 0 = ihale gunu. */
+type PerformansFiyat = {
+  isin: string;
+  ihale_tarihi: string;
+  sira: number;
+  temiz_fiyat: number | null;
+};
 
 function tOranRozeti(v: number | null) {
   if (v == null) return <span className="text-muted-foreground">–</span>;
@@ -28,8 +35,8 @@ function tOranRozeti(v: number | null) {
   );
 }
 
-export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bist: BistRow[]; isinler: { isin: string; etiket: string; vadeD: Date }[] }) {
-  const bistIsinler = useMemo(() => new Set(bist.map((r) => r.isin)), [bist]);
+export function PerformansTab({ ihale, fiyatlar, isinler }: { ihale: IhaleRow[]; fiyatlar: PerformansFiyat[]; isinler: { isin: string; etiket: string; vadeD: Date }[] }) {
+  const bistIsinler = useMemo(() => new Set(fiyatlar.map((r) => r.isin)), [fiyatlar]);
   const ihaleIsinler = useMemo(() => new Set(ihale.map((r) => r.isin)), [ihale]);
   const uygunlar = useMemo(
     () => isinler.filter((r) => ihaleIsinler.has(r.isin) && bistIsinler.has(r.isin)),
@@ -43,18 +50,23 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
       .map((r) => ({ ...r, tarihD: trTarihAyristir(r.ihale_tarihi) }))
       .filter((r): r is typeof r & { tarihD: Date } => r.tarihD != null)
       .sort((a, b) => a.tarihD.getTime() - b.tarihD.getTime());
-    const buIsinBist = bist
-      .filter((r) => r.isin === secili)
-      .map((r) => ({ ...r, tarihD: new Date(r.tarih) }))
-      .sort((a, b) => a.tarihD.getTime() - b.tarihD.getTime());
+    // (ihale tarihi -> sira -> fiyat). Gorunum dilimi zaten ihale gununden
+    // basliyor, yani sira n = T+n.
+    const seriler = new Map<string, Map<number, number | null>>();
+    for (const f of fiyatlar) {
+      if (f.isin !== secili) continue;
+      let m = seriler.get(f.ihale_tarihi);
+      if (!m) seriler.set(f.ihale_tarihi, (m = new Map()));
+      m.set(f.sira, f.temiz_fiyat);
+    }
 
     return buIsinIhale
       .map((r) => {
-        const sonraki = buIsinBist.filter((b) => b.tarihD.getTime() >= r.tarihD.getTime());
-        if (sonraki.length === 0) return null;
+        const sonraki = seriler.get(r.ihale_tarihi);
+        if (!sonraki || sonraki.size === 0) return null;
         const oranlar: Record<string, number | null> = {};
         for (const n of [1, 5, 10, 20]) {
-          const fiyatN = sonraki[n]?.temiz_fiyat;
+          const fiyatN = sonraki.get(n);
           oranlar[`T+${n}`] = fiyatN != null && r.ort_fiyat_gerceklesme
             ? (fiyatN / r.ort_fiyat_gerceklesme - 1) * 100
             : null;
@@ -62,9 +74,9 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
         return { tarih: r.tarihD.toLocaleDateString("tr-TR"), ihracTipi: r.ihrac_tipi, ihaleFiyat: r.ort_fiyat_gerceklesme, oranlar };
       })
       .filter((r): r is NonNullable<typeof r> => r != null);
-  }, [ihale, bist, secili]);
+  }, [ihale, fiyatlar, secili]);
 
-  if (bist.length === 0 || ihale.length === 0) {
+  if (fiyatlar.length === 0 || ihale.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
         BIST fiyat verisi veya ihale sonuçları boş — veri henüz yeterince göç etmedi.

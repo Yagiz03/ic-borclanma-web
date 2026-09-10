@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OstGunlukIslemler } from "./ost-gunluk-islemler";
 import { OstIhracciProfili } from "./ost-ihracci-profili";
@@ -28,7 +29,12 @@ export default async function OzelSektorPage({
       .eq("ozel_sektor_mu", true)
       .order("ihracci_kurum", { ascending: true })
       .order("isin"),
-    supabase.from("araci_kurumlar").select("kod, unvan"),
+    // 974 satir -- PostgREST'in 1000 satirlik sinirinin hemen altinda.
+    // Sinir asildiginda sessizce kesilip bazi araci kurum unvanlari
+    // "bilinmiyor" olacagi icin simdiden sayfalaniyor.
+    tumSatirlariGetir<{ kod: string; unvan: string }>((bas, son) =>
+      supabase.from("araci_kurumlar").select("kod, unvan").range(bas, son),
+    ),
   ]);
 
   const araciHarita = new Map((araciKurumlar ?? []).map((a) => [a.kod, a.unvan]));

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trTarihAyristir } from "@/lib/tarih";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
 import { TahminTab } from "./tahmin-tab";
 import { EmirlerimTab } from "./emirlerim-tab";
 import { PerformansTab } from "./performans-tab";
@@ -8,6 +9,13 @@ import { PerformansTab } from "./performans-tab";
 // Global aramadan ?tab= ile doğrudan ilgili sekmeye gelinebilsin diye
 // (önce her sonuç sayfanın ilk sekmesini açıyordu).
 const SEKMELER = ["tahmin", "emirlerim", "performans"] as const;
+
+type PerformansFiyat = {
+  isin: string;
+  ihale_tarihi: string;
+  sira: number;
+  temiz_fiyat: number | null;
+};
 
 export default async function IhaleGunuPage({
   searchParams,
@@ -24,7 +32,7 @@ export default async function IhaleGunuPage({
     { data: planlarHam },
     { data: tracksHam },
     { data: isinOzetHam },
-    { data: bistHam },
+    { data: fiyatHam },
   ] = await Promise.all([
     supabase
       .from("ihale_sonuclari")
@@ -38,7 +46,20 @@ export default async function IhaleGunuPage({
       .select("id, isin, ihale_tarihi, en_dusuk_gerceklesen_fiyat, auction_orders(id, fiyat, nominal)")
       .order("ihale_tarihi", { ascending: false }),
     supabase.from("isin_ozet").select("isin, senet_tanimi, vade_tarihi"),
-    supabase.from("bist_bap_fiyatlar").select("isin, tarih, temiz_fiyat"),
+    // bist_bap_fiyatlar'in TAMAMI cekiliyordu (76.221 satir): PostgREST
+    // 1000 satirda kesiyor, kagitlarin cogu Performans sekmesinde "veri yok"
+    // goruunuyordu. ihale_sonrasi_fiyatlar gorunumu her ihale icin yalnizca
+    // gereken ilk 21 kapanisi veriyor (~9.650 satir) -- yine 1000'i astigi
+    // icin sayfalanarak cekiliyor.
+    tumSatirlariGetir<PerformansFiyat>((bas, son) =>
+      supabase
+        .from("ihale_sonrasi_fiyatlar")
+        .select("isin, ihale_tarihi, sira, temiz_fiyat")
+        .order("isin")
+        .order("ihale_tarihi")
+        .order("sira")
+        .range(bas, son),
+    ),
   ]);
 
   const bugun = new Date();
@@ -88,7 +109,7 @@ export default async function IhaleGunuPage({
           <EmirlerimTab takipler={takipler} kesmeOnerileri={kesmeOnerileri} />
         </TabsContent>
         <TabsContent value="performans">
-          <PerformansTab ihale={ihaleHam ?? []} bist={bistHam ?? []} isinler={isinler} />
+          <PerformansTab ihale={ihaleHam ?? []} fiyatlar={fiyatHam ?? []} isinler={isinler} />
         </TabsContent>
       </Tabs>
     </div>
