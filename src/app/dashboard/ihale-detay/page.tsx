@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BosDurum } from "@/components/bos-durum";
 import { MobilKartListesi } from "@/components/mobil-kart-listesi";
 import { KolonBasligi } from "@/components/kolon-basligi";
+import { GunlukAlimGrafigi } from "./gunluk-alim-grafigi";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -417,7 +418,7 @@ async function TcmbDogrudanAlimBolumu() {
   const gunlukTum = [...gunlukMap.entries()].sort(([a], [b]) => a.localeCompare(b));
   const gunlukYtd = gunlukTum.filter(([tarih]) => tarih >= yilBasi);
   const gunlukGosterilecek = (gunlukYtd.length > 0 ? gunlukYtd : gunlukTum).map(([tarih, tutar]) => ({
-    etiket: isoTarihGoster(tarih),
+    tarih,
     tutar,
   }));
 
@@ -448,7 +449,7 @@ async function TcmbDogrudanAlimBolumu() {
 
         <div>
           <h3 className="mb-2 text-base font-semibold">TCMB Doğrudan Alım İhalesi Günlük</h3>
-          <RenkliBarGrafik veri={gunlukGosterilecek} dataKey="tutar" etiket="Alım Tutarı" birim=" Bin TL" />
+          <GunlukAlimGrafigi veri={gunlukGosterilecek} />
           <p className="mt-2 text-xs text-muted-foreground">{guncelYil} başından (YTD) itibaren gösteriliyor.</p>
         </div>
 
