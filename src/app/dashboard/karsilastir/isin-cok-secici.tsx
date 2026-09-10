@@ -14,6 +14,9 @@ type Secenek = { isin: string; etiket: string; bistVeriVarMi: boolean };
  *  - BIST'te işlem görmemiş ("veri yok") kağıtlar listenin SONUNA. Bunlar
  *    grafikte hiç çıkmıyor ama sayıca çoğunlukta olduklari için listenin
  *    görünen kısmını tamamen dolduruyorlardı.
+ *  - Liste yalnızca ARAMA YAPILINCA açılıyor. Önceden 500 kağıtlık kutu
+ *    sürekli açık duruyor, sayfanın yarısını kaplayıp grafiği aşağı
+ *    itiyordu; oysa kağıt seçmenin yolu zaten aramak.
  */
 export function IsinCokSecici({
   secenekler,
@@ -96,6 +99,7 @@ export function IsinCokSecici({
         )}
       </div>
 
+      {sorgu.trim() === "" ? null : (
       <div className="grid max-h-64 grid-cols-1 gap-1 overflow-y-auto rounded-md border border-border p-2 sm:grid-cols-2">
         {suzulmus.length === 0 ? (
           <p className="px-2 py-1 text-sm text-muted-foreground">Eşleşen kağıt yok.</p>
@@ -131,6 +135,7 @@ export function IsinCokSecici({
           })
         )}
       </div>
+      )}
     </div>
   );
 }
