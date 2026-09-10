@@ -145,7 +145,12 @@ export function KarsilastirmaTooltip({
 
 export function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { payload: NoktaTooltipPayload }[] }) {
   if (!active || !payload || payload.length === 0) return null;
-  const p = payload[0]?.payload;
+  // ComposedChart'ta uyarlanan EĞRİ, saçılım serilerinden ÖNCE tanımlı olduğu
+  // için Recharts yükün başına çoğu zaman onu koyuyor -- eğri noktasında ISIN
+  // yok. Körlemesine payload[0] alınınca bir kağıdın üstündeyken bile ISIN
+  // görünmüyordu. Önce ISIN taşıyan kaydı arıyoruz; yoksa ilk kayda düşüyoruz
+  // (o zaman gerçekten eğrinin üstündeyiz).
+  const p = payload.find((x) => x?.payload?.isin)?.payload ?? payload[0]?.payload;
   if (!p) return null;
 
   // İmleç eğrinin üstündeyken getiri/ISIN alanları YOK; eskiden burada

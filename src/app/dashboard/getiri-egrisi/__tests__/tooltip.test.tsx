@@ -30,6 +30,22 @@ describe("NoktaTooltip", () => {
     expect(screen.getByText("Z-skoru: -1.75")).toBeInTheDocument();
   });
 
+  it("eğri ile saçılım aynı yükteyken ISIN'li kaydı seçer", () => {
+    // ComposedChart'ta eğri serisi saçılımdan ÖNCE tanımlı: yükün başında
+    // ISIN'siz eğri noktası geliyor. Kağıdın üstündeyken ISIN görünmeliydi.
+    render(
+      <NoktaTooltip
+        active
+        payload={[
+          { payload: { kalanVadeYil: 7.08, egri: 36.1 } },
+          { payload: { isin: "TRT051033T12", kalanVadeYil: 7.08, getiri: 33.85, zSkoru: -1.75 } },
+        ]}
+      />,
+    );
+    expect(screen.getByText("TRT051033T12")).toBeInTheDocument();
+    expect(screen.getByText("Getiri: %33.85")).toBeInTheDocument();
+  });
+
   it("boş/eksik yükte hiçbir şey render etmez", () => {
     const { container: a } = render(<NoktaTooltip active payload={[]} />);
     expect(a).toBeEmptyDOMElement();
