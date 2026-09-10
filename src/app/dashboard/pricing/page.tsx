@@ -24,7 +24,21 @@ export default async function PricingPage({
 
   // Fiyatlanabilir tipler -- pages/pricing.py'deki gecerli_tipler ile aynı
   // (Kamu Kira Sertifikası'nın floater alt tipleri KASITLI olarak yok).
-  const SABIT_TIPLER = ["Sabit Kuponlu Devlet Tahvili", "Kuponsuz Devlet Tahvili"];
+  // core/styling.py::SABIT_GETIRILI_KAGIT_TIPLERI + core/portfoy_risk.py::
+  // DIGER_PARA_BIRIMI_SABIT_TIPLERI. "Hazine Bonosu" ve doviz cinsi tipler
+  // burada EKSIKTI: eski sitede fiyatlanabilen 93 kagit yeni sitede listede
+  // hic cikmiyordu.
+  const SABIT_TIPLER = [
+    "Sabit Kuponlu Devlet Tahvili",
+    "Hazine Bonosu",
+    "Kuponsuz Devlet Tahvili",
+    "ABD Doları Cinsi Sabit Kuponlu Devlet Tahvili",
+    "Avro Cinsi Sabit Kuponlu Devlet Tahvili",
+    "ABD Doları Cinsi Kira Sertifikası",
+    "Avro Cinsi Kira Sertifikası",
+    "Eurotahvil",
+    "Eurotahvil (Yeşil Tahvil)",
+  ];
   const TLREF_TIPI = "TLREF'e Endeksli Devlet Tahvili";
   const TUFE_TIPI = "TÜFE'ye Endeksli Devlet Tahvili";
   const FRN_TIPI = "Değişken Faizli Devlet Tahvili";
