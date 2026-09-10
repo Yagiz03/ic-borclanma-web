@@ -51,30 +51,30 @@ function KagitGecmisi({ isin, ihale }: { isin: string; ihale: IhalePrep[] }) {
   if (gecmis.length === 0) return <p className="p-3 text-xs text-muted-foreground">Bu ISIN için geçmiş ihale sonucu yok.</p>;
   return (
     <div className="overflow-x-auto p-3">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left text-muted-foreground">
-            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Tarih</th>
-            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">En Düşük</th>
-            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Ortalama</th>
-            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">En Yüksek</th>
-            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Tail (bps)</th>
-            <th className="px-2 py-1 font-medium text-xs uppercase tracking-wide text-muted-foreground">Piyasadan İhale (Mn TL)</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tarih</TableHead>
+            <TableHead>En Düşük</TableHead>
+            <TableHead>Ortalama</TableHead>
+            <TableHead>En Yüksek</TableHead>
+            <TableHead>Tail (bps)</TableHead>
+            <TableHead>Piyasadan İhale (Mn TL)</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {gecmis.map((r, i) => (
-            <tr key={i} className="border-t border-border/60">
-              <td className="font-figures px-2 py-1">{r.ihaleTarihiD.toLocaleDateString("tr-TR")}</td>
-              <td className="font-figures px-2 py-1">{r.en_dusuk_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
-              <td className="font-figures px-2 py-1">{r.ort_yillik_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
-              <td className="font-figures px-2 py-1">{r.en_yuksek_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
-              <td className="font-figures px-2 py-1">{r.tail_bps ?? "–"}</td>
-              <td className="font-figures px-2 py-1">{milyonFmt(r.piyasadanIhaleMn)}</td>
-            </tr>
+            <TableRow key={i}>
+              <TableCell className="font-figures">{r.ihaleTarihiD.toLocaleDateString("tr-TR")}</TableCell>
+              <TableCell className="font-figures">{r.en_dusuk_bilesik_gerceklesme?.toFixed(2) ?? "–"}</TableCell>
+              <TableCell className="font-figures">{r.ort_yillik_bilesik_gerceklesme?.toFixed(2) ?? "–"}</TableCell>
+              <TableCell className="font-figures">{r.en_yuksek_bilesik_gerceklesme?.toFixed(2) ?? "–"}</TableCell>
+              <TableCell className="font-figures">{r.tail_bps ?? "–"}</TableCell>
+              <TableCell className="font-figures">{milyonFmt(r.piyasadanIhaleMn)}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -83,33 +83,33 @@ function DagilimTablosu({ dagilim, ihale }: { dagilim: DagilimSatiri[]; ihale: I
   const [acikIsin, setAcikIsin] = useState<string | null>(null);
   return (
     <div className="max-h-[480px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="sticky top-0 bg-card">
-          <tr className="border-b border-border text-left text-muted-foreground">
-            <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">İhale tarihi</th>
-            <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">ISIN</th>
-            <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Senet</th>
-            <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Miktar (Mn TL)</th>
-            <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Yüzdelik</th>
-            <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Tail (bps)</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>İhale tarihi</TableHead>
+            <TableHead>ISIN</TableHead>
+            <TableHead>Senet</TableHead>
+            <TableHead className="text-right">Miktar (Mn TL)</TableHead>
+            <TableHead className="text-right">Yüzdelik</TableHead>
+            <TableHead className="text-right">Tail (bps)</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {dagilim.map((r, i) => {
             const tiklanabilir = r.isin !== "–";
             const acik = acikIsin === r.isin;
             return (
               <Fragment key={i}>
-                <tr
+                <TableRow
                   onClick={() => tiklanabilir && setAcikIsin(acik ? null : r.isin)}
                   className={`border-b border-border/60 ${tiklanabilir ? "cursor-pointer hover:bg-accent/40" : ""}`}
                 >
-                  <td className="font-figures px-3 py-2 whitespace-nowrap">{r.ihaleTarihi}</td>
-                  <td className="font-figures px-3 py-2">
+                  <TableCell className="font-figures whitespace-nowrap">{r.ihaleTarihi}</TableCell>
+                  <TableCell className="font-figures">
                     {r.isin} {tiklanabilir && <span className="opacity-50">▾</span>}
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">{r.senet}</td>
-                  <td className="px-3 py-2 text-right">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">{r.senet}</TableCell>
+                  <TableCell className="text-right">
                     {r.gerceklesti ? (
                       <>
                         <span className="text-destructive/70 line-through opacity-65">{milyonFmt(r.tahminMiktar)}</span>{" "}
@@ -118,9 +118,9 @@ function DagilimTablosu({ dagilim, ihale }: { dagilim: DagilimSatiri[]; ihale: I
                     ) : (
                       <span className="font-figures">{milyonFmt(r.miktar)}</span>
                     )}
-                  </td>
-                  <td className="font-figures px-3 py-2 text-right">{r.yuzde != null ? `%${r.yuzde.toFixed(1)}` : "–"}</td>
-                  <td className="px-3 py-2 text-right">
+                  </TableCell>
+                  <TableCell className="font-figures text-right">{r.yuzde != null ? `%${r.yuzde.toFixed(1)}` : "–"}</TableCell>
+                  <TableCell className="text-right">
                     {r.gerceklesti ? (
                       <>
                         <span className="text-destructive/70 line-through opacity-65">
@@ -131,20 +131,20 @@ function DagilimTablosu({ dagilim, ihale }: { dagilim: DagilimSatiri[]; ihale: I
                     ) : (
                       <span className="font-figures">{r.tailBps != null ? r.tailBps.toFixed(0) : "–"}</span>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
                 {tiklanabilir && acik && (
-                  <tr>
-                    <td colSpan={6} className="bg-accent/20 p-0">
+                  <TableRow>
+                    <TableCell colSpan={6}>
                       <KagitGecmisi isin={r.isin} ihale={ihale} />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
               </Fragment>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

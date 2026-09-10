@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BosDurum } from "@/components/bos-durum";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus } from "lucide-react";
@@ -195,21 +196,21 @@ function TakipKarti({ takip, oneri }: { takip: Track; oneri: number | null }) {
         ) : (
           <>
             <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-muted-foreground">
-                    <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Fiyat</th>
-                    <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Nominal</th>
-                    <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Durum</th>
-                    <th className="px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground" />
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-medium">Fiyat</TableHead>
+                    <TableHead className="font-medium">Nominal</TableHead>
+                    <TableHead className="font-medium">Durum</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {ozet.emirler.map((e) => (
-                    <tr key={e.id} className="border-b border-border last:border-0">
-                      <td className="font-figures px-3 py-2">{e.fiyat.toFixed(3)}</td>
-                      <td className="font-figures px-3 py-2">{paraFmt(e.nominal)}</td>
-                      <td className="px-3 py-2">
+                    <TableRow key={e.id}>
+                      <TableCell className="font-figures">{e.fiyat.toFixed(3)}</TableCell>
+                      <TableCell className="font-figures">{paraFmt(e.nominal)}</TableCell>
+                      <TableCell>
                         {e.geldi === true ? (
                           <span className="text-emerald-600">✅ Geldi</span>
                         ) : e.geldi === false ? (
@@ -217,16 +218,16 @@ function TakipKarti({ takip, oneri }: { takip: Track; oneri: number | null }) {
                         ) : (
                           <span className="text-muted-foreground">– Sonuç bekliyor</span>
                         )}
-                      </td>
-                      <td className="px-3 py-2 text-right">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => emirSil(e.id)} aria-label="Emri sil">
                           <Trash2 className="size-3.5" />
                         </Button>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

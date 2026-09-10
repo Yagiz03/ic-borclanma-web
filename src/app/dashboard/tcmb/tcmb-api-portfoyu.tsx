@@ -293,16 +293,16 @@ export async function TcmbApiPortfoyuBolumu() {
                   <p className="text-xs text-muted-foreground">Bu ufukta itfa olacak kağıt yok.</p>
                 ) : (
                   <div className="max-h-[220px] overflow-y-auto rounded border border-border/60">
-                    <table className="w-full text-xs">
-                      <tbody>
+                    <Table>
+                      <TableBody>
                         {alt.map((r) => (
-                          <tr key={r.isin} className="border-b border-border/40 last:border-0">
-                            <td className="px-2 py-1 font-figures">{r.isin}</td>
-                            <td className="px-2 py-1 text-right font-figures">{milyon(r.nominalMn)}</td>
-                          </tr>
+                          <TableRow key={r.isin}>
+                            <TableCell className="font-figures">{r.isin}</TableCell>
+                            <TableCell className="text-right font-figures">{milyon(r.nominalMn)}</TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </div>

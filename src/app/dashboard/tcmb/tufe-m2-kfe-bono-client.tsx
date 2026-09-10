@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CokluCizgiGrafigi } from "./coklu-cizgi-grafigi";
 
 export type AylikSatir = {
@@ -205,36 +206,36 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
         </button>
         {tabloAcik && (
           <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="whitespace-nowrap px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Ay</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Reel Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Yıllık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">M2 Reel Yıllık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Reel Aylık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Yıllık %</th>
-                  <th className="whitespace-nowrap px-2 py-1.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">KFE Reel Yıllık %</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="whitespace-nowrap font-medium">Ay</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">M2 Aylık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">M2 Reel Aylık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">M2 Yıllık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">M2 Reel Yıllık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">KFE Aylık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">KFE Reel Aylık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">KFE Yıllık %</TableHead>
+                  <TableHead className="whitespace-nowrap text-right font-medium">KFE Reel Yıllık %</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {goster12Ay.map((s) => (
-                  <tr key={s.ay} className="border-b border-border/60 last:border-0">
-                    <td className="whitespace-nowrap px-2 py-1 font-figures">{s.ay}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.m2AylikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.m2ReelAylikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.m2YillikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.m2ReelYillikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.kfeAylikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.kfeReelAylikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.kfeYillikPct)}</td>
-                    <td className="px-2 py-1 text-right font-figures">{pctIsaretli(s.kfeReelYillikPct)}</td>
-                  </tr>
+                  <TableRow key={s.ay}>
+                    <TableCell className="whitespace-nowrap font-figures">{s.ay}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.m2AylikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.m2ReelAylikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.m2YillikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.m2ReelYillikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.kfeAylikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.kfeReelAylikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.kfeYillikPct)}</TableCell>
+                    <TableCell className="text-right font-figures">{pctIsaretli(s.kfeReelYillikPct)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -242,26 +243,26 @@ export function TufeM2KfeBonoClient({ satirlar, son }: { satirlar: AylikSatir[];
       <div className="space-y-3">
         <h3 className="text-base font-semibold">Yıllık değişim karşılaştırması</h3>
         <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Seri</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Son</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">3 Ay Önce</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">1 Yıl Önce</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-medium">Seri</TableHead>
+                <TableHead className="text-right font-medium">Son</TableHead>
+                <TableHead className="text-right font-medium">3 Ay Önce</TableHead>
+                <TableHead className="text-right font-medium">1 Yıl Önce</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {ozetSatirlari.map((o) => (
-                <tr key={o.seri} className="border-b border-border/60 last:border-0">
-                  <td className="px-3 py-2">{o.seri}</td>
-                  <td className="px-3 py-2 text-right font-figures">{pctIsaretli(o.son)}</td>
-                  <td className="px-3 py-2 text-right font-figures">{pctIsaretli(o.uc)}</td>
-                  <td className="px-3 py-2 text-right font-figures">{pctIsaretli(o.yil)}</td>
-                </tr>
+                <TableRow key={o.seri}>
+                  <TableCell>{o.seri}</TableCell>
+                  <TableCell className="text-right font-figures">{pctIsaretli(o.son)}</TableCell>
+                  <TableCell className="text-right font-figures">{pctIsaretli(o.uc)}</TableCell>
+                  <TableCell className="text-right font-figures">{pctIsaretli(o.yil)}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="flex justify-end">

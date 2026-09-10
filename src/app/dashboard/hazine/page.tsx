@@ -1,4 +1,5 @@
 import { BosDurum } from "@/components/bos-durum";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createClient } from "@/lib/supabase/server";
 import { OzetSerit } from "@/components/ozet-serit";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -168,30 +169,30 @@ async function IcBorcCevirmeOraniBolumu() {
       </p>
 
       <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Ay</th>
-              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">İç Borçlanma</th>
-              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">İç Borç Servisi</th>
-              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Anapara</th>
-              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Faiz</th>
-              <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Çevirme Oranı</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-medium">Ay</TableHead>
+              <TableHead className="text-right font-medium">İç Borçlanma</TableHead>
+              <TableHead className="text-right font-medium">İç Borç Servisi</TableHead>
+              <TableHead className="text-right font-medium">Anapara</TableHead>
+              <TableHead className="text-right font-medium">Faiz</TableHead>
+              <TableHead className="text-right font-medium">Çevirme Oranı</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {cevirmeSon12Ay.map((r, i) => (
-              <tr key={i} className="border-b border-border/60 last:border-0">
-                <td className="whitespace-nowrap px-3 py-2">{r.ay_etiketi}</td>
-                <td className="font-figures px-3 py-2 text-right">{milyar(r.ic_borclanma_mlr_tl, "milyar")}</td>
-                <td className="font-figures px-3 py-2 text-right">{milyar(r.ic_borc_servisi_mlr_tl, "milyar")}</td>
-                <td className="font-figures px-3 py-2 text-right">{milyar(r.anapara_mlr_tl, "milyar")}</td>
-                <td className="font-figures px-3 py-2 text-right">{milyar(r.faiz_mlr_tl, "milyar")}</td>
-                <td className="font-figures px-3 py-2 text-right">{pct1(r.cevirme_orani_pct)}</td>
-              </tr>
+              <TableRow key={i}>
+                <TableCell className="whitespace-nowrap">{r.ay_etiketi}</TableCell>
+                <TableCell className="font-figures text-right">{milyar(r.ic_borclanma_mlr_tl, "milyar")}</TableCell>
+                <TableCell className="font-figures text-right">{milyar(r.ic_borc_servisi_mlr_tl, "milyar")}</TableCell>
+                <TableCell className="font-figures text-right">{milyar(r.anapara_mlr_tl, "milyar")}</TableCell>
+                <TableCell className="font-figures text-right">{milyar(r.faiz_mlr_tl, "milyar")}</TableCell>
+                <TableCell className="font-figures text-right">{pct1(r.cevirme_orani_pct)}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { trTarihAyristir } from "@/lib/tarih";
 import { Combobox } from "@/components/ui/combobox";
 
@@ -97,32 +98,32 @@ export function PerformansTab({ ihale, bist, isinler }: { ihale: IhaleRow[]; bis
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">İhale tarihi</th>
-                <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">İhraç Tipi</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">İhale Fiyatı</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">T+1</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">T+5</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">T+10</th>
-                <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">T+20</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-medium">İhale tarihi</TableHead>
+                <TableHead className="font-medium">İhraç Tipi</TableHead>
+                <TableHead className="text-right font-medium">İhale Fiyatı</TableHead>
+                <TableHead className="text-right font-medium">T+1</TableHead>
+                <TableHead className="text-right font-medium">T+5</TableHead>
+                <TableHead className="text-right font-medium">T+10</TableHead>
+                <TableHead className="text-right font-medium">T+20</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {satirlar.map((s, i) => (
-                <tr key={i} className="border-b border-border/60 last:border-0">
-                  <td className="font-figures px-3 py-2 whitespace-nowrap">{s.tarih}</td>
-                  <td className="px-3 py-2">{s.ihracTipi ?? "–"}</td>
-                  <td className="font-figures px-3 py-2 text-right">{s.ihaleFiyat!.toFixed(3)}</td>
-                  <td className="px-3 py-2 text-right">{tOranRozeti(s.oranlar["T+1"])}</td>
-                  <td className="px-3 py-2 text-right">{tOranRozeti(s.oranlar["T+5"])}</td>
-                  <td className="px-3 py-2 text-right">{tOranRozeti(s.oranlar["T+10"])}</td>
-                  <td className="px-3 py-2 text-right">{tOranRozeti(s.oranlar["T+20"])}</td>
-                </tr>
+                <TableRow key={i}>
+                  <TableCell className="font-figures whitespace-nowrap">{s.tarih}</TableCell>
+                  <TableCell>{s.ihracTipi ?? "–"}</TableCell>
+                  <TableCell className="font-figures text-right">{s.ihaleFiyat!.toFixed(3)}</TableCell>
+                  <TableCell className="text-right">{tOranRozeti(s.oranlar["T+1"])}</TableCell>
+                  <TableCell className="text-right">{tOranRozeti(s.oranlar["T+5"])}</TableCell>
+                  <TableCell className="text-right">{tOranRozeti(s.oranlar["T+10"])}</TableCell>
+                  <TableCell className="text-right">{tOranRozeti(s.oranlar["T+20"])}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

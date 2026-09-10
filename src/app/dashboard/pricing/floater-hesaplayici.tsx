@@ -8,6 +8,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   donemselKuponAkislari,
   kuponDonemleri,
@@ -83,34 +84,34 @@ function KalanAkisTablosu({
   }
   return (
     <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm">
-        <thead className="sticky top-0 z-10 bg-card">
-          <tr className="border-b border-border text-xs text-muted-foreground">
-            <th className="px-3 py-2 text-left font-medium">Tarih</th>
-            <th className="px-3 py-2 text-right font-medium">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-left font-medium">Tarih</TableHead>
+            <TableHead className="text-right font-medium">
               {reelMi ? "Reel nakit akışı (100 nominal)" : "Nakit akışı (100 nominal)"}
-            </th>
-            {reelMi && <th className="px-3 py-2 text-right font-medium">Nominal (TL) tutar</th>}
-            <th className="px-3 py-2 text-right font-medium">Kalan gün</th>
-          </tr>
-        </thead>
-        <tbody>
+            </TableHead>
+            {reelMi && <TableHead className="text-right font-medium">Nominal (TL) tutar</TableHead>}
+            <TableHead className="text-right font-medium">Kalan gün</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {kalanlar.map((a, i) => (
-            <tr key={i} className="border-b border-border/50 last:border-0">
-              <td className="font-figures px-3 py-1.5">{trTarih(a.tarih)}</td>
-              <td className="font-figures px-3 py-1.5 text-right">{a.tutar.toFixed(3)}</td>
+            <TableRow key={i}>
+              <TableCell className="font-figures">{trTarih(a.tarih)}</TableCell>
+              <TableCell className="font-figures text-right">{a.tutar.toFixed(3)}</TableCell>
               {reelMi && (
-                <td className="font-figures px-3 py-1.5 text-right">
+                <TableCell className="font-figures text-right">
                   {endeksOrani == null ? "–" : (a.tutar * endeksOrani).toFixed(3)}
-                </td>
+                </TableCell>
               )}
-              <td className="font-figures px-3 py-1.5 text-right">
+              <TableCell className="font-figures text-right">
                 {Math.round((a.tarih.getTime() - valor.getTime()) / 86_400_000)}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

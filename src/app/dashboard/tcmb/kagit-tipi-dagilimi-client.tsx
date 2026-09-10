@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { YuzdeAlanGrafigi } from "./coklu-cizgi-grafigi";
 import { TIP_KISA } from "@/lib/isin-tip";
 import type { AylikKumulatif } from "@/lib/outstanding-ledger";
@@ -86,41 +87,41 @@ export function KagitTipiDagilimiClient({
         />
       ) : (
         <div className="max-h-[520px] overflow-auto rounded-lg border border-border">
-          <table className="w-full border-collapse text-xs">
-            <thead className="sticky top-0 z-10 bg-card">
-              <tr>
-                <th className="whitespace-nowrap px-2 py-1.5 text-left font-medium text-muted-foreground text-xs uppercase tracking-wide">Ay</th>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Ay</TableHead>
                 {tipler.map((t) => (
-                  <th key={t} className="whitespace-nowrap px-2 py-1.5 text-right font-medium text-muted-foreground">
+                  <TableHead key={t} className="text-right">
                     {TIP_KISA[t] ?? t}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {dilim.map((r) => (
-                <tr key={r.ay}>
-                  <td className="whitespace-nowrap px-2 py-1 font-figures">{ayFmt(r.ay)}</td>
+                <TableRow key={r.ay}>
+                  <TableCell className="font-figures whitespace-nowrap">{ayFmt(r.ay)}</TableCell>
                   {tipler.map((t) => {
                     const pct = r.ayToplam > 0 ? (r.degerler[t] / r.ayToplam) * 100 : 0;
                     const alpha = Math.min(1, Math.max(0, pct / 100));
                     return (
-                      <td
+                      <TableCell
                         key={t}
-                        className="whitespace-nowrap px-2 py-1 text-right font-figures"
+                        className="font-figures text-right whitespace-nowrap"
                         style={{
                           backgroundColor: `oklch(0.6 0.19 25 / ${alpha})`,
                           color: pct > 45 ? "white" : "inherit",
                         }}
                       >
                         {pct.toFixed(1)}
-                      </td>
+                      </TableCell>
                     );
                   })}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 
