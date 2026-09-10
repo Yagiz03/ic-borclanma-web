@@ -5,9 +5,15 @@ import { useMemo, useState } from "react";
 type Secenek = { isin: string; etiket: string; bistVeriVarMi: boolean };
 
 /**
- * Çoklu kağıt seçici. Liste 500+ kağıt olabildiği için bir arama kutusu var;
- * BIST'te hiç işlem görmemiş kağıtlar işaretleniyor (seçilebilirler ama
- * grafikte çıkmayacaklarını kullanıcı önceden görsün).
+ * Çoklu kağıt seçici. Liste 500+ kağıt olabildiği için bir arama kutusu var.
+ *
+ * İki tasarım kararı, ikisi de yaşanan sorunlardan:
+ *  - SEÇİLENLER ÜSTTE, silinebilir etiketler olarak. Önceden seçili kağıtlar
+ *    yalnızca listedeki işaretli kutulardan görülüyordu; 500 satırlık listede
+ *    neyi karşılaştırdığını görmek için kaydırmak gerekiyordu.
+ *  - BIST'te işlem görmemiş ("veri yok") kağıtlar listenin SONUNA. Bunlar
+ *    grafikte hiç çıkmıyor ama sayıca çoğunlukta olduklari için listenin
+ *    görünen kısmını tamamen dolduruyorlardı.
  */
 export function IsinCokSecici({
   secenekler,
@@ -24,12 +30,20 @@ export function IsinCokSecici({
 
   const suzulmus = useMemo(() => {
     const q = sorgu.trim().toLocaleLowerCase("tr");
-    if (!q) return secenekler;
-    return secenekler.filter(
-      (s) =>
-        s.isin.toLocaleLowerCase("tr").includes(q) || s.etiket.toLocaleLowerCase("tr").includes(q),
+    const eslesen = q
+      ? secenekler.filter(
+          (s) =>
+            s.isin.toLocaleLowerCase("tr").includes(q) ||
+            s.etiket.toLocaleLowerCase("tr").includes(q),
+        )
+      : secenekler;
+    // Grafikte gorunen kagitlar once; "veri yok" olanlar listeyi doldurmasin.
+    return [...eslesen].sort((a, b) =>
+      a.bistVeriVarMi === b.bistVeriVarMi ? a.isin.localeCompare(b.isin) : a.bistVeriVarMi ? -1 : 1,
     );
   }, [secenekler, sorgu]);
+
+  const etiketBul = (isin: string) => secenekler.find((s) => s.isin === isin)?.etiket ?? "";
 
   const doluMu = secililer.length >= azamiSecim;
 
@@ -42,14 +56,32 @@ export function IsinCokSecici({
 
   return (
     <div className="space-y-2">
+      <input
+        value={sorgu}
+        onChange={(e) => setSorgu(e.target.value)}
+        placeholder="ISIN veya kağıt tipi ara…"
+        aria-label="Kağıt ara"
+        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+      />
+
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          value={sorgu}
-          onChange={(e) => setSorgu(e.target.value)}
-          placeholder="ISIN veya kağıt tipi ara…"
-          aria-label="Kağıt ara"
-          className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
-        />
+        {secililer.map((isin) => (
+          <span
+            key={isin}
+            className="inline-flex items-center gap-1.5 rounded-full bg-muted py-1 pl-2.5 pr-1.5 text-xs"
+          >
+            <span className="font-figures">{isin}</span>
+            <span className="max-w-[10rem] truncate text-muted-foreground">{etiketBul(isin)}</span>
+            <button
+              type="button"
+              onClick={() => degistir(isin, false)}
+              aria-label={`${isin} seçimini kaldır`}
+              className="flex size-4 items-center justify-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground"
+            >
+              ×
+            </button>
+          </span>
+        ))}
         <span className="text-xs text-muted-foreground">
           {secililer.length}/{azamiSecim} seçili
         </span>
