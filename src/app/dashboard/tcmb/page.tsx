@@ -1,5 +1,5 @@
 import { BosDurum } from "@/components/bos-durum";
-import { PpkGuncelleButonu } from "./ppk-guncelle-butonu";
+import { RaporGuncelleButonu } from "@/components/rapor-guncelle-butonu";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Bolum } from "@/components/bolum";
@@ -86,9 +86,10 @@ async function ppkFarkRaporu(): Promise<{ url: string; tarih: string } | null> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ prefix: "", limit: 100 }),
-        // Kova nadiren degisiyor ama butona basildiginda birkac dakika
-        // icinde gorunmeli.
-        next: { revalidate: 60 },
+        // Onbellek YOK: "Raporu guncelle"ye basildiktan sonra yeni PDF
+        // saniyeler icinde gorunmeli; 60 sn'lik onbellek tusa basmayi
+        // "hicbir sey olmadi" gibi gosteriyordu. Istek kucuk (tek liste).
+        cache: "no-store",
       });
       if (y.ok) {
         const nesneler = (await y.json()) as { name: string }[];
@@ -351,7 +352,10 @@ export default async function TcmbPage({
             karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
           </p>
           <div className="mb-4">
-            <PpkGuncelleButonu />
+            <RaporGuncelleButonu
+              uc="/api/ppk-guncelle"
+              aciklama="Yeni PPK kararı çıktığı gün bas — son iki karar metni indirilip fark raporu yeniden üretilir."
+            />
           </div>
           {!ppkRaporu ? (
             <BosDurum baslik="Fark raporu yok" aciklama="PPK karar farkı raporu henüz üretilmedi — yukarıdaki tuşla üret." />

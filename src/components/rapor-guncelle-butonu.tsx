@@ -8,16 +8,27 @@ import { Button } from "@/components/ui/button";
 type Sonuc = { tur: "bilgi" | "hata"; mesaj: string };
 
 /**
- * PPK fark raporunu elle ürettirir: /api/ppk-guncelle üzerinden
- * ic-borclanma-dashboard reposundaki "PPK karar farki" workflow'unu
- * çalıştırır. Workflow son iki karar metnini indirip PDF'i üretiyor ve
- * Supabase Storage'a yüklüyor; sayfa kovadaki en yeni raporu gösterdiği
- * için başka bir adım yok.
+ * Bir raporu elle ürettiren tuş (PPK karar farkı, Borçlanma stratejisi).
  *
- * Neden buton: PPK yılda 8 kez ve düzensiz aralıklarla toplanıyor -- günlük
- * cron boş çalışırdı, karar günü tek tık daha doğru.
+ * `uc` bir /api/... yolu; o uç GitHub Actions workflow'unu tetikliyor.
+ * Üst üste basmak zararsız: uç "zaten çalışıyor" / "az önce başlatıldı"
+ * cevabı döndürüp yeni çalışma açmıyor (bkz. lib/workflow-tetikle.ts).
+ *
+ * Rapor hazır olduğunda sayfanın kendini tazelemesi için iki kez
+ * yenileniyor -- workflow süresi ağ/runner'a göre oynuyor, tek sabit
+ * bekleme bazen erken kalıyordu.
  */
-export function PpkGuncelleButonu() {
+export function RaporGuncelleButonu({
+  uc,
+  etiket = "Raporu güncelle",
+  aciklama,
+  yenilemeSn = [40, 80],
+}: {
+  uc: string;
+  etiket?: string;
+  aciklama?: string;
+  yenilemeSn?: number[];
+}) {
   const router = useRouter();
   const [calisiyor, setCalisiyor] = useState(false);
   const [sonuc, setSonuc] = useState<Sonuc | null>(null);
@@ -26,12 +37,11 @@ export function PpkGuncelleButonu() {
     setCalisiyor(true);
     setSonuc(null);
     try {
-      const cevap = await fetch("/api/ppk-guncelle", { method: "POST" });
+      const cevap = await fetch(uc, { method: "POST" });
       const govde = (await cevap.json()) as { mesaj?: string; hata?: string };
       if (cevap.ok) {
-        setSonuc({ tur: "bilgi", mesaj: govde.mesaj ?? "Rapor üretiliyor." });
-        // İndirme + PDF üretimi + yükleme ~1-2 dk sürüyor.
-        setTimeout(() => router.refresh(), 120_000);
+        setSonuc({ tur: "bilgi", mesaj: govde.mesaj ?? "Başlatıldı." });
+        for (const sn of yenilemeSn) setTimeout(() => router.refresh(), sn * 1000);
       } else {
         setSonuc({ tur: "hata", mesaj: govde.mesaj ?? govde.hata ?? "Tetiklenemedi." });
       }
@@ -40,17 +50,15 @@ export function PpkGuncelleButonu() {
     } finally {
       setCalisiyor(false);
     }
-  }, [router]);
+  }, [router, uc, yenilemeSn]);
 
   return (
     <div className="flex flex-col items-start gap-1.5">
       <Button type="button" variant="outline" size="sm" onClick={tetikle} disabled={calisiyor}>
         <RefreshCw className={calisiyor ? "animate-spin" : undefined} />
-        {calisiyor ? "Başlatılıyor…" : "Raporu güncelle"}
+        {calisiyor ? "Başlatılıyor…" : etiket}
       </Button>
-      <p className="text-xs text-muted-foreground">
-        Yeni PPK kararı çıktığı gün bas — son iki karar metni indirilip fark raporu yeniden üretilir.
-      </p>
+      {aciklama && <p className="text-xs text-muted-foreground">{aciklama}</p>}
       {sonuc && (
         <p className={`text-xs ${sonuc.tur === "hata" ? "text-destructive" : "text-muted-foreground"}`}>
           {sonuc.mesaj}

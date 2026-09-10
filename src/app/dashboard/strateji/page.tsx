@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { BosDurum } from "@/components/bos-durum";
 import { Card, CardContent } from "@/components/ui/card";
+import { RaporGuncelleButonu } from "@/components/rapor-guncelle-butonu";
 
 export default async function StratejiPage() {
   const supabase = await createClient();
@@ -25,12 +26,17 @@ export default async function StratejiPage() {
         </p>
       </div>
 
+      <RaporGuncelleButonu
+        uc="/api/strateji-guncelle"
+        aciklama="HMB yeni aylık strateji belgesini yayımladığı gün bas — son iki belge karşılaştırılıp fark raporu yeniden üretilir."
+      />
+
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
       {!rapor ? (
         <Card>
           <CardContent className="pt-6">
-            <BosDurum baslik="Henüz fark raporu yok." aciklama="İki strateji belgesi arasında karşılaştırma yapıldığında burada listelenir." />
+            <BosDurum baslik="Henüz fark raporu yok." aciklama="İki strateji belgesi arasında karşılaştırma yapıldığında burada listelenir — yukarıdaki tuşla üretebilirsin." />
           </CardContent>
         </Card>
       ) : (
