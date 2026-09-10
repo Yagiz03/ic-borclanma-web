@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { trTarihAyristir } from "@/lib/tarih";
 import type { AramaKagidi } from "@/components/global-arama";
 import { HaftaBildirimi } from "@/components/hafta-bildirimi";
+import { OstAnomaliPenceresi } from "@/components/ost-anomali-penceresi";
 import { haftalikOlaylariGetir } from "@/lib/haftalik-olaylar";
 
 export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
@@ -42,6 +43,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
   return (
     <AppShell aramaKagitlari={aramaKagitlari}>
       <HaftaBildirimi ozet={haftaOlaylari} />
+      <OstAnomaliPenceresi />
       {children}
     </AppShell>
   );

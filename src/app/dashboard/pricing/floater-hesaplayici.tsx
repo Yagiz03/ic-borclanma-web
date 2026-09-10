@@ -544,8 +544,16 @@ export function TufeFiyatlama({
               {
                 etiket: "Endeks oranı",
                 deger: sonuc.endeksOrani == null ? "—" : sonuc.endeksOrani.toFixed(6),
-                altBilgi: `İhraç: ${trTarih(ihracTarihi)}`,
-                yardim: "Referans Endeks(valör) / Referans Endeks(ihraç).",
+                altBilgi:
+                  sonuc.endeksKaynak === "resmi"
+                    ? "HMB resmi tablosu — kesin"
+                    : sonuc.endeksKaynak === "evds"
+                      ? "EVDS'ten hesaplandı — yaklaşık"
+                      : `İhraç: ${trTarih(ihracTarihi)}`,
+                yardim:
+                  sonuc.endeksKaynak === "resmi"
+                    ? "Referans Endeks(valör) / Referans Endeks(ihraç) — HMB'nin kendi yayımladığı günlük Referans Endeks tablosundan DOĞRUDAN okunuyor, hiçbir hesap yapılmıyor."
+                    : "Referans Endeks(valör) / Referans Endeks(ihraç). HMB'nin resmi tablosu bu ISIN'i ya da valör tarihini kapsamıyor — değer EVDS'in aylık TÜFE endeksinden interpolasyonla hesaplanan YAKLAŞIK karşılığı. Baz yılı değişimini (2003=100 → 2025=100) tam yansıtmayabilir.",
               },
               {
                 etiket: "Takas (nominal) fiyat",

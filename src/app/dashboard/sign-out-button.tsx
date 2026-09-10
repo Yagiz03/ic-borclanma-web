@@ -57,7 +57,9 @@ export function SignOutButton() {
             <Button variant="destructive" onClick={cikisYap}>
               Yine de çıkış yap
             </Button>
-            <Button render={<Link href="/giris" />}>Hesabımı kalıcı yap</Button>
+            <Button nativeButton={false} render={<Link href="/giris" />}>
+              Hesabımı kalıcı yap
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

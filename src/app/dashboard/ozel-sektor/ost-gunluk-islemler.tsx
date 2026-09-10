@@ -6,26 +6,11 @@ import { sayi, yuzde } from "@/lib/bicim";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { KolonBasligi } from "@/components/kolon-basligi";
 import { IslemGunuSecici } from "@/components/islem-gunu-secici";
+import { ostAnomaliMesaji, ostAnomalileriBul } from "@/lib/ost-anomali";
 
-const FIYAT_ANOMALI_ESIK_PCT = 3.0;
-const GETIRI_ANOMALI_ESIK_BPS = 300.0;
-/**
- * Kisa vadeli kagitta bps esigi yaniltici.
- *
- * Getiri hareketi kabaca fiyat hareketi / durasyon: %3 fiyat ile 300 bps
- * getiri ancak ~1 yillik durasyonda denk dusuyor. Vadesine 1 yildan az
- * kalmis kagitta 70 kurusluk bir fiyat oynamasi 350+ bps uretiyor --
- * gercek bir olay degil, mekanik buyutme. (Gercek ornek: TRDKTLMA2635,
- * vadeye 96 gun, 99,45 -> 100,15 yani %+0,70 fiyat = -358 bps getiri.)
- *
- * Boyle kayitlar SILINMIYOR; kupon resetinde oldugu gibi ayri bir listeye
- * alinip sebebi yaziliyor.
- */
-const KISA_VADE_GUN = 365;
-const MAX_KARSILASTIRMA_GUN = 45;
-const KUPON_RESET_TOLERANS_GUN = 3;
-const KUPON_RESET_PAR_TOLERANS = 3.0;
-
+// Sayfanin tablosu anomali hesabindan DAHA COK alan kullaniyor (hacim,
+// birikmis faiz, ihrac buyuklugu...); lib/ost-anomali.ts yalnizca kendi
+// ihtiyaci olan alt kumeyi tanimliyor.
 type BistSatiri = {
   tarih: string;
   isin: string;
@@ -36,7 +21,6 @@ type BistSatiri = {
   islem_hacmi_tl: number | null;
   miktar: number | null;
 };
-
 type MkbSatiri = {
   isin: string;
   ihracci_kurum: string | null;
@@ -47,51 +31,6 @@ type MkbSatiri = {
   kupon_sikligi: string | null;
   ilk_ihrac_tarihi: string | null;
 };
-
-
-function trTarihiParcala(s: string | null): Date | null {
-  if (!s) return null;
-  const [g, a, y] = s.split(".").map(Number);
-  if (!g || !a || !y) return null;
-  return new Date(Date.UTC(y, a - 1, g));
-}
-
-/** Python'un round()'u gibi: tam .5 ise EN YAKIN CIFT sayiya yuvarlar. */
-function cifteYuvarla(x: number): number {
-  const asagi = Math.floor(x);
-  const kalan = x - asagi;
-  if (kalan !== 0.5) return Math.round(x);
-  return asagi % 2 === 0 ? asagi : asagi + 1;
-}
-
-function kuponAraliginaMi(ilkIhrac: string | null, kuponSikligi: string | null, oncekiTarih: string, buguninTarih: string): boolean {
-  const siklik = kuponSikligi != null ? Number(kuponSikligi) : NaN;
-  if (!Number.isFinite(siklik) || siklik <= 0) return false;
-  const ilkIhracDate = trTarihiParcala(ilkIhrac);
-  if (!ilkIhracDate) return false;
-  // Python tarafi (pages/ozel_sektor.py) round() kullaniyor ve Python
-  // .5'i CIFTE yuvarliyor: round(365/2) = 182. JS'in Math.round'u 183
-  // veriyor. Alti aylik kupon OST'te en yaygin siklik oldugu icin bu 1
-  // gunluk fark her donemde birikiyor ve birkac donem sonra 3 gunluk
-  // toleransi asip iki sitenin siniflandirmasini ayirabiliyordu.
-  const periyotGun = cifteYuvarla(365 / siklik);
-  if (periyotGun <= 0) return false;
-
-  const oncekiMs = new Date(oncekiTarih).getTime() - KUPON_RESET_TOLERANS_GUN * 86_400_000;
-  const bugunMs = new Date(buguninTarih).getTime() + KUPON_RESET_TOLERANS_GUN * 86_400_000;
-  let d = ilkIhracDate.getTime() + periyotGun * 86_400_000;
-  let guard = 0;
-  while (d <= bugunMs && guard < 60) {
-    if (d >= oncekiMs) return true;
-    d += periyotGun * 86_400_000;
-    guard++;
-  }
-  return false;
-}
-
-function pariyeYakinMi(v: number | null): boolean {
-  return v != null && Math.abs(v - 100) <= KUPON_RESET_PAR_TOLERANS;
-}
 
 export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbSatiri[] }) {
   const mkbHarita = useMemo(() => new Map(mkb.map((m) => [m.isin, m])), [mkb]);
@@ -113,96 +52,15 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
       .sort((a, b) => (b.islem_hacmi_tl ?? 0) - (a.islem_hacmi_tl ?? 0));
   }, [bist, seciliTarih, mkbHarita]);
 
-  const anomaliler = useMemo(() => {
-    if (!seciliTarih) return [];
-    const oncekiPerIsin = new Map<string, BistSatiri>();
-    for (const r of bist) {
-      if (r.tarih >= seciliTarih) continue;
-      const mevcut = oncekiPerIsin.get(r.isin);
-      if (!mevcut || r.tarih > mevcut.tarih) oncekiPerIsin.set(r.isin, r);
-    }
-    const bugunPerIsin = new Map<string, BistSatiri>();
-    for (const r of bist) if (r.tarih === seciliTarih) bugunPerIsin.set(r.isin, r);
+  const anomaliler = useMemo(
+    () => ostAnomalileriBul(bist, mkb, seciliTarih),
+    [bist, mkb, seciliTarih],
+  );
 
-    const sonuc: {
-      isin: string; ihracci: string; fiyatDegisimPct: number | null; getiriDegisimBps: number | null;
-      oncekiFiyat: number | null; oncekiGetiri: number | null; bugunFiyat: number | null; bugunGetiri: number | null;
-      gunFarki: number; kuponResetiyleAciklanabilir: boolean;
-      kisaVadeEtkisi: boolean; kalanGun: number | null;
-    }[] = [];
-
-    for (const [isin, bugun] of bugunPerIsin) {
-      const onceki = oncekiPerIsin.get(isin);
-      if (!onceki) continue;
-      const gunFarki = Math.round((new Date(seciliTarih).getTime() - new Date(onceki.tarih).getTime()) / 86_400_000);
-      if (gunFarki > MAX_KARSILASTIRMA_GUN) continue;
-
-      const fiyatDegisimPct =
-        bugun.temiz_fiyat != null && onceki.temiz_fiyat != null
-          ? ((bugun.temiz_fiyat - onceki.temiz_fiyat) / onceki.temiz_fiyat) * 100
-          : null;
-      const getiriDegisimBps =
-        bugun.kapanis_bilesik_getiri_pct != null && onceki.kapanis_bilesik_getiri_pct != null
-          ? (bugun.kapanis_bilesik_getiri_pct - onceki.kapanis_bilesik_getiri_pct) * 100
-          : null;
-
-      const anormal =
-        (fiyatDegisimPct != null && Math.abs(fiyatDegisimPct) >= FIYAT_ANOMALI_ESIK_PCT) ||
-        (getiriDegisimBps != null && Math.abs(getiriDegisimBps) >= GETIRI_ANOMALI_ESIK_BPS);
-      if (!anormal) continue;
-
-      const m = mkbHarita.get(isin);
-      // Yalnizca bps esigi tetiklediyse (fiyat hareketi kucukse) ve kagit
-      // kisa vadeliyse, bu mekanik buyutme.
-      const itfaD = trTarihiParcala(m?.itfa_tarihi ?? null);
-      const kalanGun =
-        itfaD != null ? (itfaD.getTime() - new Date(seciliTarih).getTime()) / 86_400_000 : null;
-      const kisaVadeEtkisi =
-        kalanGun != null &&
-        kalanGun > 0 &&
-        kalanGun < KISA_VADE_GUN &&
-        (fiyatDegisimPct == null || Math.abs(fiyatDegisimPct) < FIYAT_ANOMALI_ESIK_PCT);
-
-      const kuponAraliginda =
-        (pariyeYakinMi(bugun.temiz_fiyat) || pariyeYakinMi(onceki.temiz_fiyat)) &&
-        kuponAraliginaMi(m?.ilk_ihrac_tarihi ?? null, m?.kupon_sikligi ?? null, onceki.tarih, seciliTarih);
-
-      sonuc.push({
-        isin, ihracci: m?.ihracci_kurum ?? "–", fiyatDegisimPct, getiriDegisimBps,
-        oncekiFiyat: onceki.temiz_fiyat, oncekiGetiri: onceki.kapanis_bilesik_getiri_pct,
-        bugunFiyat: bugun.temiz_fiyat, bugunGetiri: bugun.kapanis_bilesik_getiri_pct,
-        gunFarki, kuponResetiyleAciklanabilir: kuponAraliginda,
-        kisaVadeEtkisi, kalanGun,
-      });
-    }
-    sonuc.sort((a, b) => Math.max(Math.abs(b.fiyatDegisimPct ?? 0), Math.abs(b.getiriDegisimBps ?? 0) / 100) - Math.max(Math.abs(a.fiyatDegisimPct ?? 0), Math.abs(a.getiriDegisimBps ?? 0) / 100));
-    return sonuc;
-  }, [bist, seciliTarih, mkbHarita]);
-
-  const anomaliGercek = anomaliler.filter((a) => !a.kuponResetiyleAciklanabilir && !a.kisaVadeEtkisi);
+  // Kisa vade etkisi ayri listeye alinmisti; kullanici uyarinin KIRMIZI
+  // kalmasini istedi -- sebep satirin sonunda yaziyor, kayit gizlenmiyor.
+  const anomaliGercek = anomaliler.filter((a) => !a.kuponResetiyleAciklanabilir);
   const anomaliKupon = anomaliler.filter((a) => a.kuponResetiyleAciklanabilir);
-  const anomaliKisaVade = anomaliler.filter((a) => !a.kuponResetiyleAciklanabilir && a.kisaVadeEtkisi);
-
-  function anomaliMesaji(a: (typeof anomaliler)[number]): string {
-    const parcalar = [`${a.isin} (${a.ihracci})`];
-    if (a.getiriDegisimBps != null && Math.abs(a.getiriDegisimBps) >= GETIRI_ANOMALI_ESIK_BPS) {
-      parcalar.push(`getiri ${a.getiriDegisimBps >= 0 ? "+" : ""}${a.getiriDegisimBps.toFixed(0)} bps (${yuzde(a.oncekiGetiri)} → ${yuzde(a.bugunGetiri)})`);
-    }
-    if (a.fiyatDegisimPct != null && Math.abs(a.fiyatDegisimPct) >= FIYAT_ANOMALI_ESIK_PCT) {
-      parcalar.push(`fiyat %${a.fiyatDegisimPct >= 0 ? "+" : ""}${a.fiyatDegisimPct.toFixed(1)} (${a.oncekiFiyat?.toFixed(2)} → ${a.bugunFiyat?.toFixed(2)})`);
-    }
-    parcalar.push(a.gunFarki <= 1 ? "önceki gün işlem gördü" : `${a.gunFarki} gün önce işlem gördü`);
-    if (a.kisaVadeEtkisi && a.kalanGun != null) {
-      parcalar.push(
-        `vadeye ${Math.round(a.kalanGun)} gün — kısa vadede küçük fiyat hareketi büyük bps üretir`,
-      );
-    }
-    if (a.kuponResetiyleAciklanabilir) {
-      const fiyatDusuyor = a.fiyatDegisimPct != null && a.fiyatDegisimPct < 0;
-      parcalar.push(fiyatDusuyor ? "muhtemelen kira/kupon ödendi, pariye indi" : "muhtemelen yeni dönem başladı, pariden birikime geçti");
-    }
-    return parcalar.join(", ");
-  }
 
   const toplamHacim = gunluk.reduce((s, r) => s + (r.islem_hacmi_tl ?? 0), 0);
   const toplamNominal = gunluk.reduce((s, r) => s + (r.miktar ?? 0), 0);
@@ -225,29 +83,11 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
           <p className="mb-1 font-semibold text-destructive">⚠️ {anomaliGercek.length} kağıtta anormal hareket</p>
           <ul className="list-inside list-disc space-y-0.5 text-destructive/90">
             {anomaliGercek.map((a) => (
-              <li key={a.isin}>{anomaliMesaji(a)}</li>
+              <li key={a.isin}>{ostAnomaliMesaji(a)}</li>
             ))}
           </ul>
         </div>
       )}
-      {anomaliKisaVade.length > 0 && (
-        <details className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
-          <summary className="cursor-pointer font-medium text-foreground">
-            ℹ️ {anomaliKisaVade.length} kağıtta kısa vadeden gelen bps hareketi
-          </summary>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Getiri hareketi kabaca fiyat hareketi / durasyon: %3 fiyat ile 300 bps getiri ancak ~1 yıllık
-            durasyonda denk düşer. Vadesine 1 yıldan az kalmış kağıtta birkaç kuruşluk fiyat oynaması yüzlerce
-            bps üretir — fiyat tarafında eşik aşılmadığı için bunlar ayrı listeleniyor.
-          </p>
-          <ul className="mt-2 list-inside list-disc space-y-0.5 text-muted-foreground">
-            {anomaliKisaVade.map((a) => (
-              <li key={a.isin}>{anomaliMesaji(a)}</li>
-            ))}
-          </ul>
-        </details>
-      )}
-
       {anomaliKupon.length > 0 && (
         <details className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
           <summary className="cursor-pointer font-medium text-foreground">
@@ -260,7 +100,7 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
           </p>
           <ul className="mt-2 list-inside list-disc space-y-0.5 text-muted-foreground">
             {anomaliKupon.map((a) => (
-              <li key={a.isin}>{anomaliMesaji(a)}</li>
+              <li key={a.isin}>{ostAnomaliMesaji(a)}</li>
             ))}
           </ul>
         </details>
