@@ -1,4 +1,6 @@
 import { BosDurum } from "@/components/bos-durum";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { Bolum } from "@/components/bolum";
 import { createClient } from "@/lib/supabase/server";
 import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
@@ -36,6 +38,31 @@ const SEKMELER = [
   "dibs", "apiportfoyu", "tufem2kfebono", "koridor", "tlref",
   "disdenge", "rezerv", "beklenti", "ppkfarki", "enflasyonraporu",
 ] as const;
+
+
+/** public/ppk-karar-farki/ altindaki EN YENI fark raporu.
+ *
+ *  Tarih eskiden koda gomuluydu (ppk-karar-farki-2026-07-23.pdf); her PPK
+ *  kararindan sonra elle degistirmek gerekiyordu ve unutuldugunda sayfa
+ *  sessizce eski karari gostermeye devam ediyordu. Artik dosya adlarindaki
+ *  ISO tarihe gore en yenisi seciliyor -- yeni PDF klasore dustugu anda
+ *  sayfa onu gosterir, kod degismez.
+ */
+function ppkFarkRaporu(): { url: string; tarih: string } | null {
+  const dizin = join(process.cwd(), "public", "ppk-karar-farki");
+  let dosyalar: string[];
+  try {
+    dosyalar = readdirSync(dizin);
+  } catch {
+    return null;
+  }
+  const adaylar = dosyalar
+    .map((ad) => /^ppk-karar-farki-(\d{4}-\d{2}-\d{2})\.pdf$/.exec(ad))
+    .filter((m): m is RegExpExecArray => m != null)
+    .sort((a, b) => b[1].localeCompare(a[1]));
+  const enYeni = adaylar[0];
+  return enYeni ? { url: `/ppk-karar-farki/${enYeni[0]}`, tarih: enYeni[1] } : null;
+}
 
 export default async function TcmbPage({
   searchParams,
@@ -141,6 +168,7 @@ export default async function TcmbPage({
     : null;
 
   const enflasyonRaporu = enflasyonRaporuRes.data;
+  const ppkRaporu = ppkFarkRaporu();
 
   return (
     <div className="space-y-6">
@@ -278,21 +306,27 @@ export default async function TcmbPage({
             Word&apos;ün &quot;değişiklikleri izle&quot; biçiminde — kırmızı üstü çizili kısımlar önceki
             karardan kaldırılan, yeşil altı çizili kısımlar yeni eklenen ifadelerdir.
           </p>
-          <Bolum baslik="Fark Raporu (PDF)">
-            <a
-              href="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
+          {!ppkRaporu ? (
+            <BosDurum baslik="Fark raporu yok" aciklama="PPK karar farkı raporu henüz üretilmedi." />
+          ) : (
+            <Bolum
+              baslik={`Fark Raporu — ${new Date(`${ppkRaporu.tarih}T00:00:00Z`).toLocaleDateString("tr-TR", { timeZone: "UTC" })} kararı`}
             >
-              📄 PDF&apos;i indir / yeni sekmede aç
-            </a>
-            <iframe
-              src="/ppk-karar-farki/ppk-karar-farki-2026-07-23.pdf"
-              title="PPK Karar Farkı"
-              className="h-[80vh] w-full rounded-lg border border-border"
-            />
-          </Bolum>
+              <a
+                href={ppkRaporu.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90"
+              >
+                📄 PDF&apos;i indir / yeni sekmede aç
+              </a>
+              <iframe
+                src={ppkRaporu.url}
+                title="PPK Karar Farkı"
+                className="h-[80vh] w-full rounded-lg border border-border"
+              />
+            </Bolum>
+          )}
         </TabsContent>
 
         <TabsContent value="enflasyonraporu">
