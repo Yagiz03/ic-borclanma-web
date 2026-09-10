@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -181,20 +181,98 @@ export function NoktaTooltip({
     }
   }
 
-  const vade = oy(p.kalanVadeYil);
-  const getiri = oy(p.getiri);
-  const egri = oy(egriDegeri);
-  const z = oy(p.zSkoru);
-  if (!p.isin && vade == null && getiri == null && egri == null) return null;
+  return <NoktaKutusu nokta={p} egriDegeri={egriDegeri} />;
+}
+
+/** Tooltip kutusunun gorsel govdesi -- hem Recharts tooltip'i (NoktaTooltip)
+ *  hem de RV sacilim grafiginin kendi hover kutusu bunu kullaniyor. */
+function NoktaKutusu({ nokta, egriDegeri }: { nokta: NoktaTooltipPayload; egriDegeri?: number }) {
+  const vade = oy(nokta.kalanVadeYil);
+  const getiri = oy(nokta.getiri);
+  const egri = oy(egriDegeri ?? nokta.egri);
+  const z = oy(nokta.zSkoru);
+  if (!nokta.isin && vade == null && getiri == null && egri == null) return null;
 
   return (
-    <div style={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, padding: "8px 10px" }}>
-      {p.isin && <div style={{ fontWeight: 600, fontFamily: "var(--font-figures, monospace)" }}>{p.isin}</div>}
-      {p.senetTanimi && <div style={{ color: "var(--muted-foreground)" }}>{p.senetTanimi}</div>}
+    <div style={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, padding: "8px 10px", boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}>
+      {nokta.isin && <div style={{ fontWeight: 600, fontFamily: "var(--font-figures, monospace)" }}>{nokta.isin}</div>}
+      {nokta.senetTanimi && <div style={{ color: "var(--muted-foreground)" }}>{nokta.senetTanimi}</div>}
       {vade != null && <div>Kalan vade: {vade} yıl</div>}
       {getiri != null && <div>Getiri: %{getiri}</div>}
       {egri != null && <div style={{ color: "var(--muted-foreground)" }}>Eğri: %{egri}</div>}
       {z != null && <div>Z-skoru: {Number(z) >= 0 ? "+" : ""}{z}</div>}
+    </div>
+  );
+}
+
+/** RV saçılım grafiği (z-skoru / Nelson-Siegel) — ortak gövde.
+ *
+ *  Tooltip'i Recharts'a BIRAKMIYORUZ. Bu grafikte üç ayrı veri kümesi var
+ *  (uyarlanan eğri + ucuz noktalar + pahalı noktalar) ve paylaşımlı tooltip
+ *  aktif indeksi bir seriden, yükü başka seriden alıyor: 4,4 yıldaki noktanın
+ *  üstündeyken 3,0 yıllık kağıdın bilgisini gösteriyordu. `shared={false}` de
+ *  düzeltmedi -- yük hep eğri serisinden geliyor, saçılım hiç girmiyor.
+ *
+ *  Bunun yerine kutuyu noktanın KENDİ hover olayından kuruyoruz: hangi kağıdın
+ *  üstünde olduğumuz tahmin değil, olayın getirdiği veri.
+ */
+function RvSacilimGrafigi({
+  noktalar, egriNoktalari, egriAdi, vadeEkseni, getiriEkseni,
+}: {
+  noktalar: NoktaTooltipPayload[];
+  egriNoktalari: { kalanVadeYil: number; egri: number }[];
+  egriAdi: string;
+  vadeEkseni: { domain: [number, number]; ticks: number[] } | null;
+  getiriEkseni: { domain: [number, number]; ticks: number[] } | null;
+}) {
+  const [vurgu, setVurgu] = useState<{ nokta: NoktaTooltipPayload; x: number; y: number } | null>(null);
+  const kapsayici = useRef<HTMLDivElement>(null);
+
+  function uzerine(nokta: NoktaTooltipPayload, e: { clientX?: number; clientY?: number } | undefined) {
+    const kutu = kapsayici.current?.getBoundingClientRect();
+    if (!kutu || e?.clientX == null || e.clientY == null) return;
+    setVurgu({ nokta, x: e.clientX - kutu.left, y: e.clientY - kutu.top });
+  }
+
+  const sacilim = (ad: string, veri: NoktaTooltipPayload[], renk: string) => (
+    <Scatter
+      name={ad}
+      data={veri}
+      fill={renk}
+      onMouseEnter={(...args: unknown[]) =>
+        // Recharts imza: (nokta, indeks, olay). Nokta, saçılımın KENDİ verisi --
+        // hangi kağıdın üstünde olduğumuz tahmin değil.
+        uzerine(args[0] as NoktaTooltipPayload, args[2] as { clientX?: number; clientY?: number })
+      }
+      onMouseLeave={() => setVurgu(null)}
+    />
+  );
+
+  return (
+    <div ref={kapsayici} className="relative" onMouseLeave={() => setVurgu(null)}>
+      <ResponsiveContainer width="100%" height={440}>
+        <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
+          <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
+          {/* Nokta boyutu z-skoruna baglanmiyordu: renk zaten ucuz/pahali
+              ayrimini veriyor, degisken boyut yalnizca ust uste binip imlecin
+              hangi kagida denk geldigini belirsizlestiriyordu. */}
+          <ZAxis range={[110, 110]} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Line data={egriNoktalari} dataKey="egri" name={egriAdi} type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
+          {sacilim("Ucuz (z>0)", noktalar.filter((r) => (r.zSkoru ?? 0) >= 0), "var(--pozitif)")}
+          {sacilim("Pahalı (z<0)", noktalar.filter((r) => (r.zSkoru ?? 0) < 0), "var(--negatif)")}
+        </ComposedChart>
+      </ResponsiveContainer>
+      {vurgu && (
+        <div
+          className="pointer-events-none absolute z-10"
+          style={{ left: vurgu.x + 12, top: vurgu.y + 12, maxWidth: "calc(100% - 24px)" }}
+        >
+          <NoktaKutusu nokta={vurgu.nokta} />
+        </div>
+      )}
     </div>
   );
 }
@@ -626,13 +704,6 @@ export function GetiriEgrisiClient({
 
             {gosterim === "grafik" && spreadSerileri.length > 0 && (
               <div className="space-y-1.5 border-t border-border pt-4">
-                <h3 className="text-sm font-semibold">
-                  Spread farkı — {tarihFmt(referansTarihDate)} eksi karşılaştırma günü (bps)
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Sıfır çizgisinin üstü: getiri o günden bu yana yükselmiş. Eğrinin kısa vadede aşağı,
-                  uzun vadede yukarı gitmesi <b>steepener</b>; tersi <b>flattener</b> hareketidir.
-                </p>
                 <ResponsiveContainer width="100%" height={240}>
                   <ComposedChart data={spreadVerisi} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -658,6 +729,13 @@ export function GetiriEgrisiClient({
                     ))}
                   </ComposedChart>
                 </ResponsiveContainer>
+                <h3 className="text-sm font-semibold">
+                  Spread farkı — {tarihFmt(referansTarihDate)} eksi karşılaştırma günü (bps)
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Sıfır çizgisinin üstü: getiri o günden bu yana yükselmiş. Eğrinin kısa vadede aşağı,
+                  uzun vadede yukarı gitmesi <b>steepener</b>; tersi <b>flattener</b> hareketidir.
+                </p>
               </div>
             )}
             {egriler.length > 0 && gosterim === "grafik" && (
@@ -712,19 +790,13 @@ export function GetiriEgrisiClient({
                 </Table>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={440}>
-                <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
-                  <ZAxis dataKey="zSkoru" range={[40, 200]} />
-                  <Tooltip content={<NoktaTooltip noktalar={rvPoli} />} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line data={rvPoliSonuc?.egri ?? []} dataKey="egri" name="Uyarlanan eğri (2. derece polinom)" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
-                  <Scatter name="Ucuz (z>0)" data={rvPoli.filter((r) => r.zSkoru >= 0)} fill="var(--pozitif)" />
-                  <Scatter name="Pahalı (z<0)" data={rvPoli.filter((r) => r.zSkoru < 0)} fill="var(--negatif)" />
-                </ComposedChart>
-              </ResponsiveContainer>
+              <RvSacilimGrafigi
+                noktalar={rvPoli}
+                egriNoktalari={rvPoliSonuc?.egri ?? []}
+                egriAdi="Uyarlanan eğri (2. derece polinom)"
+                vadeEkseni={vadeEkseni}
+                getiriEkseni={getiriEkseni}
+              />
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -803,18 +875,13 @@ export function GetiriEgrisiClient({
             </div>
 
             {nsFit && (
-              <ResponsiveContainer width="100%" height={440}>
-                <ComposedChart margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
-                  <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
-                  <Tooltip content={<NoktaTooltip noktalar={rvNs} />} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line data={nsEgriNoktalari} dataKey="egri" name="Nelson-Siegel eğrisi" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
-                  <Scatter name="Ucuz (z>0)" data={rvNs.filter((r) => r.zSkoru >= 0)} fill="var(--pozitif)" />
-                  <Scatter name="Pahalı (z<0)" data={rvNs.filter((r) => r.zSkoru < 0)} fill="var(--negatif)" />
-                </ComposedChart>
-              </ResponsiveContainer>
+              <RvSacilimGrafigi
+                noktalar={rvNs}
+                egriNoktalari={nsEgriNoktalari}
+                egriAdi="Nelson-Siegel eğrisi"
+                vadeEkseni={vadeEkseni}
+                getiriEkseni={getiriEkseni}
+              />
             )}
           </CardContent>
         </Card>
