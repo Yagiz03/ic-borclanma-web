@@ -9,6 +9,19 @@ import { IslemGunuSecici } from "@/components/islem-gunu-secici";
 
 const FIYAT_ANOMALI_ESIK_PCT = 3.0;
 const GETIRI_ANOMALI_ESIK_BPS = 300.0;
+/**
+ * Kisa vadeli kagitta bps esigi yaniltici.
+ *
+ * Getiri hareketi kabaca fiyat hareketi / durasyon: %3 fiyat ile 300 bps
+ * getiri ancak ~1 yillik durasyonda denk dusuyor. Vadesine 1 yildan az
+ * kalmis kagitta 70 kurusluk bir fiyat oynamasi 350+ bps uretiyor --
+ * gercek bir olay degil, mekanik buyutme. (Gercek ornek: TRDKTLMA2635,
+ * vadeye 96 gun, 99,45 -> 100,15 yani %+0,70 fiyat = -358 bps getiri.)
+ *
+ * Boyle kayitlar SILINMIYOR; kupon resetinde oldugu gibi ayri bir listeye
+ * alinip sebebi yaziliyor.
+ */
+const KISA_VADE_GUN = 365;
 const MAX_KARSILASTIRMA_GUN = 45;
 const KUPON_RESET_TOLERANS_GUN = 3;
 const KUPON_RESET_PAR_TOLERANS = 3.0;
@@ -43,12 +56,25 @@ function trTarihiParcala(s: string | null): Date | null {
   return new Date(Date.UTC(y, a - 1, g));
 }
 
+/** Python'un round()'u gibi: tam .5 ise EN YAKIN CIFT sayiya yuvarlar. */
+function cifteYuvarla(x: number): number {
+  const asagi = Math.floor(x);
+  const kalan = x - asagi;
+  if (kalan !== 0.5) return Math.round(x);
+  return asagi % 2 === 0 ? asagi : asagi + 1;
+}
+
 function kuponAraliginaMi(ilkIhrac: string | null, kuponSikligi: string | null, oncekiTarih: string, buguninTarih: string): boolean {
   const siklik = kuponSikligi != null ? Number(kuponSikligi) : NaN;
   if (!Number.isFinite(siklik) || siklik <= 0) return false;
   const ilkIhracDate = trTarihiParcala(ilkIhrac);
   if (!ilkIhracDate) return false;
-  const periyotGun = Math.round(365 / siklik);
+  // Python tarafi (pages/ozel_sektor.py) round() kullaniyor ve Python
+  // .5'i CIFTE yuvarliyor: round(365/2) = 182. JS'in Math.round'u 183
+  // veriyor. Alti aylik kupon OST'te en yaygin siklik oldugu icin bu 1
+  // gunluk fark her donemde birikiyor ve birkac donem sonra 3 gunluk
+  // toleransi asip iki sitenin siniflandirmasini ayirabiliyordu.
+  const periyotGun = cifteYuvarla(365 / siklik);
   if (periyotGun <= 0) return false;
 
   const oncekiMs = new Date(oncekiTarih).getTime() - KUPON_RESET_TOLERANS_GUN * 86_400_000;
@@ -102,6 +128,7 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
       isin: string; ihracci: string; fiyatDegisimPct: number | null; getiriDegisimBps: number | null;
       oncekiFiyat: number | null; oncekiGetiri: number | null; bugunFiyat: number | null; bugunGetiri: number | null;
       gunFarki: number; kuponResetiyleAciklanabilir: boolean;
+      kisaVadeEtkisi: boolean; kalanGun: number | null;
     }[] = [];
 
     for (const [isin, bugun] of bugunPerIsin) {
@@ -125,6 +152,17 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
       if (!anormal) continue;
 
       const m = mkbHarita.get(isin);
+      // Yalnizca bps esigi tetiklediyse (fiyat hareketi kucukse) ve kagit
+      // kisa vadeliyse, bu mekanik buyutme.
+      const itfaD = trTarihiParcala(m?.itfa_tarihi ?? null);
+      const kalanGun =
+        itfaD != null ? (itfaD.getTime() - new Date(seciliTarih).getTime()) / 86_400_000 : null;
+      const kisaVadeEtkisi =
+        kalanGun != null &&
+        kalanGun > 0 &&
+        kalanGun < KISA_VADE_GUN &&
+        (fiyatDegisimPct == null || Math.abs(fiyatDegisimPct) < FIYAT_ANOMALI_ESIK_PCT);
+
       const kuponAraliginda =
         (pariyeYakinMi(bugun.temiz_fiyat) || pariyeYakinMi(onceki.temiz_fiyat)) &&
         kuponAraliginaMi(m?.ilk_ihrac_tarihi ?? null, m?.kupon_sikligi ?? null, onceki.tarih, seciliTarih);
@@ -134,14 +172,16 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
         oncekiFiyat: onceki.temiz_fiyat, oncekiGetiri: onceki.kapanis_bilesik_getiri_pct,
         bugunFiyat: bugun.temiz_fiyat, bugunGetiri: bugun.kapanis_bilesik_getiri_pct,
         gunFarki, kuponResetiyleAciklanabilir: kuponAraliginda,
+        kisaVadeEtkisi, kalanGun,
       });
     }
     sonuc.sort((a, b) => Math.max(Math.abs(b.fiyatDegisimPct ?? 0), Math.abs(b.getiriDegisimBps ?? 0) / 100) - Math.max(Math.abs(a.fiyatDegisimPct ?? 0), Math.abs(a.getiriDegisimBps ?? 0) / 100));
     return sonuc;
   }, [bist, seciliTarih, mkbHarita]);
 
-  const anomaliGercek = anomaliler.filter((a) => !a.kuponResetiyleAciklanabilir);
+  const anomaliGercek = anomaliler.filter((a) => !a.kuponResetiyleAciklanabilir && !a.kisaVadeEtkisi);
   const anomaliKupon = anomaliler.filter((a) => a.kuponResetiyleAciklanabilir);
+  const anomaliKisaVade = anomaliler.filter((a) => !a.kuponResetiyleAciklanabilir && a.kisaVadeEtkisi);
 
   function anomaliMesaji(a: (typeof anomaliler)[number]): string {
     const parcalar = [`${a.isin} (${a.ihracci})`];
@@ -152,6 +192,11 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
       parcalar.push(`fiyat %${a.fiyatDegisimPct >= 0 ? "+" : ""}${a.fiyatDegisimPct.toFixed(1)} (${a.oncekiFiyat?.toFixed(2)} → ${a.bugunFiyat?.toFixed(2)})`);
     }
     parcalar.push(a.gunFarki <= 1 ? "önceki gün işlem gördü" : `${a.gunFarki} gün önce işlem gördü`);
+    if (a.kisaVadeEtkisi && a.kalanGun != null) {
+      parcalar.push(
+        `vadeye ${Math.round(a.kalanGun)} gün — kısa vadede küçük fiyat hareketi büyük bps üretir`,
+      );
+    }
     if (a.kuponResetiyleAciklanabilir) {
       const fiyatDusuyor = a.fiyatDegisimPct != null && a.fiyatDegisimPct < 0;
       parcalar.push(fiyatDusuyor ? "muhtemelen kira/kupon ödendi, pariye indi" : "muhtemelen yeni dönem başladı, pariden birikime geçti");

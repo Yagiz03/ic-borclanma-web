@@ -88,7 +88,7 @@ export default async function TakvimPage({
 
   const [
     { data: tcmb }, { data: ihrac }, { data: isinOzet }, { data: enflasyonSeriler }, { data: gerceklesen },
-    { data: kiraSatis }, { data: altinSatis }, { data: fxSatis },
+    { data: kiraSatis }, { data: altinSatis }, { data: fxSatis }, { data: duyurular },
   ] = await Promise.all([
     supabase.from("tcmb_takvim").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("ihrac_takvimi").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
@@ -109,6 +109,14 @@ export default async function TakvimPage({
     supabase.from("kira_sertifikasi_ihrac").select("isin, ihrac_tarihi, itfa_tarihi, tutar_tl").like("ihrac_tarihi", ayEki),
     supabase.from("altin_ihrac_sonuclari").select("isin, tur, ihrac_tarihi, itfa_tarihi, miktar_kg, yillik_oran_pct").like("ihrac_tarihi", ayEki),
     supabase.from("fx_dibs_sonuc").select("isin, tur, doviz_cinsi, ihrac_tarihi, itfa_tarihi, gerceklesen_tutar").like("ihrac_tarihi", ayEki),
+    // HMB ihaleden en az bir gun once "ihale duyurusu" yayimliyor ve ISIN
+    // ile resmi kupon orani orada belli oluyor. Takvim bunu okumuyordu,
+    // bu yuzden ihaleye bir gun kala bile "Yeni kagit -- ISIN henuz belli
+    // degil" yaziyordu.
+    supabase
+      .from("ihale_duyurulari")
+      .select("isin, ihale_tarihi, senet_tanimi, ihrac_tipi, resmi_kupon_orani_pct, ek_getiri_bp")
+      .like("ihale_tarihi", ayEki),
   ]);
 
   const isinHarita = new Map<string, string>();
@@ -186,6 +194,21 @@ export default async function TakvimPage({
     ]);
   }
 
+  // Duyuru haritası: gün + senet adı -> ilan edilen ISIN/kupon.
+  const duyuruHarita = new Map<
+    string,
+    { isin: string; resmi_kupon_orani_pct: number | null; ek_getiri_bp: number | null }
+  >();
+  for (const d of duyurular ?? []) {
+    const gun = Number(String(d.ihale_tarihi).split(".")[0]);
+    if (!Number.isFinite(gun)) continue;
+    duyuruHarita.set(`${gun}|${d.senet_tanimi}`, {
+      isin: d.isin,
+      resmi_kupon_orani_pct: d.resmi_kupon_orani_pct,
+      ek_getiri_bp: d.ek_getiri_bp,
+    });
+  }
+
   // Aynı ihraç birden çok strateji belgesinden gelebiliyor -- ızgarada iki
   // kez görünmesin diye tekilleştiriliyor.
   const gorulenIhrac = new Set<string>();
@@ -203,13 +226,22 @@ export default async function TakvimPage({
     // ISIN doğrudan ihraç takviminde yok: kağıt tipi + itfa tarihinden
     // isin_ozet'e eşleniyor (İhale Detay'daki aynı eşleme). Yeni ihraçlarda
     // henüz ISIN yok -- o zaman bunu açıkça yazıyoruz.
-    const isin = isinHarita.get(`${i.senet_turu}|${trTarihPadle(i.itfa_tarihi) ?? ""}`);
+    const duyuru = duyuruHarita.get(`${gun}|${i.senet_turu}`);
+    // Duyuru varsa o kesin: ISIN'i HMB ilan etmis demektir.
+    const isin = duyuru?.isin ?? isinHarita.get(`${i.senet_turu}|${trTarihPadle(i.itfa_tarihi) ?? ""}`);
     const ilkIhracMi = String(i.yontem).includes("İlk ihraç");
     (gunler[gun] ??= []).push({
       etiket: `${kisaYontem}: ${i.senet_turu}`,
       renk: RENK[kisaYontem] ?? "var(--muted-foreground)",
       oz: isin ?? (ilkIhracMi ? "Yeni kağıt — ISIN henüz belli değil" : undefined),
-      detay: [isin ? `ISIN: ${isin}` : null, i.vade, i.itfa_tarihi ? `İtfa: ${i.itfa_tarihi}` : null]
+      detay: [
+        isin ? `ISIN: ${isin}` : null,
+        i.vade,
+        i.itfa_tarihi ? `İtfa: ${i.itfa_tarihi}` : null,
+        duyuru?.resmi_kupon_orani_pct != null ? `Kupon %${Number(duyuru.resmi_kupon_orani_pct).toFixed(2)}` : null,
+        duyuru?.ek_getiri_bp != null ? `Ek getiri ${Number(duyuru.ek_getiri_bp).toFixed(0)} bp` : null,
+        duyuru ? "İhale duyurusu yayımlandı" : null,
+      ]
         .filter(Boolean)
         .join(" — "),
     });

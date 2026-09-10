@@ -184,7 +184,7 @@ export async function finansmanIlerlemeVerisiGetir(
   const ayNo = bugun.getMonth() + 1;
   const ayLabel = `${yil} ${AY_ADLARI[ayNo - 1]}`;
 
-  const [{ data: planlar }, { data: ihaleler }, { data: takvim }] = await Promise.all([
+  const [{ data: planlar }, { data: ihaleler }, { data: takvim }, { data: duyurular }] = await Promise.all([
     supabase.from("finansman_planlari").select("*").eq("yil", yil).lte("ay", ayNo),
     supabase
       .from("ihale_sonuclari")
@@ -192,6 +192,10 @@ export async function finansmanIlerlemeVerisiGetir(
         "isin, ihale_tarihi, senet_tanimi, vade_tarihi, toplam_gerceklesme_mn, kamu_kurumlari_gerceklesme_mn, piyasa_yapicilar_gerceklesme_mn, kaynak_url",
       ),
     supabase.from("ihrac_takvimi").select("tarih, yontem, senet_turu, itfa_tarihi").order("tarih"),
+    // HMB ihaleden en az bir gun once duyuru yayimliyor; ISIN orada belli
+    // oluyor. Bu tablo okunmadigi icin yaklasan ihalelerde ISIN "–" kaliyordu
+    // -- itfa tarihinden isin_ozet'e eslenemeyen YENI kagitlarda hep.
+    supabase.from("ihale_duyurulari").select("isin, ihale_tarihi, senet_tanimi"),
   ]);
 
   const planBu = (planlar ?? []).find((p) => p.ay === ayNo);
@@ -255,6 +259,14 @@ export async function finansmanIlerlemeVerisiGetir(
     const anahtar = `${r.senet_tanimi}|${trTarihPadle(r.vade_tarihi)}`;
     if (!isinLookup.has(anahtar)) isinLookup.set(anahtar, r.isin);
   }
+  // gun.ay.yil + senet adi -> ilan edilen ISIN
+  const duyuruLookup = new Map<string, string>();
+  for (const d of duyurular ?? []) {
+    const t = trTarihAyristir(String(d.ihale_tarihi));
+    if (!t || !d.senet_tanimi || !d.isin) continue;
+    duyuruLookup.set(`${t.toDateString()}|${d.senet_tanimi}`, d.isin);
+  }
+
   const gerceklesmisSet = new Set(
     buAy.map((r) => `${trTarihAyristir(r.ihale_tarihi)?.toDateString()}|${r.senet_tanimi}`),
   );
@@ -280,10 +292,13 @@ export async function finansmanIlerlemeVerisiGetir(
         return true;
       })
       .map((r) => {
+        const d = new Date(r.tarih);
         const anahtar = `${r.senet_turu}|${trTarihPadle(r.itfa_tarihi)}`;
+        // Duyuru varsa o kesin -- HMB ISIN'i ilan etmis demektir.
+        const duyurulan = duyuruLookup.get(`${d.toDateString()}|${r.senet_turu}`);
         return {
-          ihale_tarihi: new Date(r.tarih).toLocaleDateString("tr-TR"),
-          isin: isinLookup.get(anahtar) ?? "–",
+          ihale_tarihi: d.toLocaleDateString("tr-TR"),
+          isin: duyurulan ?? isinLookup.get(anahtar) ?? "–",
           senet_turu: r.senet_turu,
         };
       });
