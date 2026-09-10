@@ -230,6 +230,24 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
           </ul>
         </div>
       )}
+      {anomaliKisaVade.length > 0 && (
+        <details className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-foreground">
+            ℹ️ {anomaliKisaVade.length} kağıtta kısa vadeden gelen bps hareketi
+          </summary>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Getiri hareketi kabaca fiyat hareketi / durasyon: %3 fiyat ile 300 bps getiri ancak ~1 yıllık
+            durasyonda denk düşer. Vadesine 1 yıldan az kalmış kağıtta birkaç kuruşluk fiyat oynaması yüzlerce
+            bps üretir — fiyat tarafında eşik aşılmadığı için bunlar ayrı listeleniyor.
+          </p>
+          <ul className="mt-2 list-inside list-disc space-y-0.5 text-muted-foreground">
+            {anomaliKisaVade.map((a) => (
+              <li key={a.isin}>{anomaliMesaji(a)}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+
       {anomaliKupon.length > 0 && (
         <details className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
           <summary className="cursor-pointer font-medium text-foreground">
