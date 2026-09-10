@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Label, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { sayi } from "@/lib/bicim";
 
 const AY_KISA = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
@@ -51,14 +51,25 @@ export function GunlukAlimGrafigi({
 
   const gunFmt = (t: number) => {
     const d = new Date(t);
-    return `${AY_KISA[d.getUTCMonth()]}`;
+    return `${AY_KISA[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  };
+
+  /** 5.000.000 yerine 5M -- ham rakamlar Y eksenini gereksiz genisletiyordu. */
+  const kisaSayi = (v: number) => {
+    if (v === 0) return "0";
+    if (Math.abs(v) >= 1e6) return `${sayi(v / 1e6, Math.abs(v) >= 1e7 ? 0 : 1)}M`;
+    if (Math.abs(v) >= 1e3) return `${sayi(v / 1e3, 0)}B`;
+    return sayi(v, 0);
   };
   const tamTarih = (t: number) => {
     const d = new Date(t);
     return `${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${d.getUTCFullYear()}`;
   };
 
+  const yilBasindanMi = noktalar[0].t >= bas;
+
   return (
+    <div className="space-y-1">
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={noktalar} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -73,9 +84,16 @@ export function GunlukAlimGrafigi({
         />
         <YAxis
           tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-          width={64}
-          tickFormatter={(v) => sayi(v, 0)}
-        />
+          width={72}
+          tickFormatter={kisaSayi}
+        >
+          <Label
+            value="Bin TL"
+            angle={-90}
+            position="insideLeft"
+            style={{ fontSize: 11, fill: "var(--muted-foreground)", textAnchor: "middle" }}
+          />
+        </YAxis>
         <Tooltip
           cursor={{ fill: "color-mix(in oklch, var(--muted) 55%, transparent)" }}
           contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
@@ -85,5 +103,9 @@ export function GunlukAlimGrafigi({
         <Bar dataKey="tutar" fill="var(--chart-1)" barSize={cubuk} />
       </BarChart>
     </ResponsiveContainer>
+      {yilBasindanMi && (
+        <p className="text-xs text-muted-foreground">{yil} başından (YTD) itibaren gösteriliyor.</p>
+      )}
+    </div>
   );
 }
