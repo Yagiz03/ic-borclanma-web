@@ -46,6 +46,42 @@ describe("NoktaTooltip", () => {
     expect(screen.getByText("Getiri: %33.85")).toBeInTheDocument();
   });
 
+  it("yükte SADECE eğri varken bile x'e en yakın kağıdın ISIN'ini bulur", () => {
+    // Gercek davranis: Recharts bu grafiklerde Scatter serilerini paylasimli
+    // tooltip yukune KOYMUYOR, yalnizca uyarlanan egri geliyor. ISIN'i x
+    // eksenindeki konuma gore veri kumesinden bulmak zorundayiz.
+    const noktalar = [
+      { isin: "TRT150328T24", kalanVadeYil: 1.52, getiri: 39.67, zSkoru: 1.24 },
+      { isin: "TRT160431T35", kalanVadeYil: 4.61, getiri: 37.85, zSkoru: 0.42 },
+      { isin: "TRT051033T12", kalanVadeYil: 7.08, getiri: 33.85, zSkoru: -1.75 },
+    ];
+    render(
+      <NoktaTooltip
+        active
+        label={4.6}
+        noktalar={noktalar}
+        payload={sar({ kalanVadeYil: 4.6, egri: 37.62 })}
+      />,
+    );
+    expect(screen.getByText("TRT160431T35")).toBeInTheDocument();
+    expect(screen.getByText("Getiri: %37.85")).toBeInTheDocument();
+    expect(screen.getByText("Eğri: %37.62")).toBeInTheDocument();
+  });
+
+  it("hiçbir kağıda yakın değilse kağıt uydurmaz", () => {
+    const noktalar = [{ isin: "TRT150328T24", kalanVadeYil: 1.52, getiri: 39.67 }];
+    render(
+      <NoktaTooltip
+        active
+        label={5.5}
+        noktalar={noktalar}
+        payload={sar({ kalanVadeYil: 5.5, egri: 36.4 })}
+      />,
+    );
+    expect(screen.queryByText("TRT150328T24")).not.toBeInTheDocument();
+    expect(screen.getByText("Eğri: %36.40")).toBeInTheDocument();
+  });
+
   it("boş/eksik yükte hiçbir şey render etmez", () => {
     const { container: a } = render(<NoktaTooltip active payload={[]} />);
     expect(a).toBeEmptyDOMElement();

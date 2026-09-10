@@ -143,22 +143,47 @@ export function KarsilastirmaTooltip({
   );
 }
 
-export function NoktaTooltip({ active, payload }: { active?: boolean; payload?: { payload: NoktaTooltipPayload }[] }) {
+export function NoktaTooltip({
+  active, payload, label, noktalar,
+}: {
+  active?: boolean;
+  payload?: { payload: NoktaTooltipPayload }[];
+  label?: number | string;
+  /** Grafiğin saçılım verisi. Recharts paylaşımlı tooltip'te ComposedChart'ın
+   *  Scatter serilerini yüke KOYMUYOR -- yalnızca uyarlanan eğri geliyor. Bu
+   *  yüzden hangi kağıdın üstünde olduğumuzu yükten öğrenemiyoruz; x eksenindeki
+   *  konuma en yakın kağıdı bu listeden kendimiz buluyoruz. */
+  noktalar?: NoktaTooltipPayload[];
+}) {
   if (!active || !payload || payload.length === 0) return null;
-  // ComposedChart'ta uyarlanan EĞRİ, saçılım serilerinden ÖNCE tanımlı olduğu
-  // için Recharts yükün başına çoğu zaman onu koyuyor -- eğri noktasında ISIN
-  // yok. Körlemesine payload[0] alınınca bir kağıdın üstündeyken bile ISIN
-  // görünmüyordu. Önce ISIN taşıyan kaydı arıyoruz; yoksa ilk kayda düşüyoruz
-  // (o zaman gerçekten eğrinin üstündeyiz).
-  const p = payload.find((x) => x?.payload?.isin)?.payload ?? payload[0]?.payload;
-  if (!p) return null;
+  const ilk = payload.find((x) => x?.payload?.isin)?.payload ?? payload[0]?.payload;
+  if (!ilk) return null;
 
-  // İmleç eğrinin üstündeyken getiri/ISIN alanları YOK; eskiden burada
-  // koşulsuz p.getiri.toFixed() çağrılıyordu ve tooltip belirince bileşen
-  // çöküp "Bu sayfa yüklenemedi" ekranını açıyordu.
+  let p = ilk;
+  let egriDegeri = ilk.egri;
+
+  if (!p.isin && noktalar?.length) {
+    const x = typeof label === "number" ? label : ilk.kalanVadeYil;
+    if (typeof x === "number") {
+      let enYakin: NoktaTooltipPayload | null = null;
+      let enFark = Infinity;
+      for (const n of noktalar) {
+        if (typeof n.kalanVadeYil !== "number") continue;
+        const fark = Math.abs(n.kalanVadeYil - x);
+        if (fark < enFark) { enFark = fark; enYakin = n; }
+      }
+      // Eşik: imleç bir kağıda yeterince yakınsa o kağıdı göster. Uzaksa
+      // gerçekten eğrinin boş bir yerindeyiz, kağıt uydurmuyoruz.
+      if (enYakin && enFark <= 0.35) {
+        p = enYakin;
+        egriDegeri = ilk.egri ?? ilk.getiri;
+      }
+    }
+  }
+
   const vade = oy(p.kalanVadeYil);
   const getiri = oy(p.getiri);
-  const egri = oy(p.egri);
+  const egri = oy(egriDegeri);
   const z = oy(p.zSkoru);
   if (!p.isin && vade == null && getiri == null && egri == null) return null;
 
@@ -168,7 +193,7 @@ export function NoktaTooltip({ active, payload }: { active?: boolean; payload?: 
       {p.senetTanimi && <div style={{ color: "var(--muted-foreground)" }}>{p.senetTanimi}</div>}
       {vade != null && <div>Kalan vade: {vade} yıl</div>}
       {getiri != null && <div>Getiri: %{getiri}</div>}
-      {getiri == null && egri != null && <div>Eğri: %{egri}</div>}
+      {egri != null && <div style={{ color: "var(--muted-foreground)" }}>Eğri: %{egri}</div>}
       {z != null && <div>Z-skoru: {Number(z) >= 0 ? "+" : ""}{z}</div>}
     </div>
   );
@@ -693,7 +718,7 @@ export function GetiriEgrisiClient({
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
                   <ZAxis dataKey="zSkoru" range={[40, 200]} />
-                  <Tooltip content={<NoktaTooltip />} />
+                  <Tooltip content={<NoktaTooltip noktalar={rvPoli} />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={rvPoliSonuc?.egri ?? []} dataKey="egri" name="Uyarlanan eğri (2. derece polinom)" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
                   <Scatter name="Ucuz (z>0)" data={rvPoli.filter((r) => r.zSkoru >= 0)} fill="var(--pozitif)" />
@@ -783,7 +808,7 @@ export function GetiriEgrisiClient({
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis type="number" dataKey="kalanVadeYil" name="Kalan vade" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `${sayiEsnek(v, 1)} yıl`} domain={vadeEkseni?.domain ?? ["dataMin - 0.2", "dataMax + 0.2"]} ticks={vadeEkseni?.ticks} allowDuplicatedCategory={false} />
                   <YAxis type="number" dataKey="getiri" name="Getiri" unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={52} domain={getiriEkseni?.domain ?? ["dataMin - 0.5", "dataMax + 0.5"]} ticks={getiriEkseni?.ticks} tickFormatter={(v) => sayiEsnek(v, 1)} />
-                  <Tooltip content={<NoktaTooltip />} />
+                  <Tooltip content={<NoktaTooltip noktalar={rvNs} />} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line data={nsEgriNoktalari} dataKey="egri" name="Nelson-Siegel eğrisi" type="monotone" stroke="var(--chart-1)" strokeWidth={2} dot={false} activeDot={false} legendType="line" />
                   <Scatter name="Ucuz (z>0)" data={rvNs.filter((r) => r.zSkoru >= 0)} fill="var(--pozitif)" />
