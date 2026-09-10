@@ -7,7 +7,9 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      // bg-card: tablolarin hepsi Card icinde degil (or. Ihale gunu). Yuzeyi
+      // olmayinca govde sayfa zeminine gomuluyor ve baslik seridi ayrismiyordu.
+      className="relative w-full overflow-x-auto bg-card"
     >
       <table
         data-slot="table"
