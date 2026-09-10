@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { globalOlaylariAyIcinBul, kapsamNotu, trEnflasyonGunu } from "@/lib/global-takvim";
 import { trTarihPadle } from "@/lib/tarih";
+import { sayi } from "@/lib/bicim";
 
 const AY_ADLARI = [
   "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
@@ -60,7 +61,17 @@ export default async function TakvimPage({
   const oncekiYil = ay === 1 ? yil - 1 : yil;
   const oncekiAyReferans = `${oncekiYil}-${String(oncekiAy).padStart(2, "0")}-01`;
 
-  const [{ data: tcmb }, { data: ihrac }, { data: isinOzet }, { data: enflasyonSeriler }] = await Promise.all([
+  // ihrac_takvimi yalnizca strateji belgesinin kapsadigi 3 ayi tutuyor, yani
+  // gecmis aylar bombostu. Gerceklesen ihaleler ihale_sonuclari'nda 2020'ye
+  // kadar duruyor -- gecmis aylar oradan doluyor ve planlanandan daha
+  // fazlasini gosteriyor (ISIN, gerceklesen faiz, satis tutari).
+  // ihale_tarihi metin ve "gg.aa.yyyy" bicimli; gun basta sifirsiz
+  // olabildigi icin ay+yil sonekiyle esleniyor.
+  const ayEki = `%.${String(ay).padStart(2, "0")}.${yil}`;
+
+  const [
+    { data: tcmb }, { data: ihrac }, { data: isinOzet }, { data: enflasyonSeriler }, { data: gerceklesen },
+  ] = await Promise.all([
     supabase.from("tcmb_takvim").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("ihrac_takvimi").select("*").gte("tarih", ayBaslangic).lt("tarih", ayBitis),
     supabase.from("isin_ozet").select("isin, senet_tanimi, vade_tarihi"),
@@ -71,6 +82,10 @@ export default async function TakvimPage({
           .in("seri_adi", ["tufe_fe25_aylik_yuzde", "tufe_fe25_yillik_yuzde", "yiufe_aylik_yuzde", "yiufe_yillik_yuzde"])
           .eq("tarih", oncekiAyReferans)
       : Promise.resolve({ data: [] as { seri_adi: string; deger: number }[] }),
+    supabase
+      .from("ihale_sonuclari")
+      .select("isin, senet_tanimi, ihale_tarihi, ihrac_tipi, vade_tarihi, ort_yillik_bilesik_gerceklesme, toplam_gerceklesme_mn")
+      .like("ihale_tarihi", ayEki),
   ]);
 
   const isinHarita = new Map<string, string>();
@@ -84,6 +99,31 @@ export default async function TakvimPage({
     const gun = Number(t.tarih.slice(8, 10));
     (gunler[gun] ??= []).push({ etiket: t.tur, renk: RENK[t.tur] ?? "var(--muted-foreground)", detay: "" });
   }
+  // Gerçekleşen ihaleler: gün + senet tipi eşleşen PLAN satırını bastırıyor
+  // (ikisi aynı ihale; gerçekleşen daha çok şey biliyor).
+  const gerceklesenAnahtarlari = new Set<string>();
+  for (const r of gerceklesen ?? []) {
+    const [g, a] = String(r.ihale_tarihi).split(".");
+    const gun = Number(g);
+    if (!Number.isFinite(gun)) continue;
+    gerceklesenAnahtarlari.add(`${gun}|${r.senet_tanimi}`);
+    const getiri = r.ort_yillik_bilesik_gerceklesme;
+    const tutar = r.toplam_gerceklesme_mn;
+    (gunler[gun] ??= []).push({
+      etiket: `İhale: ${r.senet_tanimi}`,
+      renk: RENK["İhale"],
+      oz: r.isin ?? undefined,
+      detay: [
+        r.isin ? `ISIN: ${r.isin}` : null,
+        r.ihrac_tipi,
+        getiri != null ? `Ort. bileşik %${Number(getiri).toFixed(2)}` : null,
+        tutar != null ? `${sayi(Number(tutar), 0)} Mn TL satış` : null,
+        r.vade_tarihi ? `İtfa: ${r.vade_tarihi}` : null,
+      ].filter(Boolean).join(" — "),
+    });
+    void a;
+  }
+
   // Aynı ihraç birden çok strateji belgesinden gelebiliyor -- ızgarada iki
   // kez görünmesin diye tekilleştiriliyor.
   const gorulenIhrac = new Set<string>();
@@ -93,6 +133,8 @@ export default async function TakvimPage({
     gorulenIhrac.add(anahtar);
     const gun = Number(i.tarih.slice(8, 10));
     const kisaYontem = i.yontem.startsWith("İhale") ? "İhale" : "Doğrudan Satış";
+    // Bu ihale gerçekleşmişse planı tekrar yazma.
+    if (gerceklesenAnahtarlari.has(`${gun}|${i.senet_turu}`)) continue;
     // ISIN doğrudan ihraç takviminde yok: kağıt tipi + itfa tarihinden
     // isin_ozet'e eşleniyor (İhale Detay'daki aynı eşleme). Yeni ihraçlarda
     // henüz ISIN yok -- o zaman bunu açıkça yazıyoruz.
