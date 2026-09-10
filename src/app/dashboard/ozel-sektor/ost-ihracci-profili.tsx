@@ -144,17 +144,16 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
       </div>
 
       {filtreDisiEslesme > 0 && (
-        <p className="text-sm text-muted-foreground">
-          Seçili filtrelerde eşleşme yok — bu aramaya uyan{" "}
-          <b className="text-foreground">{filtreDisiEslesme}</b> kağıt var ama seçili ihraççı/aracı
-          kurum dışında.{" "}
+        <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+          Seçili filtrelerde eşleşme yok — bu aramaya uyan {filtreDisiEslesme} kağıt var ama seçili
+          ihraççı/aracı kurum dışında.{" "}
           <button
             type="button"
             onClick={() => {
               setSeciliIhracci(TUMU);
               setSeciliAraci(TUMU);
             }}
-            className="underline underline-offset-2"
+            className="font-semibold underline underline-offset-2"
           >
             Filtreleri kaldır
           </button>
