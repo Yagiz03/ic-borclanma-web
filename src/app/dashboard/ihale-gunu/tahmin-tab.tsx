@@ -1,6 +1,9 @@
 "use client";
 
 import { BosDurum } from "@/components/bos-durum";
+import { Card, CardContent } from "@/components/ui/card";
+import { OzetSerit } from "@/components/ozet-serit";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import {
   Bar,
@@ -261,16 +264,20 @@ export function TahminTab({
   return (
     <div className="space-y-6">
       {dagilimBu.length > 0 && (
-        <div>
-          <h3 className="text-base font-semibold">Bu ayın ihale dağılımı tahmini</h3>
-          <p className="mb-3 text-sm text-muted-foreground">
-            Bir satıra tıklayınca o kağıdın geçmiş piyasadan ihale sonuçları/tail&apos;leri hemen altında açılır.
-          </p>
-          <DagilimTablosu dagilim={dagilimBu} ihale={ihale} />
-        </div>
+        <Card>
+          <CardContent className="space-y-3 pt-6">
+            <div>
+              <h3 className="text-base font-semibold">Bu ayın ihale dağılımı tahmini</h3>
+              <p className="text-sm text-muted-foreground">
+                Bir satıra tıklayınca o kağıdın geçmiş piyasadan ihale sonuçları/tail&apos;leri hemen altında açılır.
+              </p>
+            </div>
+            <DagilimTablosu dagilim={dagilimBu} ihale={ihale} />
+          </CardContent>
+        </Card>
       )}
 
-      <div className="rounded-lg border border-border">
+      <Card className="py-0">
         <button
           onClick={() => setGelecekAcik((v) => !v)}
           className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium"
@@ -287,10 +294,11 @@ export function TahminTab({
             )}
           </div>
         )}
-      </div>
+      </Card>
 
       {yaklasan.length > 0 ? (
-        <div className="rounded-lg border border-border p-4">
+        <Card>
+          <CardContent className="pt-6">
           <h3 className="mb-3 text-sm font-semibold">Bu ayki ihaleler</h3>
           {yaklasan.length === 1 ? (
             <p className="text-sm">
@@ -309,7 +317,8 @@ export function TahminTab({
               ))}
             </select>
           )}
-        </div>
+          </CardContent>
+        </Card>
       ) : (
         <p className="text-sm text-muted-foreground">
           Bu ay planlanmış bir ihale bulunamadı — aşağıdaki &quot;Manuel senet tipi / vade seçimi&quot; bölümünden
@@ -317,7 +326,8 @@ export function TahminTab({
         </p>
       )}
 
-      <div className="rounded-lg border border-border p-4">
+      <Card>
+        <CardContent className="pt-6">
         <h3 className="mb-3 text-sm font-semibold">Manuel senet tipi / vade seçimi</h3>
         <div className="flex flex-wrap items-end gap-4">
           <div className="space-y-1.5">
@@ -339,7 +349,8 @@ export function TahminTab({
             />
           </div>
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {!yeterli ? (
         <p className="text-sm text-muted-foreground">
@@ -347,62 +358,62 @@ export function TahminTab({
           ihale bulunamadı (bulunan: {benzer.length}, gereken: en az 3). Vadeyi veya senet tipini değiştirmeyi dene.
         </p>
       ) : (
-        <div className="space-y-4">
+        <Card>
+          <CardContent className="space-y-4 pt-6">
           <h3 className="text-base font-semibold">Detaylı analiz — {sonBenzer.length} benzer ihale (toplam {benzer.length} bulundu)</h3>
           <p className="text-sm text-muted-foreground">
             Aşağıdaki özet, yılbaşından bugüne gerçekleşen {sonBenzer.length} ihaleye dayanıyor (bu yıl içinde yeterli
             örnek yoksa son 6 ihaleye düşülür) — faiz seviyesi yıllar içinde çok değiştiğinden, tüm tarihçenin
             ortalaması güncel koşulları yansıtmaz.
           </p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Medyan tail</p>
-              <p className="font-figures font-semibold">{medyan(sonBenzer.map((r) => r.tail_bps ?? NaN))?.toFixed(0) ?? "–"} bps</p>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Ort. talep karşılanma</p>
-              <p className="font-figures font-semibold">
-                %{ortalama(sonBenzer.map((r) => r.toplam_oran_pct))?.toFixed(1) ?? "–"}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Kabul edilen aralık (ort.)</p>
-              <p className="font-figures font-semibold">
-                %{ortalama(sonBenzer.map((r) => r.en_dusuk_bilesik_gerceklesme))?.toFixed(2) ?? "–"} —{" "}
-                %{ortalama(sonBenzer.map((r) => r.en_yuksek_bilesik_gerceklesme))?.toFixed(2) ?? "–"}
-              </p>
-            </div>
-          </div>
+          <OzetSerit
+            alanlar={[
+              {
+                etiket: "Medyan tail",
+                deger: `${medyan(sonBenzer.map((r) => r.tail_bps ?? NaN))?.toFixed(0) ?? "–"} bps`,
+              },
+              {
+                etiket: "Ort. talep karşılanma",
+                deger: `%${ortalama(sonBenzer.map((r) => r.toplam_oran_pct))?.toFixed(1) ?? "–"}`,
+              },
+              {
+                etiket: "Kabul edilen aralık (ort.)",
+                deger:
+                  `%${ortalama(sonBenzer.map((r) => r.en_dusuk_bilesik_gerceklesme))?.toFixed(2) ?? "–"} — ` +
+                  `%${ortalama(sonBenzer.map((r) => r.en_yuksek_bilesik_gerceklesme))?.toFixed(2) ?? "–"}`,
+              },
+            ]}
+          />
 
           <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">Tarih</th>
-                  <th className="px-3 py-2 font-medium text-xs uppercase tracking-wide text-muted-foreground">ISIN</th>
-                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Vade (yıl)</th>
-                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">En Düşük Kabul</th>
-                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Ortalama Kabul</th>
-                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">En Yüksek Kabul</th>
-                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Tail (bps)</th>
-                  <th className="px-3 py-2 text-right font-medium text-xs uppercase tracking-wide text-muted-foreground">Piyasadan İhale (Mn TL)</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tarih</TableHead>
+                  <TableHead>ISIN</TableHead>
+                  <TableHead className="text-right">Vade (yıl)</TableHead>
+                  <TableHead className="text-right">En Düşük Kabul</TableHead>
+                  <TableHead className="text-right">Ortalama Kabul</TableHead>
+                  <TableHead className="text-right">En Yüksek Kabul</TableHead>
+                  <TableHead className="text-right">Tail (bps)</TableHead>
+                  <TableHead className="text-right">Piyasadan İhale (Mn TL)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {[...sonBenzer].sort((a, b) => a.ihaleTarihiD.getTime() - b.ihaleTarihiD.getTime()).map((r, i) => (
-                  <tr key={i} className="border-b border-border/60 last:border-0">
-                    <td className="font-figures px-3 py-2 whitespace-nowrap">{r.ihaleTarihiD.toLocaleDateString("tr-TR")}</td>
-                    <td className="font-figures px-3 py-2">{r.isin}</td>
-                    <td className="font-figures px-3 py-2 text-right">{r.vadeYil.toFixed(2)}</td>
-                    <td className="font-figures px-3 py-2 text-right">{r.en_dusuk_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
-                    <td className="font-figures px-3 py-2 text-right">{r.ort_yillik_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
-                    <td className="font-figures px-3 py-2 text-right">{r.en_yuksek_bilesik_gerceklesme?.toFixed(2) ?? "–"}</td>
-                    <td className="font-figures px-3 py-2 text-right">{r.tail_bps ?? "–"}</td>
-                    <td className="font-figures px-3 py-2 text-right">{milyonFmt(r.piyasadanIhaleMn)}</td>
-                  </tr>
+                  <TableRow key={i}>
+                    <TableCell className="font-figures whitespace-nowrap">{r.ihaleTarihiD.toLocaleDateString("tr-TR")}</TableCell>
+                    <TableCell className="font-figures">{r.isin}</TableCell>
+                    <TableCell className="font-figures text-right">{r.vadeYil.toFixed(2)}</TableCell>
+                    <TableCell className="font-figures text-right">{r.en_dusuk_bilesik_gerceklesme?.toFixed(2) ?? "–"}</TableCell>
+                    <TableCell className="font-figures text-right">{r.ort_yillik_bilesik_gerceklesme?.toFixed(2) ?? "–"}</TableCell>
+                    <TableCell className="font-figures text-right">{r.en_yuksek_bilesik_gerceklesme?.toFixed(2) ?? "–"}</TableCell>
+                    <TableCell className="font-figures text-right">{r.tail_bps ?? "–"}</TableCell>
+                    <TableCell className="font-figures text-right">{milyonFmt(r.piyasadanIhaleMn)}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           <div>
@@ -459,7 +470,8 @@ export function TahminTab({
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
