@@ -1,8 +1,34 @@
 import { egriVerisiniGetir } from "@/lib/egri-verisi";
+import { createClient } from "@/lib/supabase/server";
+import { tumSatirlariGetir } from "@/lib/supabase-sayfali";
+import type { KonsesyonIhale, KonsesyonOlay } from "@/lib/konsesyon";
 import { DeneyselClient } from "./deneysel-client";
 
 export default async function DeneyselPage() {
   const { hata, isinOzet, bist, tlrefSonPct } = await egriVerisiniGetir();
+
+  // Konsesyon analizi gece pipeline'inda hesaplaniyor (Nelson-Siegel fit'i
+  // ~1600 gun -- tarayicida yapilamaz); burada yalnizca okunuyor.
+  // konsesyon_olay 1000 satiri astigi icin sayfalanarak cekiliyor.
+  const supabase = await createClient();
+  const [{ data: konsesyonOlaylar }, { data: konsesyonIhaleler }] = await Promise.all([
+    tumSatirlariGetir<KonsesyonOlay>((bas, son) =>
+      supabase
+        .from("konsesyon_olay")
+        .select("isin, ihale_dt, offset, spread_bps")
+        .order("isin")
+        .order("ihale_dt")
+        .order("offset")
+        .range(bas, son),
+    ),
+    tumSatirlariGetir<KonsesyonIhale>((bas, son) =>
+      supabase
+        .from("konsesyon_ihale")
+        .select("isin, ihale_tarihi, senet_tanimi, spread_once, spread_sonra, degisim_bps, tail_bps, bid_to_cover")
+        .order("ihale_tarihi")
+        .range(bas, son),
+    ),
+  ]);
 
   // Ortak sorgu süper küme döndürüyor; bu sayfanın iki ekranı da temiz fiyata
   // BAKMIYOR (yalnız getiri + hacim). Sütunu istemciye göndermemek HTML yükünü
@@ -27,7 +53,13 @@ export default async function DeneyselPage() {
       {hata ? (
         <p className="text-sm text-destructive">{hata}</p>
       ) : (
-        <DeneyselClient isinOzet={isinOzet} bist={bistYalin} tlrefSonPct={tlrefSonPct} />
+        <DeneyselClient
+          isinOzet={isinOzet}
+          bist={bistYalin}
+          tlrefSonPct={tlrefSonPct}
+          konsesyonOlaylar={konsesyonOlaylar ?? []}
+          konsesyonIhaleler={konsesyonIhaleler ?? []}
+        />
       )}
     </div>
   );

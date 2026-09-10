@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import type { KonsesyonIhale, KonsesyonOlay } from "@/lib/konsesyon";
+import { KonsesyonTab } from "./konsesyon-tab";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -60,8 +62,15 @@ function isoGoster(iso: string): string {
 
 export function DeneyselClient({
   isinOzet, bist, tlrefSonPct,
+  // Konsesyon verisi olmadan da sayfa acilir (sekme "hazir degil" der) --
+  // render testleri de bu iki alani vermiyor.
+  konsesyonOlaylar = [], konsesyonIhaleler = [],
 }: {
-  isinOzet: OzetSatiri[]; bist: BistSatiri[]; tlrefSonPct: number | null;
+  isinOzet: OzetSatiri[];
+  bist: BistSatiri[];
+  tlrefSonPct: number | null;
+  konsesyonOlaylar?: KonsesyonOlay[];
+  konsesyonIhaleler?: KonsesyonIhale[];
 }) {
   const vadeBilgi = useMemo(() => {
     const m = new Map<string, { senetTanimi: string | null; vade: Date | null; kupon: number | null; anchor: Date | null }>();
@@ -149,7 +158,12 @@ export function DeneyselClient({
       <TabsList variant="line" className="mb-5 overflow-x-auto">
         <TabsTrigger value="trade" className="shrink-0">Trade Ekranı</TabsTrigger>
         <TabsTrigger value="carry" className="shrink-0">Carry/Roll Hesaplayıcı</TabsTrigger>
+        <TabsTrigger value="konsesyon" className="shrink-0">İhale Konsesyonu</TabsTrigger>
       </TabsList>
+
+      <TabsContent value="konsesyon" className="space-y-5">
+        <KonsesyonTab olaylar={konsesyonOlaylar} ihaleler={konsesyonIhaleler} />
+      </TabsContent>
 
       <TabsContent value="trade" className="space-y-5">
         <TradeEkrani
