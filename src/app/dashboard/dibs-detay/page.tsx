@@ -381,7 +381,7 @@ export default async function DibsDetayPage({
 
             <div className="hidden max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border sm:block">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                   <TableRow>
                     <TableHead>İhale Tarihi</TableHead>
                     <TableHead>Valör</TableHead>
@@ -461,7 +461,7 @@ export default async function DibsDetayPage({
 
             <div className="hidden max-h-[420px] overflow-y-auto overflow-x-auto rounded-lg border border-border sm:block">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     {/* Metin sütunu artan genişliği emiyor -- yoksa boşluk sayı
@@ -591,7 +591,7 @@ export default async function DibsDetayPage({
               />
               <div className="max-h-[300px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-card">
+                  <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                     <TableRow>
                       <TableHead>Tarih</TableHead>
                       <TableHead className="text-right">Alınan tutar (Bin TL)</TableHead>

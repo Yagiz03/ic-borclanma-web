@@ -213,7 +213,7 @@ export function OstGunlukIslemler({ bist, mkb }: { bist: BistSatiri[]; mkb: MkbS
 
       <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-card">
+          <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
             <TableRow>
               <TableHead>ISIN</TableHead>
               {/* İhraççı adı en uzun metin: artan genişliği bu sütun emiyor. */}

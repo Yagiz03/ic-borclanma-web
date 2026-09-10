@@ -262,7 +262,7 @@ export function PricingHesaplayici({
               </p>
               <div className="max-h-[340px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-card">
+                  <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                     <TableRow>
                       <TableHead>Tarih</TableHead>
                       <TableHead className="text-right">Nakit akışı (100 nominal)</TableHead>

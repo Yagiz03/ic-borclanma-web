@@ -117,7 +117,7 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
 
       <div className="max-h-[500px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-card">
+          <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
             <TableRow>
               <TableHead>ISIN</TableHead>
               {seciliIhracci === TUMU && <TableHead>İhraççı</TableHead>}

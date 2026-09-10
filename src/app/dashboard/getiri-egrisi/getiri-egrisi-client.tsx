@@ -494,7 +494,7 @@ export function GetiriEgrisiClient({
             <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <p className="border-b border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">{baslik}</p>
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                   <TableRow>
                     <TableHead>ISIN</TableHead>
                     <TableHead>Kağıt tipi</TableHead>
@@ -578,7 +578,7 @@ export function GetiriEgrisiClient({
             ) : gosterim === "tablo" ? (
               <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-card">
+                  <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                     <TableRow>
                       <TableHead>ISIN</TableHead>
                       <TableHead className="text-right">Kalan vade (yıl)</TableHead>
@@ -685,7 +685,7 @@ export function GetiriEgrisiClient({
             {gosterim === "tablo" ? (
               <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-card">
+                  <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                     <TableRow>
                       <TableHead>ISIN</TableHead>
                       <TableHead>Kağıt tipi</TableHead>
@@ -767,7 +767,7 @@ export function GetiriEgrisiClient({
             <h2 className="text-lg font-semibold">Nelson-Siegel</h2>
             <div className="max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                   <TableRow>
                     <TableHead>ISIN</TableHead>
                     <TableHead className="text-right">Vade (yıl)</TableHead>

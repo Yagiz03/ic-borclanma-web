@@ -113,7 +113,7 @@ export async function DuzenliIslemGorenBolumu() {
         <CardContent className="p-0">
           <div className="max-h-[560px] overflow-y-auto overflow-x-auto rounded-lg">
             <Table>
-              <TableHeader className="sticky top-0 z-10 bg-card">
+              <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                 <TableRow>
                   <TableHead>ISIN</TableHead>
                   <TableHead>Tür</TableHead>

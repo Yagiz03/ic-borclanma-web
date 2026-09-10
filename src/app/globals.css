@@ -74,11 +74,11 @@
      koyulaştırıldı (07.09.2026, "bembeyaz oldu" şikayeti) -- Apple'ın
      kendi #f5f5f7 zeminine daha yakın bir ton, kartlar artık üstte
      duran gerçek "yüzeyler" gibi görünüyor. */
-  --background: oklch(0.965 0.004 260);
+  --background: oklch(0.945 0.005 260);
   --foreground: oklch(0.16 0.01 260);
-  --card: oklch(1 0 0);
+  --card: oklch(0.99 0.002 260);
   --card-foreground: oklch(0.16 0.01 260);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.99 0.002 260);
   --popover-foreground: oklch(0.16 0.01 260);
   --primary: oklch(0.55 0.18 250);
   --primary-foreground: oklch(1 0 0);
@@ -92,6 +92,10 @@
   /* Eskiden 0.92 idi: tablo cizgileri ve kart kenarlari beyaza cok yakin
      kaliyor, izgara gorunmuyordu. */
   --border: oklch(0.86 0.006 260);
+  /* Tablo baslik seridi -- karttan bir tik koyu acik gri.
+     Eski Streamlit projesinde basliklar acik griydi ve sutun
+     takip etmek belirgin sekilde kolaydi. */
+  --tablo-baslik: oklch(0.945 0.006 260);
   --input: oklch(0.86 0.006 260);
   --ring: oklch(0.55 0.18 250);
   --chart-1: oklch(0.55 0.18 250);
@@ -138,6 +142,7 @@
   --accent-foreground: oklch(0.96 0.003 260);
   --destructive: oklch(0.68 0.2 25);
   --border: oklch(1 0 0 / 16%);
+  --tablo-baslik: oklch(0.235 0.007 260);
   --input: oklch(1 0 0 / 14%);
   --ring: oklch(0.68 0.16 250);
   --chart-1: oklch(0.7 0.16 250);

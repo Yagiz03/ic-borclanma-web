@@ -313,7 +313,7 @@ async function IhaleDetayTabIcerigi({ hepsiniGoster }: { hepsiniGoster: boolean 
 
             <div className="hidden max-h-[460px] overflow-y-auto overflow-x-auto rounded-lg border border-border sm:block">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10 bg-[var(--tablo-baslik)]">
                   <TableRow>
                     <TableHead>Tarih</TableHead>
                     <TableHead>ISIN</TableHead>
