@@ -28,7 +28,6 @@ export default async function StratejiPage() {
 
       <RaporGuncelleButonu
         uc="/api/strateji-guncelle"
-        yenilemeSn={[40, 70]}
         aciklama="HMB yeni aylık strateji belgesini yayımladığı gün bas — son iki belge karşılaştırılıp fark raporu yeniden üretilir."
       />
 

@@ -18,18 +18,20 @@ type Sonuc = { tur: "bilgi" | "hata"; mesaj: string };
  * yenileniyor -- workflow süresi ağ/runner'a göre oynuyor, tek sabit
  * bekleme bazen erken kalıyordu.
  */
+/** Yoklama araligi ve tavani. Is 20-35 sn suruyor; 2 sn'lik cozunurluk
+ *  raporu dustugu an gostermeye yetiyor. 3 dakikadan sonra vazgecip
+ *  kullaniciya "sayfayi yenile" diyoruz -- sonsuz yoklamayalim. */
+const YOKLAMA_MS = 2000;
+const TAVAN_MS = 180_000;
+
 export function RaporGuncelleButonu({
   uc,
   etiket = "Raporu güncelle",
   aciklama,
-  // Olculen workflow sureleri: PPK ~21 sn, strateji ~34 sn. Iki kez
-  // yenileniyor cunku runner suresi ag/kuyruk yuzunden oynuyor.
-  yenilemeSn = [40, 80],
 }: {
   uc: string;
   etiket?: string;
   aciklama?: string;
-  yenilemeSn?: number[];
 }) {
   const router = useRouter();
   const [calisiyor, setCalisiyor] = useState(false);
@@ -40,25 +42,58 @@ export function RaporGuncelleButonu({
     setSonuc(null);
     try {
       const cevap = await fetch(uc, { method: "POST" });
-      const govde = (await cevap.json()) as { mesaj?: string; hata?: string };
-      if (cevap.ok) {
-        setSonuc({ tur: "bilgi", mesaj: govde.mesaj ?? "Başlatıldı." });
-        for (const sn of yenilemeSn) setTimeout(() => router.refresh(), sn * 1000);
-      } else {
+      const govde = (await cevap.json()) as {
+        mesaj?: string;
+        hata?: string;
+        oncekiKosuId?: number | null;
+      };
+      if (!cevap.ok) {
         setSonuc({ tur: "hata", mesaj: govde.mesaj ?? govde.hata ?? "Tetiklenemedi." });
+        setCalisiyor(false);
+        return;
+      }
+
+      setSonuc({ tur: "bilgi", mesaj: govde.mesaj ?? "Başlatıldı." });
+
+      // Sabit bekleme yerine YOKLAMA: rapor hazir oldugu an gorunsun.
+      const sorgu =
+        govde.oncekiKosuId != null ? `?oncekiKosuId=${govde.oncekiKosuId}` : "";
+      const basla = Date.now();
+      for (;;) {
+        await new Promise((r) => setTimeout(r, YOKLAMA_MS));
+        if (Date.now() - basla > TAVAN_MS) {
+          setSonuc({ tur: "bilgi", mesaj: "Beklenenden uzun sürdü — sayfayı yenile." });
+          break;
+        }
+        let durum: { durum?: string; sonuc?: string | null } = {};
+        try {
+          durum = await (await fetch(uc + sorgu, { cache: "no-store" })).json();
+        } catch {
+          continue; // gecici ag hatasi: yoklamaya devam
+        }
+        if (durum.durum === "bitti") {
+          if (durum.sonuc === "success") {
+            setSonuc({ tur: "bilgi", mesaj: "Rapor hazır." });
+            router.refresh();
+          } else {
+            setSonuc({ tur: "hata", mesaj: "Rapor üretilemedi." });
+          }
+          break;
+        }
+        if (durum.durum === "bilinmiyor") break;
       }
     } catch {
       setSonuc({ tur: "hata", mesaj: "Sunucuya ulaşılamadı." });
     } finally {
       setCalisiyor(false);
     }
-  }, [router, uc, yenilemeSn]);
+  }, [router, uc]);
 
   return (
     <div className="flex flex-col items-start gap-1.5">
       <Button type="button" variant="outline" size="sm" onClick={tetikle} disabled={calisiyor}>
         <RefreshCw className={calisiyor ? "animate-spin" : undefined} />
-        {calisiyor ? "Başlatılıyor…" : etiket}
+        {calisiyor ? "Üretiliyor…" : etiket}
       </Button>
       {aciklama && <p className="text-xs text-muted-foreground">{aciklama}</p>}
       {sonuc && (

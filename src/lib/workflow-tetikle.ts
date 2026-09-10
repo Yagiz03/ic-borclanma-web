@@ -23,12 +23,51 @@ const GH = "https://api.github.com";
  */
 const PATLAMA_KORUMASI_SN = 45;
 
+type Kosu = { id: number; status: string; conclusion: string | null; created_at: string; html_url: string };
+
 function baslıklar(token: string) {
   return {
     Accept: "application/vnd.github+json",
     Authorization: `Bearer ${token}`,
     "X-GitHub-Api-Version": "2022-11-28",
   };
+}
+
+async function sonKosu(token: string, workflow: string): Promise<Kosu | null> {
+  const y = await fetch(`${GH}/repos/${REPO}/actions/workflows/${workflow}/runs?per_page=1`, {
+    headers: baslıklar(token),
+    cache: "no-store",
+  });
+  if (!y.ok) return null;
+  const { workflow_runs: kosular } = (await y.json()) as { workflow_runs: Kosu[] };
+  return kosular?.[0] ?? null;
+}
+
+/**
+ * Son calismanin durumu. Tus bunu yokluyor: eskiden sabit surelerde
+ * (25/45 sn) sayfa yenileniyordu, yani rapor 17. saniyede hazir olsa bile
+ * bekliyordun. Yoklamayla rapor DUSTUGU an gorunuyor.
+ *
+ * `oncekiId`: tetiklemeden ONCEKI calismanin kimligi. GitHub'in runs API'si
+ * yeni calismayi birkac saniye gecikmeyle gosterdigi icin, ayni kimligi
+ * gorurken "bitti" demiyoruz -- yoksa tus bir onceki calismanin sonucuna
+ * bakip hemen "hazir" derdi.
+ */
+export async function workflowDurumu(workflow: string, oncekiId: number | null): Promise<Response> {
+  const token = process.env.GITHUB_DISPATCH_TOKEN;
+  if (!token) return Response.json({ durum: "bilinmiyor" });
+
+  const son = await sonKosu(token, workflow);
+  if (!son) return Response.json({ durum: "bilinmiyor" });
+  if (oncekiId != null && son.id === oncekiId) {
+    return Response.json({ durum: "bekliyor", kosuId: son.id });
+  }
+  return Response.json({
+    durum: son.status === "completed" ? "bitti" : "calisiyor",
+    sonuc: son.conclusion,
+    kosuId: son.id,
+    url: son.html_url,
+  });
 }
 
 export async function workflowTetikle(
@@ -43,15 +82,8 @@ export async function workflowTetikle(
     );
   }
 
-  const sonlar = await fetch(
-    `${GH}/repos/${REPO}/actions/workflows/${workflow}/runs?per_page=1`,
-    { headers: baslıklar(token), cache: "no-store" },
-  );
-  if (sonlar.ok) {
-    const { workflow_runs: kosular } = (await sonlar.json()) as {
-      workflow_runs: { status: string; created_at: string; html_url: string }[];
-    };
-    const son = kosular?.[0];
+  const son = await sonKosu(token, workflow);
+  {
     if (son) {
       if (son.status !== "completed") {
         return Response.json(
@@ -87,5 +119,10 @@ export async function workflowTetikle(
     );
   }
 
-  return Response.json({ durum: "baslatildi", mesaj: mesajlar.baslatildi });
+  // oncekiKosuId: tus bunu yoklamada kullaniyor (bkz. workflowDurumu).
+  return Response.json({
+    durum: "baslatildi",
+    mesaj: mesajlar.baslatildi,
+    oncekiKosuId: son?.id ?? null,
+  });
 }

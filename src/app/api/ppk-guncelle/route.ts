@@ -8,11 +8,18 @@
  * Neden cron değil: PPK yılda 8 kez ve düzensiz aralıklarla toplanıyor --
  * karar günü tek tıkla tetiklemek günlük boş çalışmadan doğru.
  */
-import { workflowTetikle } from "@/lib/workflow-tetikle";
+import { workflowDurumu, workflowTetikle } from "@/lib/workflow-tetikle";
 
 export async function POST() {
   return workflowTetikle("ppk-karar-farki.yml", {
     calisiyor: "Rapor şu an zaten üretiliyor.",
     baslatildi: "Rapor üretiliyor, ~20 saniye.",
   });
+}
+
+/** Tusun yoklamasi: ?oncekiKosuId= ile "yeni calisma basladi mi, bitti mi". */
+export async function GET(istek: Request) {
+  const ham = new URL(istek.url).searchParams.get("oncekiKosuId");
+  const onceki = ham && /^\d+$/.test(ham) ? Number(ham) : null;
+  return workflowDurumu("ppk-karar-farki.yml", onceki);
 }

@@ -354,7 +354,6 @@ export default async function TcmbPage({
           <div className="mb-4">
             <RaporGuncelleButonu
               uc="/api/ppk-guncelle"
-              yenilemeSn={[25, 45]}
               aciklama="Yeni PPK kararı çıktığı gün bas — son iki karar metni indirilip fark raporu yeniden üretilir."
             />
           </div>
