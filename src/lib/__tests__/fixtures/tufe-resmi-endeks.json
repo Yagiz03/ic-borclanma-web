@@ -1,0 +1,38 @@
+{
+  "tarih": "2026-09-10",
+  "gunluk": {
+    "2003|2026-09-10": 4160.025
+  },
+  "kagitlar": {
+    "TRD020627T17": {
+      "tabanYili": 2003,
+      "ihracEndeks": 2148.540667,
+      "beklenenOran": 1.93620956954407
+    },
+    "TRD070432T17": {
+      "tabanYili": 2003,
+      "ihracEndeks": 786.473333,
+      "beklenenOran": 5.289467328957738
+    },
+    "TRD200127T10": {
+      "tabanYili": 2003,
+      "ihracEndeks": 600.868387,
+      "beklenenOran": 6.92335474790089
+    },
+    "TRD280531T12": {
+      "tabanYili": 2003,
+      "ihracEndeks": 525.874,
+      "beklenenOran": 7.910687731281636
+    },
+    "TRT020529T18": {
+      "tabanYili": 2003,
+      "ihracEndeks": 2088.690645,
+      "beklenenOran": 1.991690349146941
+    },
+    "TRT040832T18": {
+      "tabanYili": 2003,
+      "ihracEndeks": 955.574194,
+      "beklenenOran": 4.35342961972035
+    }
+  }
+}

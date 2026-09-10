@@ -77,7 +77,7 @@ export function PricingHesaplayici({
   const [girdi, setGirdi] = useState("100.000");
 
   const kagit = kagitlar.find((k) => k.isin === isin);
-  const { tlrefSeri, tufeSeri, referansIhaleler } = useFloaterSeriler(floaterVeri);
+  const { tlrefSeri, tufeSeri, referansIhaleler, resmiEndeks } = useFloaterSeriler(floaterVeri);
   const sabitMi = !kagit || SABIT_TIPLER.includes(kagit.senetTanimi);
 
   const sonuc = useMemo(() => {
@@ -220,6 +220,7 @@ export function PricingHesaplayici({
           ppkGunleri={ppkGunleri}
           tlrefSeri={tlrefSeri}
           tufeSeri={tufeSeri}
+          resmiEndeks={resmiEndeks}
           referansIhaleler={referansIhaleler}
         />
       )}
@@ -296,6 +297,7 @@ function FloaterBolumu({
   ppkGunleri,
   tlrefSeri,
   tufeSeri,
+  resmiEndeks,
   referansIhaleler,
 }: {
   kagit: FiyatlanabilirKagit;
@@ -303,6 +305,7 @@ function FloaterBolumu({
   ppkGunleri: string[];
   tlrefSeri: Parameters<typeof TlrefFiyatlama>[0]["seri"];
   tufeSeri: Parameters<typeof TufeFiyatlama>[0]["tufeSeri"];
+  resmiEndeks: Parameters<typeof TufeFiyatlama>[0]["resmiEndeks"];
   referansIhaleler: Parameters<typeof FrnFiyatlama>[0]["referansIhaleler"];
 }) {
   const vade = utcTarihe(kagit.vade);
@@ -348,6 +351,8 @@ function FloaterBolumu({
   if (kagit.senetTanimi === TUFE_TIPI) {
     return (
       <TufeFiyatlama
+        isin={kagit.isin}
+        resmiEndeks={resmiEndeks}
         tufeSeri={tufeSeri}
         vade={vade}
         anchor={ihrac}

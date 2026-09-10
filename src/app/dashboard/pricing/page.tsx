@@ -7,6 +7,7 @@ import {
   degiskenFaizliReferansIhaleleriYukle,
   tlrefEndeksSerisiYukle,
   tufeDuzeySerisiYukle,
+  resmiTufeEndeksleriYukle,
 } from "@/lib/floater-veri";
 import { TakasMevduatHesaplayici } from "./takas-mevduat-hesaplayici";
 import { PnlBolumu } from "@/app/dashboard/pnl/pnl-bolumu";
@@ -77,12 +78,13 @@ export default async function PricingPage({
     };
   });
 
-  const [tlref, tufe, referansIhaleler] = await Promise.all([
+  const [tlref, tufe, referansIhaleler, resmiEndeks] = await Promise.all([
     tlrefEndeksSerisiYukle(),
     tufeDuzeySerisiYukle(),
     degiskenFaizliReferansIhaleleriYukle(),
+    resmiTufeEndeksleriYukle(),
   ]);
-  const floaterVeri: FloaterVeri = { tlref, tufe, referansIhaleler };
+  const floaterVeri: FloaterVeri = { tlref, tufe, referansIhaleler, resmiEndeks };
 
   const [{ data: koridorHam }, { data: politikaHam }, { data: ppkHam }] = await Promise.all([
     supabase.from("tcmb_faiz_koridoru").select("tarih, borc_alma, borc_verme").order("tarih", { ascending: false }).limit(1),

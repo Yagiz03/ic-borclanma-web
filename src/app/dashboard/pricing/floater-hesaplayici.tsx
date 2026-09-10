@@ -19,9 +19,11 @@ import {
   referansTufeEndeksi,
   tlrefBirikmisKupon,
   tufeEndeksOrani,
+  resmiTufeEndeksOrani,
   type ReferansIhale,
   type TlrefSeri,
   type TufeSeri,
+  type ResmiEndeksTablosu,
 } from "@/lib/bond-math/floater";
 import {
   getiriBul,
@@ -43,6 +45,8 @@ export type FloaterVeri = {
   tlref: { tarihler: string[]; degerler: number[] };
   tufe: { tarihler: string[]; degerler: number[] };
   referansIhaleler: { valor: string; vade: string; bf: number; ts: number }[];
+  /** HMB'nin RESMİ Referans Endeks tabloları (bkz. lib/floater-veri.ts). */
+  resmiEndeks: { gunluk: [string, number][]; ihrac: [string, [number, number]][] };
 };
 
 export function useFloaterSeriler(veri: FloaterVeri) {
@@ -59,6 +63,10 @@ export function useFloaterSeriler(veri: FloaterVeri) {
       referansIhaleler: veri.referansIhaleler.map(
         (r): ReferansIhale => ({ valor: g(r.valor), vade: g(r.vade), bf: r.bf, ts: r.ts }),
       ),
+      resmiEndeks: {
+        gunluk: new Map(veri.resmiEndeks.gunluk),
+        ihrac: new Map(veri.resmiEndeks.ihrac),
+      } satisfies ResmiEndeksTablosu,
     }),
     [veri],
   );
@@ -461,6 +469,8 @@ export function TufeFiyatlama({
   ihracTarihi,
   valor,
   reelKuponPct,
+  isin,
+  resmiEndeks,
 }: {
   tufeSeri: TufeSeri;
   vade: Date;
@@ -468,6 +478,8 @@ export function TufeFiyatlama({
   ihracTarihi: Date;
   valor: Date;
   reelKuponPct: number;
+  isin: string;
+  resmiEndeks: ResmiEndeksTablosu;
 }) {
   const [mod, setMod] = useState<"getiri" | "fiyat">("getiri");
   const [girdi, setGirdi] = useState("3.00");
@@ -484,10 +496,15 @@ export function TufeFiyatlama({
     const { kirli, birikmis, temiz } = temizFiyatHesapla(vade, anchor, valor, kupon, reelGetiri);
     const { modified } = modifiedDurationHesapla(akislar, valor, reelGetiri);
     const dv01 = dv01Hesapla(akislar, valor, reelGetiri);
-    const endeksOrani = tufeEndeksOrani(valor, ihracTarihi, tufeSeri);
+    // ÖNCELİK: HMB'nin resmi tablosu (kesin). Kapsamıyorsa EVDS'ten
+    // interpolasyonla yaklaşık hesap -- eski Streamlit sayfasının davranışı.
+    const resmiOran = resmiTufeEndeksOrani(isin, valor, resmiEndeks);
+    const endeksOrani = resmiOran ?? tufeEndeksOrani(valor, ihracTarihi, tufeSeri);
+    const endeksKaynak: "resmi" | "evds" | null =
+      resmiOran != null ? "resmi" : endeksOrani != null ? "evds" : null;
     const refEndeks = referansTufeEndeksi(valor, tufeSeri);
-    return { reelGetiri, kirli, birikmis, temiz, modified, dv01, endeksOrani, refEndeks, akislar };
-  }, [girdi, mod, reelKuponPct, vade, anchor, valor, ihracTarihi, tufeSeri]);
+    return { reelGetiri, kirli, birikmis, temiz, modified, dv01, endeksOrani, endeksKaynak, refEndeks, akislar };
+  }, [girdi, mod, reelKuponPct, vade, anchor, valor, ihracTarihi, tufeSeri, isin, resmiEndeks]);
 
   return (
     <div className="space-y-5">

@@ -500,6 +500,42 @@ export function referansTufeEndeksi(tarih: Date, seri: TufeSeri): number | null 
   return tufeA3 + ((g - 1) / ag) * (tufeA2 - tufeA3);
 }
 
+/** HMB'nin RESMİ olarak yayımladığı günlük Referans Endeks tablosu.
+ *  Anahtar: `${taban_yili}|${YYYY-MM-DD}`. */
+export type ResmiEndeksTablosu = {
+  gunluk: Map<string, number>;
+  /** ISIN -> [taban yılı, ihraç anındaki resmi Referans Endeks]. */
+  ihrac: Map<string, [number, number]>;
+};
+
+/**
+ * Endeks Oranı'nı HMB'nin RESMİ tablosundan doğrudan OKUR -- hiçbir
+ * interpolasyon yapmaz.
+ *
+ * Neden gerekli: referansTufeEndeksi/tufeEndeksOrani, EVDS'in aylık endeks
+ * düzeyinden HMB formülüyle kendisi hesaplıyor ve TÜFE'nin baz yılı
+ * değişimini (2003=100 -> 2025=100) tek sürekli seri gibi ele alıyor.
+ * 10.09.2026'da ölçüldü: çoğu kağıtta %0,05-0,3, TRT070727T13'te %38 sapma.
+ *
+ * ISIN tabloda yoksa (HMB henüz eklemediyse ya da kağıt itfa olup düştüyse)
+ * veya tarih tabloyu kapsamıyorsa null döner -- çağıran o zaman EVDS
+ * tabanlı yaklaşık hesaba düşebilir.
+ */
+export function resmiTufeEndeksOrani(
+  isin: string,
+  tarih: Date,
+  tablo: ResmiEndeksTablosu,
+): number | null {
+  const kayit = tablo.ihrac.get(isin);
+  if (!kayit) return null;
+  const [tabanYili, ihracEndeks] = kayit;
+  if (!ihracEndeks) return null;
+  const gun = `${tabanYili}|${tarih.toISOString().slice(0, 10)}`;
+  const bugunku = tablo.gunluk.get(gun);
+  if (bugunku == null) return null;
+  return bugunku / ihracEndeks;
+}
+
 /** Endeks Oranı = Referans Endeks(tarih) / Referans Endeks(ihraç). */
 export function tufeEndeksOrani(tarih: Date, ihracTarihi: Date, seri: TufeSeri): number | null {
   const refTarih = referansTufeEndeksi(tarih, seri);

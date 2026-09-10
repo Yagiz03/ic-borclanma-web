@@ -100,3 +100,56 @@ export async function degiskenFaizliReferansIhaleleriYukle(): Promise<ReferansIh
   }
   return sonuc;
 }
+
+export type ResmiEndeksVerisi = {
+  /** `${taban_yili}|${YYYY-MM-DD}` -> resmi günlük Referans Endeks. */
+  gunluk: [string, number][];
+  /** ISIN -> [taban yılı, ihraç anındaki resmi Referans Endeks]. */
+  ihrac: [string, [number, number]][];
+};
+
+/**
+ * HMB'nin RESMİ Referans Endeks tabloları (core/data.py::hmb_tufe_referans_
+ * endeksleri_yukle + hmb_tufe_ihrac_endeksleri_yukle karşılığı).
+ *
+ * Neden: TÜFE'ye endeksli kağıtların Endeks Oranı bunlardan KESİN okunuyor;
+ * EVDS'ten kendi interpolasyonumuz baz yılı değişimini (2003=100 -> 2025=100)
+ * yönetemiyor ve sapıyor (bkz. bond-math/floater.ts::resmiTufeEndeksOrani).
+ *
+ * Günlük tablo 7.400+ satır; hepsi tarayıcıya inmesin diye yalnızca
+ * hesaplayıcının kullanabileceği pencere (bugünden geriye 1 yıl) çekiliyor.
+ * Dışarıda kalan tarihlerde çağıran EVDS tabanlı yedek hesaba düşüyor --
+ * eski Streamlit sayfasının davranışının aynısı.
+ */
+export async function resmiTufeEndeksleriYukle(): Promise<ResmiEndeksVerisi> {
+  const supabase = await createClient();
+  const esik = new Date(Date.now() - 365 * 86_400_000).toISOString().slice(0, 10);
+
+  const [{ data: gunlukHam }, { data: ihracHam }] = await Promise.all([
+    tumSatirlariGetir<{ taban_yili: number; tarih: string; referans_endeks: number | null }>(
+      (from, to) =>
+        supabase
+          .from("hmb_tufe_referans_endeksleri")
+          .select("taban_yili, tarih, referans_endeks")
+          .gte("tarih", esik)
+          .order("tarih")
+          .range(from, to),
+    ),
+    tumSatirlariGetir<{ isin: string; taban_yili: number; ihrac_referans_endeks: number | null }>(
+      (from, to) =>
+        supabase
+          .from("hmb_tufe_ihrac_endeksleri")
+          .select("isin, taban_yili, ihrac_referans_endeks")
+          .range(from, to),
+    ),
+  ]);
+
+  return {
+    gunluk: (gunlukHam ?? [])
+      .filter((r) => r.referans_endeks != null)
+      .map((r) => [`${r.taban_yili}|${r.tarih.slice(0, 10)}`, Number(r.referans_endeks)]),
+    ihrac: (ihracHam ?? [])
+      .filter((r) => r.ihrac_referans_endeks != null)
+      .map((r) => [r.isin, [r.taban_yili, Number(r.ihrac_referans_endeks)]]),
+  };
+}
