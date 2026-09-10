@@ -50,11 +50,12 @@ async function FinansmanIlerlemeBolumu() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-full min-w-[8rem]">Kalem</TableHead>
-                <TableHead className="text-right"><KolonBasligi ust="Planlanan" alt="Mlr TL" /></TableHead>
-                <TableHead className="text-right"><KolonBasligi ust="Gerçekleşen" alt="Mlr TL" /></TableHead>
-                <TableHead className="text-right"><KolonBasligi ust="Kalan" alt="Mlr TL" /></TableHead>
-                <TableHead className="text-right">İlerleme</TableHead>
+                {/* Kalem'de w-full yok: sayi kolonlarini en saga sikistiriyordu. */}
+                <TableHead className="min-w-[14rem]">Kalem</TableHead>
+                <TableHead className="min-w-[7rem] px-4 text-right"><KolonBasligi ust="Planlanan" alt="Mlr TL" /></TableHead>
+                <TableHead className="min-w-[7rem] px-4 text-right"><KolonBasligi ust="Gerçekleşen" alt="Mlr TL" /></TableHead>
+                <TableHead className="min-w-[7rem] px-4 text-right"><KolonBasligi ust="Kalan" alt="Mlr TL" /></TableHead>
+                <TableHead className="min-w-[6rem] px-4 text-right">İlerleme</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -63,10 +64,10 @@ async function FinansmanIlerlemeBolumu() {
                   <TableCell>
                     <div className="font-medium">{k.kalem}</div>
                   </TableCell>
-                  <TableCell className="font-figures text-right">{milyarTl(k.plan)}</TableCell>
-                  <TableCell className="font-figures text-right">{milyarTl(k.gerceklesen)}</TableCell>
-                  <TableCell className="font-figures text-right">{milyarTl(k.kalan)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="font-figures px-4 text-right">{milyarTl(k.plan)}</TableCell>
+                  <TableCell className="font-figures px-4 text-right">{milyarTl(k.gerceklesen)}</TableCell>
+                  <TableCell className="font-figures px-4 text-right">{milyarTl(k.kalan)}</TableCell>
+                  <TableCell className="px-4 text-right">
                     <IlerlemeRozeti oran={k.oran} />
                   </TableCell>
                 </TableRow>
