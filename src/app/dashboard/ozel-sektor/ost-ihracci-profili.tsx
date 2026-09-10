@@ -50,12 +50,28 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
 
   const [seciliIhracci, setSeciliIhracci] = useState(TUMU);
   const [seciliAraci, setSeciliAraci] = useState(TUMU);
+  const [arama, setArama] = useState("");
+
+  /** ISIN öncelikli, ama ihraççı/aracı/açıklama metninde de arıyor. */
+  const eslesiyorMu = (k: MkbSatiri, q: string) =>
+    [k.isin, k.ihracci_kurum, k.araci_kurum_unvan, k.mk_turu, k.aciklama]
+      .some((alan) => alan?.toLocaleLowerCase("tr").includes(q));
+
+  const sorgu = arama.trim().toLocaleLowerCase("tr");
 
   const buIhracci = useMemo(() => {
     let sonuc = seciliIhracci === TUMU ? kagitlar : kagitlar.filter((k) => k.ihracci_kurum === seciliIhracci);
     if (seciliAraci !== TUMU) sonuc = sonuc.filter((k) => k.araci_kurum_unvan === seciliAraci);
+    if (sorgu) sonuc = sonuc.filter((k) => eslesiyorMu(k, sorgu));
     return sonuc;
-  }, [kagitlar, seciliIhracci, seciliAraci]);
+  }, [kagitlar, seciliIhracci, seciliAraci, sorgu]);
+
+  // Arama sonuc vermediyse kağıt seçili filtrelerin DIŞINDA olabilir --
+  // kullanıcı ISIN'i doğru yazdığı halde boş ekran görmesin.
+  const filtreDisiEslesme = useMemo(() => {
+    if (!sorgu || buIhracci.length > 0) return 0;
+    return kagitlar.filter((k) => eslesiyorMu(k, sorgu)).length;
+  }, [kagitlar, sorgu, buIhracci.length]);
 
   const toplamTutar = buIhracci.reduce((s, k) => s + (k.toplam_ihrac_tutari_bin ?? 0), 0) / 1000;
   const ilkIhracTarihleri = buIhracci.map((k) => trTarihiParcala(k.ilk_ihrac_tarihi)).filter((d): d is Date => d != null);
@@ -104,7 +120,46 @@ export function OstIhracciProfili({ kagitlar }: { kagitlar: MkbSatiri[] }) {
             />
           </div>
         )}
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-muted-foreground" htmlFor="ost-isin-ara">
+            ISIN ara
+          </label>
+          <input
+            id="ost-isin-ara"
+            value={arama}
+            onChange={(e) => setArama(e.target.value)}
+            placeholder="ISIN, ihraççı veya açıklama…"
+            className="font-figures h-9 w-64 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+          />
+          {arama && (
+            <button
+              type="button"
+              onClick={() => setArama("")}
+              className="rounded-md border border-input px-2.5 py-1 text-xs hover:bg-muted"
+            >
+              Temizle
+            </button>
+          )}
+        </div>
       </div>
+
+      {filtreDisiEslesme > 0 && (
+        <p className="text-sm text-muted-foreground">
+          Seçili filtrelerde eşleşme yok — bu aramaya uyan{" "}
+          <b className="text-foreground">{filtreDisiEslesme}</b> kağıt var ama seçili ihraççı/aracı
+          kurum dışında.{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setSeciliIhracci(TUMU);
+              setSeciliAraci(TUMU);
+            }}
+            className="underline underline-offset-2"
+          >
+            Filtreleri kaldır
+          </button>
+        </p>
+      )}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Card><CardContent className="pt-6"><div className="text-xs text-muted-foreground">Toplam ihraç sayısı</div><div className="font-figures mt-1 text-xl font-semibold">{buIhracci.length}</div></CardContent></Card>
